@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% optspkg.sty
+%
+% Provides a set of macros to be used in conjunction with gen-opts.py to emulate
+% passing common command-line arguments to control comments, draft mode,
+% debugging, etc. to a LaTeX build.
+%
+% Users of this package should:
+%
+%   1. Integrate generating an options file with gen-opts.py into their build.
+%   2. Include this package in their preamble.
+%   3. Include the generated options file in their preamble.
+%
+% See gen-opts.py for the list of available options and their semantics.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\NeedsTeXFormat{LaTeX2e}
+
+\ProvidesPackage{optspkg}
+
+\RequirePackage{etoolbox}
+\RequirePackage{syntonly}
+\RequirePackage{xcolor}
+\RequirePackage{xspace}
+
+\providetoggle{overfullhbox}
+\providetoggle{syntaxonly}
+\providetoggle{comments}
+
+\providetoggle{draft}
+
+\iftoggle{overfullhbox}
+  {\overfullrule=2cm}
+  {}
+
+\iftoggle{syntaxonly}
+  {\syntaxonly}
+  {}
+
+\newcommand{\comment}[1]
+  {\iftoggle{comments}
+    {\emph{\textcolor{blue}{(#1)}}\xspace}
+    {}}
+
+\newcommand{\todo}[1]
+  {\iftoggle{comments}
+    {\emph{\textcolor{red}{(TODO:\@#1)}}\xspace}
+    {}}
+
+\endinput

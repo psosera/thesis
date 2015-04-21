@@ -1,0 +1,270 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+% Entry point for the thesis document.                                         %
+%                                                                              %
+% Formatting lifted from the UPenn dissertation manual:                        %
+%   provost.upenn.edu/uploads/media_items/dissertation-manual.original.pdf     %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt, oneside]{book}
+
+\newcommand{\Title}{PROGRAM SYNTHESIS WITH TYPES}
+\title{\Title}
+\author{Peter-Michael Osera}
+
+%%%%%%%%%%%%%%%%%%%% Packages {{{ %%%%%%%%%%%%%%%%%%%%
+
+%%%%% PDF output %%%%%
+\usepackage[pdftex]{hyperref}
+\hypersetup{%
+  pdftitle={\Title},
+  pdfauthor={Peter-Michael Osera},
+  bookmarksnumbered=true,
+  bookmarksopen=true,
+  bookmarksopenlevel=1,
+  hidelinks,
+  naturalnames=true,
+  pdfstartview=Fit,
+  pdfpagemode=UseOutlines,
+  pdfpagelayout=TwoPageRight
+}
+
+%%%%% Unicode + Language %%%%%
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{unicodedefns}
+
+%%%%% Options %%%%%
+\usepackage{optspkg}
+\input{opts.gen}
+
+%%%%% General %%%%%
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{etoolbox}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage[amsmath, amsthm, thmmarks]{ntheorem}
+\usepackage{prettyref}
+\usepackage{setspace}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{xspace}
+
+%%%%% Fonts %%%%%
+\usepackage[sc]{mathpazo}
+\linespread{1.05}
+
+%%%%% Page formatting %%%%%
+\usepackage[
+  top=1in,
+  bottom=1in,
+  left=1.5in,
+  right=1in,
+  includefoot,
+  paperwidth=8.5in,
+  paperheight=11in
+]{geometry}
+
+\usepackage{fancyhdr}
+\lfoot[\fancyplain{}{}]{\fancyplain{}{}}
+\rfoot[\fancyplain{}{}]{\fancyplain{}{}}
+\cfoot[\fancyplain{}{\footnotesize\thepage}]{%
+  \fancyplain{}{\footnotesize\thepage}
+}
+\lhead[\fancyplain{}{}]{\fancyplain{}{}}
+\rhead[\fancyplain{}{}]{\fancyplain{}{}}
+\iftoggle{draft}{%
+\chead[\fancyplain{}{\textbf{DRAFT --- \today}}]{%
+  \fancyplain{}{\textbf{DRAFT --- \today}}
+}}{}
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\pagenumbering{roman}
+\pagestyle{fancy}
+%\frenchspacing
+\numberwithin{equation}{section}
+% NOTE: suppress underfull \hbox warnings...
+\hbadness=10001
+
+\newcommand{\doublespaced}{\renewcommand{\baselinestretch}{2}\normalfont}
+\newcommand{\singlespaced}{\renewcommand{\baselinestretch}{1}\normalfont}
+
+%%%%%%%%%%%%%%%%%%%% Title page {{{ %%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\signature}{%
+  \\\underline{\hspace{20em}}
+}
+
+\thispagestyle{empty}
+
+\doublespaced
+\large\newlength{\oldparskip}\setlength\oldparskip{\parskip}\parskip=.3in
+\begin{centering}
+  \vfill
+  {\Huge \Title} \\
+  Peter-Michael Osera \\
+  A DISSERTATION \\
+  in \\
+  Computer and Information Science
+
+  \noindent\singlespaced\large
+  Presented to the Faculties of the University of Pennsylvania \\
+  in \\
+  Partial Fulfillment of the Requirements for the \\
+  Degree of Doctor of Philosophy \\
+  \doublespaced\large
+  2015 \\
+\end{centering}
+
+\vfill
+\singlespaced
+
+{\small
+
+\noindent
+Supervisor of Dissertation \\
+\signature \\
+Steve Zdancewic \\
+Professor of CIS \\
+
+\noindent
+Graduate Group Chairperson \\
+\signature \\
+Lyle Ungar \\
+Professor of CIS
+
+\vspace{-0.1in}
+\noindent
+Dissertation Committee \\
+Stephanie Weirich (Professor of CIS, Committee Chair) \\
+Benjamin Pierce (Professor of CIS) \\
+Rajeev Alur (Professor of CIS) \\
+Sumit Gulwani (Principal Researcher, Microsoft Corporation) \\
+}
+
+\normalsize\parskip=\oldparskip
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Copyright Notice {{{ %%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\thispagestyle{empty}
+\noindent\makebox[\textwidth][c]{%
+  \begin{minipage}[c][\textheight]{0.75\textwidth}
+    \doublespaced
+    \parskip=.3in
+
+    \Title \\
+    COPYRIGHT \\
+    2015 \\
+    Peter-Michael Osera \bigskip
+
+    \singlespaced
+    \parskip=\oldparskip
+
+    This work is licensed under a
+    \href{http://creativecommons.org/licenses/by/4.0}
+    {Creative Commons Attribution 4.0 International License}.
+    To view a copy of this license, visit \bigskip
+
+    \url{http://creativecommons.org/licenses/by/4.0/} \bigskip
+  \end{minipage}
+}
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Dedication {{{ %%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\thispagestyle{empty}
+\noindent\makebox[\textwidth][c]{%
+  \begin{minipage}[c][\textheight]{0.8\textwidth}
+  \todo{Dedication.}
+  \end{minipage}
+}
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Acknowledgements {{{ %%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\chapter*{Acknowledgements}
+\input{acks}
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Abstract {{{ %%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\begin{doublespace}
+  \begin{centering}
+    {\Large ABSTRACT} \\
+    \title \\
+    Peter-Michael Osera \\
+    Steve Zdancewic \\
+  \end{centering}
+
+\vspace*{1in}
+
+\input{abstract}
+\end{doublespace}
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Tables and Lists {{{ %%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\tableofcontents
+
+\newpage
+\listoftables
+\listoffigures
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Preface {{{ %%%%%%%%%%%%%%%%%%%%
+
+\newpage
+Preface
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Main text {{{ %%%%%%%%%%%%%%%%%%%%
+
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\hypersetup{pageanchor=true}
+\input{content.gen}
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Appendices {{{ %%%%%%%%%%%%%%%%%%%%
+
+\appendix
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Bibliography {{{ %%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% Index {{{ %%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
+
+\end{document}
