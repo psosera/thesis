@@ -1,0 +1,55 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      τ  & \bnfdef & τ_1 → τ_2 \bnfalt 1 & Types\\
+      e  & \bnfdef & x \bnfalt e_1\;e_2 \bnfalt λx:τ.\;e \bnfalt () & Terms \\
+      v  & \bnfdef & λx:τ.\;e \bnfalt () & Values \\
+      ℰ  & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ & Evaluation Contexts \\
+      Γ  & \bnfdef & · \bnfalt x:τ, Γ & Typing Contexts \\
+      \\
+      E  & \bnfdef & x \bnfalt E\;I & Elimination Terms \\
+      I  & \bnfdef & E \bnfalt λx:τ.\;I \bnfalt () & Introduction Terms \\
+      σ  & \bnfdef & · \bnfalt [v/x]σ & Evaluation Environments \\
+      χ  & \bnfdef & () \bnfalt pf & Example Values \\
+      pf & \bnfdef & \many{v_i ⇒ χ_i}{i < m} & Partial Functions \\
+      Χ  & \bnfdef & · \bnfalt σ ↦ χ, Χ &  Example Worlds
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \fbox{$Γ ⊢ e : τ$}\;\fbox{$e⟶ e'$} \qquad
+        \text{(Same as \stlcu{})} \\
+      \fbox{$Γ ⊢ E ⇒ τ$} \qquad
+        \inferrule[t-Evar]
+          {x:τ ∈ Γ}
+          {Γ ⊢ x ⇒ τ} \qquad
+        \inferrule[t-Eapp]
+          {Γ ⊢ E ⇒ τ_1 → τ_2 \\ Γ ⊢ I ⇐ τ_1}
+          {Γ ⊢ E\;I ⇒ τ_2} \\
+      \fbox{$Γ ⊢ I ⇐ τ$} \qquad
+        \inferrule[t-Ilam]
+          {x:τ_1, Γ ⊢ I ⇐ τ_2}
+          {Γ ⊢ λx:τ_1.\;I ⇐ τ_1 → τ_2} \qquad
+        \inferrule[t-Iunit]
+          { }
+          {Γ ⊢ () ⇐ 1} \\
+      \fbox{$Γ ⊢ σ$} \qquad
+        \inferrule[t-env-empty]
+          { }
+          {Γ ⊢ ·} \qquad
+        \inferrule[t-env-cons]
+          {x:τ ∈ Γ \\ ⊢ v : τ \\ Γ ⊢ σ}
+          {Γ ⊢ [v/x]σ} \\
+      \fbox{$Γ ⊢ Χ : τ$} \qquad
+        \inferrule[t-ex-empty]
+          { }
+          {Γ ⊢ · : τ} \qquad
+        \inferrule[t-ex-cons]
+          {Γ ⊢ σ \\ Γ ⊢ χ : τ \\ Γ ⊢ Χ : τ}
+          {Γ ⊢ σ ↦ χ, Χ : τ}
+    \end{gather*}
+  \end{center}
+
+  \hrule
+  \caption{\lsynu{} syntax and typechecking}
+  \label{fig:lsyn-unit-defn}
+\end{figure}

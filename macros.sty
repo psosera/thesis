@@ -1,0 +1,46 @@
+\ProvidesPackage{macros}
+
+%%%%% Names {{{
+
+\newcommand{\stlcu}{$λ^{→,1}$}
+\newcommand{\lsynu}{$λ_{syn}^{→,1}$}
+
+%%%%% }}}
+
+%%%%% General typesetting {{{
+
+\def\eg{\emph{e.g.\@\xspace}}
+\def\ie{\emph{i.e.\@\xspace}}
+\def\etc{\emph{etc.\@\xspace}}
+\def\etal{\emph{et\ al.\@\xspace}}
+
+% NOTE: so \autoref does the right thing for Section capitalization
+\renewcommand{\sectionautorefname}{Section}
+\renewcommand{\subsectionautorefname}{Section}
+
+%%%%% }}}
+
+%%%%% Math typesetting {{{
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{property}{Property}
+\newtheorem{invariant}{Invariant}
+\newtheorem{definition}{Definition}
+\newtheorem{claim}{Claim}
+
+\def\lemmaautorefname{Lemma}
+\def\propertyautorefname{Property}
+\def\invariantautorefname{Invariant}
+\def\definitionautorefname{Definition}
+\def\claimautorefname{Claim}
+
+\newcommand{\bnfalt}{\;\mathrel{\mid}\;}
+\newcommand{\bnfdef}{\mathrel{\!\colon\!\!\colon\!\mathord{=}}}
+\newcommand{\concat}{\mathbin{+\!\!+}}
+
+\newcommand{\many}[2]{\overline{#1}^{#2}}
+\newcommand{\mkwd}[1]{\mathsf{#1}}
+\newcommand{\mfun}[1]{\mathbf{#1}}
+
+%%%%% }}}

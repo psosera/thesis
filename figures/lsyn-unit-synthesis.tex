@@ -1,0 +1,41 @@
+\begin{figure}
+  \begin{center}
+    \begin{gather*}
+      \fbox{$Γ ⊢ τ ⇝ E$} \qquad
+        \inferrule[eguess-var]
+          {x:τ ∈ Γ}
+          {Γ ⊢ τ ⇝ x} \qquad
+        \inferrule[eguess-app]
+          {Γ ⊢ E ⇝ τ_1 → τ_2 \\ Γ ⊢ τ_1 ▷ · ⇝ I}
+          {Γ ⊢ τ_2 ⇝ E\;I} \\
+      \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
+        \inferrule[irefine-arr]
+          {X = σ_1 ↦ pf_1, …, σ_n ↦ pf_n \\\\
+          Χ' = \mfun{apply}(x, σ_1, pf_1) \concat … \concat \mfun{apply}(x, σ_n, pf_n) \\\\
+          x:τ_1, Γ ⊢ τ_2 ▷ Χ' ⇝ I}
+          {Γ ⊢ τ_1 → τ_2 ▷ Χ ⇝ λx:τ_1.\;I} \\
+        \inferrule[irefine-unit]
+          {Χ = σ_1 ↦ (), …, σ_n ↦ ()}
+          {Γ ⊢ 1 ▷ Χ ⇝ ()} \qquad
+        \inferrule[irefine-guess]
+          {Γ ⊢ τ ⇝ E \\ E ⊢ Χ}
+          {Γ ⊢ τ ▷ Χ ⇝ E} \\
+      \fbox{$I ⊢ Χ$} \qquad
+        \inferrule[satisfies]
+          {∀σ ↦ χ ∈ Χ.\;σ(I) ⟶^* v ∧ v ≃ χ}
+          {I ⊢ Χ} \\
+      \fbox{$v ≃ χ$} \qquad
+        \inferrule[eq-unit]
+          { }
+          {() ≃ ()} \qquad
+        \inferrule[eq-lam-pf]
+          {∀i ∈ 1, …, m.\; (λx:τ.\;e)\;v_i ⟶^* v ∧ v ≃ χ_i}
+          {λx:τ.\;e ≃ \many{v_i ⇒ χ_i}{i < m}} \\
+      \mfun{apply}(x, σ, \many{v_i ⇒ χ_i}{i < m}) = [v_i/x]σ ↦ χ_i, …, [v_m/x]σ ↦ χ_m
+    \end{gather*}
+  \end{center}
+
+  \hrule
+  \caption{\lsynu{} synthesis and equivalence}
+  \label{fig:lsyn-unit-synthesis}
+\end{figure}

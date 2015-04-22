@@ -1,3 +1,4 @@
-thesis.thm
+_build
+*.swp
 *.gen.tex
 .*.un~

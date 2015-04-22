@@ -1,0 +1,37 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      τ & \bnfdef & τ_1 → τ_2 \bnfalt 1 & Types\\
+      e & \bnfdef & x \bnfalt e_1\;e_2 \bnfalt λx:τ.\;e \bnfalt () & Terms \\
+      v & \bnfdef & λx:τ.\;e \bnfalt () & Values \\
+      ℰ & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ & Evaluation Contexts
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \fbox{\mbox{$Γ ⊢ e : τ$}} \qquad
+        \inferrule[t-var]
+          {x ∈ Γ}
+          {Γ ⊢ x : τ} \qquad
+        \inferrule[t-app]
+          {Γ ⊢ e_1 : τ_1 → τ_2 \\ Γ ⊢ e_2 : τ_1}
+          {Γ ⊢ e_1\;e_2 : τ_2} \\
+        \inferrule[t-lam]
+          {x:τ_1, Γ ⊢ e : τ_2}
+          {Γ ⊢ λx:τ_1.\;e : τ_1 → τ_2} \qquad
+        \inferrule[t-unit]
+          { }
+          {Γ ⊢ () : 1} \\
+      \fbox{\mbox{$e ⟶ e'$}} \qquad
+        \inferrule[eval-ctx]
+          {e ⟶ e'}
+          {ℰ[e] ⟶ e'} \qquad
+        \inferrule[eval-app]
+          {}
+          {(λx:τ.\;e)\;v ⟶ [v/x]e}
+    \end{gather*}
+  \end{center}
+
+\hrule
+\caption{\stlcu{} definition}
+\label{fig:stlc-unit-defn}
+\end{figure}
