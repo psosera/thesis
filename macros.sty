@@ -36,7 +36,9 @@
 \def\claimautorefname{Claim}
 
 \newcommand{\bnfalt}{\;\mathrel{\mid}\;}
-\newcommand{\bnfdef}{\mathrel{\!\colon\!\!\colon\!\mathord{=}}}
+\newcommand{\bnfdef}{%
+  \mathrel{\!\colon\!\!\colon\!\mathord{=}}%
+}
 \newcommand{\concat}{\mathbin{+\!\!+}}
 
 \newcommand{\many}[2]{\overline{#1}^{#2}}

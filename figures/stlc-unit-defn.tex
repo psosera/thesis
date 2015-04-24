@@ -4,7 +4,8 @@
       τ & \bnfdef & τ_1 → τ_2 \bnfalt 1 & Types\\
       e & \bnfdef & x \bnfalt e_1\;e_2 \bnfalt λx:τ.\;e \bnfalt () & Terms \\
       v & \bnfdef & λx:τ.\;e \bnfalt () & Values \\
-      ℰ & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ & Evaluation Contexts
+      ℰ & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ & Evaluation Contexts \\
+      Γ & \bnfdef & · \bnfalt x:τ, Γ & Typing Contexts \\
     \end{tabular} \\[12pt]
     \hrule
     \begin{gather*}

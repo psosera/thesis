@@ -27,7 +27,8 @@
   naturalnames=true,
   pdfstartview=Fit,
   pdfpagemode=UseOutlines,
-  pdfpagelayout=TwoPageRight
+  pdfpagelayout=TwoPageRight,
+  unicode=true
 }
 
 %%%%% Unicode + Language %%%%%
@@ -47,7 +48,6 @@
 \usepackage{enumitem}
 \usepackage{etoolbox}
 \usepackage{graphicx}
-\usepackage{macros}
 \usepackage{mathpartir}
 \usepackage{microtype}
 \usepackage[amsmath, amsthm, thmmarks]{ntheorem}
@@ -56,6 +56,10 @@
 \usepackage{url}
 \usepackage{xcolor}
 \usepackage{xspace}
+
+%%%%% Plots %%%%%
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.10}
 
 %%%%% Fonts %%%%%
 \usepackage[sc]{mathpazo}
@@ -86,6 +90,10 @@
 }}{}
 \renewcommand{\headrulewidth}{0pt}
 \setlength{\headheight}{15pt}
+
+%%%%% Custom Macros %%%%%
+
+\usepackage{macros}
 
 %%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
 

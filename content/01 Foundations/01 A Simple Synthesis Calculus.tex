@@ -7,9 +7,102 @@
   \end{itemize}%
 }
 
+To build a foundation for program synthesis with types, we start with the simply-typed lambda calculus, \stlcu{}.
+We can think of program synthesis as search through the infinite space of programs refined by a given specification.
+Therefore, from \stlcu{}, we build a generator for well-typed $λ$-terms and then integrate a notion of specification---here, input/output examples---into the system to create a program synthesis calculus.
+Because \stlcu{} is the simplest typed-functional programming language we could consider, it serves as an excellent example of the process of converting type systems into synthesis systems.
+
 \input{figures/stlc-unit-defn.tex}
 
+\section{Generating \texorpdfstring{$λ$}{λ}-terms}
+
+\autoref{fig:stlc-unit-defn} gives the syntax and semantics for \stlcu{} which contains variables, functions, and application.
+\stlcu{} also features the $\mkwd{Unit}$ type (written $1$) as a base case for the types $τ$ of the language.
+On top of the standard type system, we define a small-step, call-by-value operational semantics for the language using evaluation contexts $ℰ$~\todo{cite}.
+\todo{Likely add more detail of the language even though it is pedantic---this is the first system presented in the thesis!}
+
+To generate \stlcu{} terms, we can simply enumerate terms according to the grammar given in \autoref{fig:stlc-unit-defn}.
+Clearly, there are an infinite number of terms, but we can make the enumeration deterministic by enumerating in order of term size.
+By term size, we mean AST node count.  For example, the term $λx:1.\;y\;x$ has size 5 because the type $1$ has size one, the application $y\;x$ has size 3, and the lambda itself contributes one additional AST node.
+
+\input{figures/lambda-terms-counts.tex}
+
+However, simple enumeration is not very practical, especially when we have the type system at our disposal.
+To see why, consider the number of closed \stlcu-terms at a given size, \ie, terms generated from the empty typing context.
+We define the size of the term to be the number of nodes in its abstract syntax tree (AST) according to the grammar from \autoref{fig:stlc-unit-defn}.
+\autoref{fig:lambda-terms-counts} gives the number of such untyped terms, well-typed terms, and well-typed terms at type $\mkwd{Unit}$.
+\footnote{%
+  Note that the data points in \autoref{fig:lambda-terms-counts} indicate the number of terms that are \emph{exactly} of the given size.
+  This is the reason why, \eg, the number of terms of type $\mkwd{Unit}$ does not monotonically increase as the size increases.
+}
+For example:
+\begin{itemize}
+  \item $()\;(λx:1.\;x)$ is an syntactically valid, yet ill-typed term of size five.
+  \item $(λx:1 → 1.\;x)\;(λx:1.\;x)$ is a well-typed term of size nine.
+  \item $()$ is a well-typed term of type $\mkwd{Unit}$ and size one.
+\end{itemize}
+
+Noting that the $y$-axis scale of \autoref{fig:lambda-terms-counts} is at logscale, we can see that the number of syntactically valid, but not necessarily well-typed terms is staggering.
+Even in this extremely limited language, there are 2,188,020 such terms at size 15.
+In contrast, if we limit our consideration to only the well-typed terms, we save an order of magnitude of work; there are only 693,046 well-typed terms of size 15 in \stlcu.~\todo{cite the counting lambda terms work}
+
+We could refine our term generation strategy by enumerating syntactically well-typed terms and then filtering out terms that fail to type check.
+This has the benefit of ensuring that any terms that we keep around will be well-typed.
+However, we still pay the time and space overhead of generating such terms and then type checking them, even if we end up throwing them away in the end.
+This is undesirable in the presence of the steep combinatorial explosion of terms as their size increases.
+Rather than type check after the fact, we should \emph{integrate} type checking into term enumeration so that we only ever consider well typed terms.
+
+To arrive at such an algorithm, let us start with the type checking judgment presented in \autoref{fig:stlc-unit-defn}: $Γ ⊢ e : τ$.
+When implementing a type checker based on this judgment, we note that $Γ$ and $e$ serve as inputs and $τ$ serves as either an input or output (a point that we revisit in detail in \autoref{sec:specifying-lambda-terms}).
+To derive a type-aware term enumeration system from this judgment, let's simply flip the inputs and outputs: $Γ$ and $τ$ will be inputs and the output will be an $e$.
+
 \input{figures/stlc-unit-gen.tex}
+
+\autoref{fig:stlc-unit-gen} gives the rules for \stlcu{} well-typed term enumeration, written $Γ ⊢ τ ⇝ e$.
+Derivations in this judgment correspond to generated terms.
+For example, we generate the well-typed closed term $(λx:1 → 1.\;x)\;(λx:1.\;x)$ through the following derivation:
+\[
+\inferrule*
+  {\inferrule*
+    {\inferrule*
+      {x:1 → 1 ∈ x:1 → 1}
+      {x:1 → 1 ⊢ 1 → 1 ⇝ x}}
+    {· ⊢ (1 → 1) → (1 → 1) ⇝ (λx:1 → 1.\;x)} \\
+  \inferrule*
+    {\inferrule*
+      {x:1 ∈ x:1}
+      {x:1 ⊢ 1 ⇝ x}}
+    {· ⊢ (1 → 1) ⇝ (λx:1.\;x)}
+  }
+  {· ⊢ 1 → 1 ⇝ (λx:1 → 1.\;x)\;(λx:1.\;x)}
+\]
+
+Because the rules for well-typed term enumeration mirror the rules for type checking, the derivations are also identical!
+This intuition leads to two natural properties of well-typed term enumeration:
+
+\begin{theorem}[Soundness of \stlcu{} term enumeration]
+\label{thm:soundness-stlcu-term-enumeration}
+If $Γ ⊢ τ ⇝ e$ then $Γ ⊢ e : τ$.
+\end{theorem}
+\begin{proof}
+Proof by induction on the derivation $Γ ⊢ τ ⇝ e$.
+\end{proof}
+
+\begin{theorem}[Completeness of \stlcu{} term enumeration]
+\label{thm:completeness-stlcu-term-enumeration}
+If $Γ ⊢ e : τ$ then $Γ ⊢ τ ⇝ e$.
+\end{theorem}
+\begin{proof}
+Proof by induction on the derivation $Γ ⊢ e : τ$.
+\end{proof}
+
+\autoref{thm:soundness-stlcu-term-enumeration} states that enumerated terms are well-typed, and \autoref{thm:completeness-stlcu-term-enumeration} states that we are able to enumerate the well-typed terms.
+By combining both theorems, we know that well-typed term enumeration produces \emph{exactly} the set of well-typed terms, \ie, the ``All Typed'' dataset from \autoref{fig:lambda-terms-counts}.
+
+\section{Specifying \texorpdfstring{$λ$}{λ}-terms}
+\label{sec:specifying-lambda-terms}
+
+
 
 \input{figures/lsyn-unit-defn.tex}
 

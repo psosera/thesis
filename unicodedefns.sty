@@ -175,7 +175,7 @@
 %\newunicodechar{‡}{\ddagger}  % 8225 --- redef
 %\newunicodechar{•}{}  % 8226
 %\newunicodechar{‥}{}  % 8229
-%\newunicodechar{…}{\ldots}  % 8230 --- redef
+\newunicodechar{…}{{\ifmmode\ldots\else\textellipsis\fi}}  % 8230 --- NOTE: redef in order to accomodat math/nonmath mode
 \newunicodechar{′}{\prime}  % 8242
 \newunicodechar{″}{\second}  % 8243
 \newunicodechar{‴}{\third}  % 8244
