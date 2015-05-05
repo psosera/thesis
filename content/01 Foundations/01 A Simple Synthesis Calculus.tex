@@ -23,7 +23,7 @@ On top of the standard type system, we define a small-step, call-by-value operat
 
 To generate \stlcu{} terms, we can simply enumerate terms according to the grammar given in \autoref{fig:stlc-unit-defn}.
 Clearly, there are an infinite number of terms, but we can make the enumeration deterministic by enumerating in order of term size.
-By term size, we mean AST node count.  For example, the term $λx:1.\;y\;x$ has size 5 because the type $1$ has size one, the application $y\;x$ has size 3, and the lambda itself contributes one additional AST node.
+By term size, we mean AST node count.  For example, the term $λx{:}1.\;y\;x$ has size 5 because the type $1$ has size one, the application $y\;x$ has size 3, and the lambda itself contributes one additional AST node.
 
 \input{figures/lambda-terms-counts.tex}
 
@@ -37,8 +37,8 @@ We define the size of the term to be the number of nodes in its abstract syntax 
 }
 For example:
 \begin{itemize}
-  \item $()\;(λx:1.\;x)$ is an syntactically valid, yet ill-typed term of size five.
-  \item $(λx:1 → 1.\;x)\;(λx:1.\;x)$ is a well-typed term of size nine.
+  \item $()\;(λx{:}1.\;x)$ is an syntactically valid, yet ill-typed term of size five.
+  \item $(λx{:}1 → 1.\;x)\;(λx{:}1.\;x)$ is a well-typed term of size nine.
   \item $()$ is a well-typed term of type $\mkwd{Unit}$ and size one.
 \end{itemize}
 
@@ -60,21 +60,21 @@ To derive a type-aware term enumeration system from this judgment, let's simply 
 
 \autoref{fig:stlc-unit-gen} gives the rules for \stlcu{} well-typed term enumeration, written $Γ ⊢ τ ⇝ e$.
 Derivations in this judgment correspond to generated terms.
-For example, we generate the well-typed closed term $(λx:1 → 1.\;x)\;(λx:1.\;x)$ through the following derivation:
+For example, we generate the well-typed closed term $(λx{:}1 → 1.\;x)\;(λx{:}1.\;x)$ through the following derivation:
 \[
 \inferrule*
   {\inferrule*
     {\inferrule*
-      {x:1 → 1 ∈ x:1 → 1}
-      {x:1 → 1 ⊢ 1 → 1 ⇝ x}}
-    {· ⊢ (1 → 1) → (1 → 1) ⇝ (λx:1 → 1.\;x)} \\
+      {x{:}1 → 1 ∈ x{:}1 → 1}
+      {x{:}1 → 1 ⊢ 1 → 1 ⇝ x}}
+    {· ⊢ (1 → 1) → (1 → 1) ⇝ (λx{:}1 → 1.\;x)} \\
   \inferrule*
     {\inferrule*
-      {x:1 ∈ x:1}
-      {x:1 ⊢ 1 ⇝ x}}
-    {· ⊢ (1 → 1) ⇝ (λx:1.\;x)}
+      {x{:}1 ∈ x{:}1}
+      {x{:}1 ⊢ 1 ⇝ x}}
+    {· ⊢ (1 → 1) ⇝ (λx{:}1.\;x)}
   }
-  {· ⊢ 1 → 1 ⇝ (λx:1 → 1.\;x)\;(λx:1.\;x)}
+  {· ⊢ 1 → 1 ⇝ (λx{:}1 → 1.\;x)\;(λx{:}1.\;x)}
 \]
 
 Because the rules for well-typed term enumeration mirror the rules for type checking, the derivations are also identical!
@@ -99,11 +99,201 @@ Proof by induction on the derivation $Γ ⊢ e : τ$.
 \autoref{thm:soundness-stlcu-term-enumeration} states that enumerated terms are well-typed, and \autoref{thm:completeness-stlcu-term-enumeration} states that we are able to enumerate the well-typed terms.
 By combining both theorems, we know that well-typed term enumeration produces \emph{exactly} the set of well-typed terms, \ie, the ``All Typed'' dataset from \autoref{fig:lambda-terms-counts}.
 
+\subsection{Enumerating Normal Forms}
+\label{subsec:enumerating-normal-forms}
+
+By restricting term generation to well-typed terms, we substantially reduce the search space of programs.
+However there are still many redundant terms that we could generate.
+In particular, the following terms are redundant
+\begin{itemize}
+  \item $(λx{:}1.\;x)\;()$
+  \item $(λx{:}1 → 1.\;x)\;(λy{:}1.\;y)$
+  \item $λx{:}1.\;(λy{:}1.\;y)\;()$.
+\end{itemize}
+In the first two cases, the terms evaluate, according to our call-by-value semantics, to the values $()$ and $λy{:}1.\;y$, respectively.
+In the third case, while the term is already a value, the body of the lambda reduces to produce the equivalent term $λx{:}1.\;()$.
+In general, any term that is not in \emph{$β$-normal form}---a term where no $β$-reductions apply----is redundant with the term that is $β$-equivalent to it.\footnote{%
+  This is true of \stlcu{} because it is strongly normalizing.
+  In the presence of non-termination, terms with infinite loops do not have a corresponding normal form.
+}
+
+To restrict enumeration to the well-typed normal forms of \stlcu{}, we restrict terms so that they cannot contain pending $β$-reductions.
+In \stlcu{}, the only $β$-reduction available is function application which applies whenever we have a term of the form $(λx{:}τ.\;e)\;v$.
+We avoid this situation by splitting expressions into two sets of sub-terms.
+\begin{align*}
+  E &\bnfdef x \bnfalt E\;I \\
+  I &\bnfdef E \bnfalt λx{:}τ.\;I \bnfalt ()
+\end{align*}
+$E$-forms include variables and \emph{elimination} forms, and $I$-forms include \emph{introduction} forms.
+For example, lambdas introduce values of arrow type and function application eliminates these values.
+In contrast, $\mkwd{Unit}$ values are introduced with $()$ and have no corresponding elimination forms.
+
+With this syntax, $I$ and $E$ forms are in normal form by construction!
+To see this, note that function application requires that the head of a function application is an $E$, and the syntax of $E$s bottom outs at variables.
+Therefore, all applications will be of the form $x I_1, …, I_m$ where a variable is always at the head of the application.
+Arguments, in contrast, are allowed to be any $I$-term which includes $E$s because $E$s are included in the definition of $I$.
+
+This technique of splitting the syntax of expressions into $E$- and $I$-forms has several uses.
+In proof search, this syntax is useful for generating normal form proofs which, by the Curry-Howard Isomorphism~\todo{cite}, is equivalent to generating normal form programs in our setting~\todo{cite}.
+Dividing the syntax in this manner also enables \emph{bidirectional type checking}~\todo{cite} where we explicitly encode when a type is an input or output in the type checking judgment.
+We discuss the relevance of bidirectional type checking to program synthesis in \autoref{sec:introducing-lsyn}.
+
+\input{figures/stlc-unit-gen-normal.tex}
+
+\autoref{fig:stlc-unit-gen-normal} gives the rules for generating \stlcu{} terms in this restricted term language.
+Because there are two syntactic forms, we introduce two judgments to synthesize $E$-($\synE$) and $I$-($\synI$) terms.
+Otherwise, the rules are identical to the $e$-term generation judgment given in \autoref{fig:stlc-unit-gen}.
+
 \section{Specifying \texorpdfstring{$λ$}{λ}-terms}
 \label{sec:specifying-lambda-terms}
 
+With well-typed term enumeration, we can efficiently search the space of \stlcu{} programs.
+However, in addition to this search method, we also require some way of \emph{specifying} which particular programs we would like to find during the synthesis process.
+Specification can take many forms, for example, logical properties~\todo{cite} or execution traces~\todo{cite}.
+Here, we will consider specifying programs with a combination of types and examples.
+The most common form of an example is the input/output pair $(v ⇒ v')$ that says that a synthesized function should produce the value $v'$ when given the value $v$.
 
+Examples are necessarily incomplete specifications as we can only specify a finite subset of a function's behavior with a finite set of input/output pairs.
+In contrast, others forms of specification, \eg, first-order logic statements, can provide a complete description of a function's behavior.
+This is a significant limitation, but in practice, we can usually \emph{generalize} the behavior implied by a finite set of input/output pairs into the complete, desired function~\todo{cite}.
+Furthermore, examples are typically more natural to write down than these logical statements.
+In some cases these logical statements are as complex---or even more complex---then the programs we were intending to synthesize!
+
+For example, consider the set of input/output examples specifying a function in a ML-like language:
+\begin{center}
+  \begin{minipage}{0.35\textwidth}
+    \begin{lstlisting}
+sort [] = []
+sort [0] = [0]
+sort [0; 1] = [1; 0]
+sort [0; 1; 2] = [2; 1; 0]
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+We can infer that the user wishes to synthesize a function that sorts a list of numbers.
+
+In contrast, consider a logical specification of how this function ought to behave:
+\begin{gather*}
+  \mkwd{sorted}(l) = ∀ x :: l' ⊑ l.\; ∀ y ∈ l.\; x < y
+\end{gather*}
+The $\mkwd{sorted}$ predicate states that for all sub-lists ($⊑$) of $l$, the head $x$ of that sub-list is least element of that sub-list.
+While the logical specification precisely describes the behavior of \lstinline!sort!, it takes a bit of effort to come up with this definition of sortedness.
+
+Finally, we use examples because they decompose naturally with types.
+For example, the input/output example \lstinline!stutter [0; 1] = [1; 0]! decomposes according to the arrow type $\mkwd{int} → \mkwd{int}$.
+We know that when \lstinline!stutter!'s argument is \lstinline![0; 1]!, the body of the function ought to evaluate to \lstinline![1; 0]!.
+In contrast, it is not clear how to decompose $\mkwd{sorted}$ predicate according to the type of the function we are synthesizing.
+
+To adopt example specifications into \stlcu{}, we need to account for the presence of higher-order functions.
+Therefore, we adopt the following grammar of \emph{example values} $χ$ that we use as our specification:
+\[
+  χ \bnfdef () \bnfalt \many{v_i ⇒ χ_i}{i < n}
+\]
+Intuitively, for each type of \stlcu{}, we include a term that stands in as an example of that type.
+In most cases, this term is simply the values for that type, \eg, $()$ for $\mkwd{Unit}$.
+However, lambdas serve as a poor example value for arrow types because providing a function value is tantamount to describing exactly how the function behaves!
+Instead, we make sets of input/output pairs first-class example values with \emph{partial function} terms written:
+\[
+  v_1 ⇒ χ_1 \bnfalt … \bnfalt v_n ⇒ χ_n
+\]
+A partial function introduces $n$ input/output pairs of the form $v_i ⇒ χ_i$ that specify that when the synthesized function is supplied a $v_i$, it produces a $χ_i$.
+For short-hand, we write the above partial function as $\many{v_i ⇒ χ_i}{i < n}$.
+
+As a concrete example within \stlcu{}, consider the following synonyms for the church encodings of booleans over the $\mkwd{Unit}$ type:
+\begin{align*}
+  \mkwd{bool}  &≡ \mkwd{Unit} → \mkwd{Unit} → \mkwd{Unit}   \\
+  \mkwd{true}  &≡ λt{:}\mkwd{Unit}.\;λf{:}\mkwd{Unit}.\;t \\
+  \mkwd{false} &≡ λt{:}\mkwd{Unit}.\;λf{:}\mkwd{Unit}.\;f
+\end{align*}
+Then the following partial function:
+\begin{gather*}
+  \mkwd{true} ⇒ () ⇒ () ⇒ () \bnfalt \mkwd{false} ⇒ () ⇒ () ⇒ ()
+\end{gather*}
+specifies the $\mkwd{if}$ function of type $\mkwd{bool} → \mkwd{Unit} → \mkwd{Unit} → \mkwd{Unit} $, usually defined as:
+\[
+  \mkwd{if} ≡ λb:\mkwd{bool}.\;λt{:}\mkwd{Unit}.\;λf{:}\mkwd{Unit}.\;b\;t\;f
+\]
+
+Note that this specification only \emph{partially} specifies the $\mkwd{if}$ function.
+There are many other programs that this specification implies, for example, the more obvious function:
+\[
+  \mkwd{if'} ≡ λb:\mkwd{bool}.\;λt{:}\mkwd{Unit}.\;λf{:}\mkwd{Unit}.\;()
+\]
+
+Indeed, within \stlcu{} (which features both a base type $\mkwd{Unit}$ with a single value $()$ and strong normalization), $\mkwd{if}$ and $\mkwd{if'}$ are contextually equivalent.
+That is, $\mkwd{if'}$ can be exchanged for $\mkwd{if'}$ (and vice versa) in any \stlcu{} program and the resulting program behaves identically to the original.
+
+In \autoref{ch:simple-type-extensions} and \autoref{ch:recursion}, we enhance \stlcu{} with additional types so that we can synthesize more interesting programs.
+However, for now, \stlcu{} is sufficient to establish the theoretical foundation for program synthesis that we seek.
+
+\section{The Synthesis Problem}
+
+Now that we have identified the sort of specification we will use during synthesis, we must describe \emph{how} we will use the specification during the synthesis process.
+Our synthesis problem consists of a \emph{goal type} $τ$ and a collection of \emph{example values} $Χ = χ_1, …, χ_n$ of that type $τ$.
+A solution to the synthesis problem is a program $e$ that satisfies the examples $X$.
+
+What does it mean for a program to satisfy a set of examples?
+Intuitively, if we think of 
+
+A simple way to utilize specification is to simply enumerate terms as per \autoref{fig:stlc-unit-gen-normal} and check each to see if they satisfy the example values.
+With our simple grammar of example values, this is straightforward:
+\begin{itemize}
+  \item At $\mkwd{Unit}$ type, the example value must be a $()$.  Therefore, the term must evaluate to $()$.
+  \item At arrow type, the example value must all be partial functions $\many{v_i ⇒ χ_i}{i < m}$.
+    The term $f$ that we synthesize is a function, so it suffices to check for each alternative $v ⇒ χ$ of the partial function that $(f\,v)$ evaluates to $χ$.
+\end{itemize}
+However, this process doesn't utilize examples at all \emph{during} term generation.
+This seems like a waste because we ought to be able to refine our search based off the example values that the user provides.
+
+\section{Introducing \texorpdfstring{$λ_{syn}$}{λsyn}}
+\label{sec:introducing-lsyn}
+
+So far, we modified the type checking judgment of \stlcu{} to create a type-directed term enumeration judgment and defined a grammar of example values to serve as our specification.
+Let us combine these two into a \emph{synthesis calculus}, \lsynu{}, that synthesizes \stlcu{} terms.
 
 \input{figures/lsyn-unit-defn.tex}
 
+\autoref{fig:lsyn-unit-defn} gives the syntax of \lsynu{} which features an external language of standard expressions $e$ taken from \stlcu{} and an internal language that splits up expressions into introduction forms $I$ and elimination forms $E$.
+The internal language is a subset of the external language; as described in \autoref{subsec:enumerating-normal-forms}, it is precisely the normal forms of the external language.
+
+Type checking and evaluation in the external language is the same as \stlcu{}.
+We provide additional rules for type checking the additional constructs introduced in \lsynu{}.
+In particular, $E$ and $I$ terms are checked using bidirectional type checking~\todo{cite}.
+We note that during regular type checking, $E$ terms \emph{generate} types (as an output), and $I$ terms \emph{check} against types (as an input).
+To make this explicit, we separate $E$ and $I$ type checking into two separate judgments were we generate types $(E ⇒ τ)$ in the former case and check against types in $(τ ⇐ I)$ in the latter case.
+For example when type checking a variable (\rulename{t-Evar}), we can extract the type of that variable from the context.
+In contrast, when type checking a function (\rulename{t-Ilam}), while we know the type of the argument from the ascription, we have no information about the body, so we must check the body against a given input type.
+
+Type checking examples values $χ$, in contrast, is straightforward.
+The unit example value $()$ has type $\mkwd{Unit}$ (\rulename{t-ex-unit}).
+A partial function $\many{v_i ⇒ χ_i}{i < m}$ has type $τ_1 → τ_2$ if all of $v_i$ have type $τ_1$ and all of the $χ_i$ have type $τ_2$.
+When synthesizing a program, we give both a set of example values and a goal type $τ$ with the assumption that each example value has type $τ$.
+
+The user does not provide a single example, but sets of examples $Χ$.
+
+
+\subsection{Example Refinement}
+\label{subsec:example-refinement}
+
+While we have defined \emph{what} our specification is---input/output example values $χ$---we have not yet described \emph{how} to use this specification to refine our search.
+A simple way to utilize specification is to simply enumerate terms and check each to see if they satisfy the example values.
+With our simple grammar of example values, this is straightforward:
+\begin{itemize}
+  \item At $\mkwd{Unit}$ type, the example value must be a $()$.  Therefore, the term must evaluate to $()$.
+  \item At arrow type, the example value must all be partial functions $\many{v_i ⇒ χ_i}{i < m}$.
+    The term $f$ that we synthesize is a function, so it suffices to check for each alternative $v ⇒ χ$ of the partial function that $(f\,v)$ evaluates to $χ$.
+\end{itemize}
+However, this process doesn't utilize examples at all \emph{during} term generation.
+This seems like a waste because we ought to be able to refine our search based off the example values that the user provides.
+
 \input{figures/lsyn-unit-synthesis.tex}
+
+To fix this problem, we introduce \emph{example refinement} to create a full-fledged synthesis procedure within \lsynu{}.
+We break up synthesis into two judgments as shown in \autoref{fig:lsyn-unit-synthesis}:
+\begin{itemize}
+  \item $Γ ⊢ τ ⇝ E$ (\rulename{eguess}): guess an $E$ of type $τ$.
+  \item $Γ ⊢ τ ▷ Χ ⇝ I$ (\rulename{irefine}): refine and synthesize an $I$ of type $τ$ that agrees with examples $Χ$.
+\end{itemize}
+
+With $I$-terms, we are able to leverage the examples the user provides.
+For example, at $\mkwd{Unit}$ type, there is only one value, $()$ of that type, so the examples values must all be $()$.

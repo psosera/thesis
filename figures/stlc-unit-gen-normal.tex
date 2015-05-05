@@ -1,0 +1,27 @@
+\begin{figure}
+  \begin{center}
+    \begin{gather*}
+      \fbox{\mbox{$Γ ⊢ τ \synE E$}} \qquad
+        \inferrule[gen-Evar]
+          {x ∈ Γ}
+          {Γ ⊢ τ \synE x} \qquad
+        \inferrule[gen-Eapp]
+          {Γ ⊢ τ_1 → τ_2 \synE E \\ Γ ⊢ τ_1 \synI I}
+          {Γ ⊢ τ_2 \synE E\;I} \\
+      \fbox{\mbox{$Γ ⊢ τ \synI I$}} \qquad
+        \inferrule[gen-Ielim]
+          {Γ ⊢ τ \synE E}
+          {Γ ⊢ τ \synI E} \qquad
+        \inferrule[gen-Ilam]
+          {x:τ_1, Γ ⊢ τ_2 \synI I}
+          {Γ ⊢ τ_1 → τ_2 \synI λx{:}τ_1.\;I} \qquad
+        \inferrule[gen-Iunit]
+          { }
+          {Γ ⊢ 1 \synI ()}
+    \end{gather*}
+  \end{center}
+
+\hrule
+\caption{\stlcu{} typed normal-form term generation}
+\label{fig:stlc-unit-gen-normal}
+\end{figure}

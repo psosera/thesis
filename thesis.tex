@@ -91,8 +91,20 @@
 \renewcommand{\headrulewidth}{0pt}
 \setlength{\headheight}{15pt}
 
-%%%%% Custom Macros %%%%%
+%%%%% Code Formatting %%%%%
+\usepackage{listings}
+\lstset{%
+  language=[Objective]Caml,
+  basicstyle=\small\upshape\ttfamily,
+  framexleftmargin=1ex,
+  framexrightmargin=1ex,
+  showstringspaces=false,
+  commentstyle=\itshape\rmfamily,
+  columns=flexible,
+  stringstyle=\ttfamily
+}
 
+%%%%% Custom Macros %%%%%
 \usepackage{macros}
 
 %%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%

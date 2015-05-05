@@ -32,6 +32,13 @@
         \inferrule[t-Iunit]
           { }
           {Γ ⊢ () ⇐ 1} \\
+      \fbox{$Γ ⊢ χ : τ$} \qquad
+        \inferrule[t-ex-unit]
+          { }
+          {Γ ⊢ () : \mkwd{Unit}} \qquad
+        \inferrule[t-ex-pf]
+          {\many{Γ ⊢ v_i : τ_1}{i < m} \\ \many{Γ ⊢ χ_i : τ_2}{i < m}}
+          {Γ ⊢ \many{v_i ⇒ χ_i}{i < m} : τ_1 ⇒ τ_2} \\
       \fbox{$Γ ⊢ σ$} \qquad
         \inferrule[t-env-empty]
           { }

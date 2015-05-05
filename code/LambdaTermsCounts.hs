@@ -15,6 +15,13 @@ data Exp
 
 type Ctx = [(String, Type)]
 
+normal :: Exp -> Bool
+normal (EVar x)               = True
+normal (EApp (EAbs _ _ _) e2) = False
+normal (EApp _            e2) = normal e2
+normal (EAbs _ _ e)           = normal e
+normal EUnit                  = True
+
 freshName :: String -> Ctx -> String
 freshName prefix g = fresh 0
   where
@@ -73,14 +80,15 @@ welltypedAt g t e =
     Just t' -> t == t'
     Nothing -> False
 
-calculateCounts :: Ctx -> Type -> Int -> (Int, Int, Int, Int)
+calculateCounts :: Ctx -> Type -> Int -> (Int, Int, Int, Int, Int)
 calculateCounts g t n =
-  (n, rawCount, typedCount, typedAtCount)
+  (n, rawCount, typedCount, typedAtCount, normalCount)
   where
     terms        = ugen g n
     rawCount     = length terms
     typedCount   = length $ filter (welltyped g) terms
     typedAtCount = length $ filter (welltypedAt g t) terms
+    normalCount  = length $ filter normal $ filter (welltypedAt g t) terms
 
 printData :: Ctx -> Type -> Int -> IO ()
 printData g t n =
@@ -89,8 +97,9 @@ printData g t n =
     counts = map (calculateCounts g t) $ [1..n]
     addDeltaIfZero :: Int -> Double
     addDeltaIfZero n = if n == 0 then 1e-6 else fromIntegral n
-    lines  = [printf "%f %f %f %f"
+    lines  = [printf "%f %f %f %f %f"
       (addDeltaIfZero n)
+      (addDeltaIfZero w)
       (addDeltaIfZero x)
       (addDeltaIfZero y)
-      (addDeltaIfZero z) | (n, x, y, z) <- counts]
+      (addDeltaIfZero z) | (n, w, x, y, z) <- counts]
