@@ -13,15 +13,15 @@
           {Γ ⊢ τ \synE E}
           {Γ ⊢ τ \synI E} \qquad
         \inferrule[gen-Ilam]
-          {x:τ_1, Γ ⊢ τ_2 \synI I}
-          {Γ ⊢ τ_1 → τ_2 \synI λx{:}τ_1.\;I} \qquad
-        \inferrule[gen-Iunit]
+          {x{:}τ_1, Γ ⊢ τ_2 \synI I}
+          {Γ ⊢ τ_1 → τ_2 \synI λx{:}τ_1.\,I} \qquad
+        \inferrule[gen-Ibase]
           { }
-          {Γ ⊢ 1 \synI ()}
+          {Γ ⊢ T \synI c}
     \end{gather*}
   \end{center}
 
 \hrule
-\caption{\stlcu{} typed normal-form term generation}
-\label{fig:stlc-unit-gen-normal}
+\caption{\stlc{} typed normal-form term generation}
+\label{fig:stlc-gen-normal}
 \end{figure}

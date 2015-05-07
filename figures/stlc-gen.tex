@@ -11,13 +11,13 @@
         \inferrule[gen-lam]
           {x:τ_1, Γ ⊢ τ_2 ⇝ e}
           {Γ ⊢ τ_1 → τ_2 ⇝ λx:τ_1.\;e} \qquad
-        \inferrule[gen-unit]
+        \inferrule[gen-base]
           { }
-          {Γ ⊢ 1 ⇝ ()}
+          {Γ ⊢ T ⇝ c}
     \end{gather*}
   \end{center}
 
 \hrule
-\caption{\stlcu{} typed term generation}
-\label{fig:stlc-unit-gen}
+\caption{\stlc{} typed term generation}
+\label{fig:stlc-gen}
 \end{figure}

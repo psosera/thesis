@@ -4,23 +4,24 @@
       \begin{semilogyaxis}[
         xlabel=Size (AST nodes),
         ylabel=Count,
-        xmin=0,
-        xmax=16,
+        xmin=1,
+        xmax=15,
         ymin=1,
-        ymax=3000000,
+        ymax=13000000,
         domain=1:15,
         samples=15,
-        legend entries={All untyped, All typed,$\mkwd{Unit}$ type},
+        legend entries={All Untyped,All Typed,Type $T → T$,Normal Forms},
         legend pos=north west
       ]
         \addplot table[x index=0, y index=1] {data/lambda-terms-counts.data};
         \addplot table[x index=0, y index=2] {data/lambda-terms-counts.data};
         \addplot table[x index=0, y index=3] {data/lambda-terms-counts.data};
+        \addplot table[x index=0, y index=4] {data/lambda-terms-counts.data};
       \end{semilogyaxis}
     \end{tikzpicture}
   \end{center}
 
 \hrule
-\caption[Closed $λ$-term counts]{Number of closed untyped and typed terms and terms of type $\mkwd{Unit}$ in \stlcu{}}
+\caption[Closed $λ$-term counts]{Number of closed untyped terms, typed terms, terms of type $T → T$, and normal forms of type $T → T$ in \stlc{} with two constants of type $T$.}
 \label{fig:lambda-terms-counts}
 \end{figure}
