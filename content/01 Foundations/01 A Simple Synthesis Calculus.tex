@@ -15,6 +15,7 @@ In successive chapters, we evolve \lsyn{} into a practical program synthesizer f
 \input{figures/stlc-defn.tex}
 
 \section{Generating \texorpdfstring{$λ$}{λ}-terms}
+\label{sec:generating-lambda-terms}
 
 \autoref{fig:stlc-defn} gives the syntax and semantics for \stlc{} which contains the essence of a typed, functional programming language---variables, functions, and application---and their usual type checking rules.
 In addition to these essentials, we also augment \stlc{} with a base type $T$ and a finite set of constants $c_1, …, c_k$ of type $T$.
@@ -150,7 +151,7 @@ Arguments, in contrast, are allowed to be any $I$-term which includes $E$s becau
 This technique of splitting the syntax of expressions into introduction and elimination forms has several useful effects.
 In proof search, this syntax is useful for generating normal form proofs which, by the Curry-Howard Isomorphism~\todo{cite}, is equivalent to generating normal form programs in our setting~\todo{cite}.
 Dividing the syntax in this manner also facilities a description \emph{bidirectional type checking}~\todo{cite} where we explicitly state when a type is an input or output in the type checking judgment.
-This seemingly pedantic distinction becomes highly useful when we talk about refining specification in the context of full program synthesis in \autoref{sec:introducing-lsyn}.
+This seemingly pedantic distinction becomes highly useful when we talk about refining specification in the context of full program synthesis in \autoref{sec:lsyn-a-program-synthesis-calculus}.
 
 \input{figures/stlc-gen-normal.tex}
 
@@ -235,7 +236,7 @@ Because of this, we restrict the right-hand side of a $⇒$ to be an example val
 This ensures that lambdas never appear as the \emph{goal} of a synthesis problem.
 In contrast, the left-hand side of a $⇒$ is a regular value which includes lambdas (and not partial functions).
 This means that when we give examples for higher-order functions, we provide function values for the arguments of those functions.
-For short-hand, we write the above partial function as $\many{v_i ⇒ χ_i}{i < n}$ where the partial function contains $n$ input/output pairs.
+For shorthand, we write the above partial function as $\many{v_i ⇒ χ_i}{i < n}$ where the partial function contains $n$ input/output pairs.
 
 As a concrete example within \stlc{}, consider the following synonyms for the church encodings of booleans over base type $T$:
 \begin{align*}
@@ -251,38 +252,66 @@ specifies the $\mkwd{if}$ function of type $\mkwd{Bool} → T → T → T$, usua
 \[
   \mkwd{if} ≡ λb{:}\mkwd{Bool}.\,λt{:}T.\,λf{:}T.\,b\;t\;f
 \]
-Note that the convenience of specifying arguments to higher-order functions as function values makes the examples read naturally.
+Note that the convenience of specifying arguments to higher-order functions as lambdas allows us to use $\mkwd{true}$ and $\mkwd{false}$ in the input/output examples as expected.
 
-\section{The Synthesis Problem}
-\label{sec:the-synthesis-problem}
-
-Now that we have identified the sort of specification we will use during synthesis, we must describe \emph{how} we will use the specification during the synthesis process.
-Our synthesis problem consists of a \emph{goal type} $τ$ and a collection of \emph{example values} $Χ = χ_1, …, χ_n$ of that type $τ$.
-A solution to the synthesis problem is a program $e$ that satisfies the examples $X$.
-
-What does it mean for a program to satisfy a set of examples?
-Intuitively, if we think of 
-
-A simple way to utilize specification is to simply enumerate terms as per \autoref{fig:stlc-gen-normal} and check each to see if they satisfy the example values.
-With our simple grammar of example values, this is straightforward:
-\begin{itemize}
-  \item At $\mkwd{Unit}$ type, the example value must be a $()$.  Therefore, the term must evaluate to $()$.
-  \item At arrow type, the example value must all be partial functions $\many{v_i ⇒ χ_i}{i < m}$.
-    The term $f$ that we synthesize is a function, so it suffices to check for each alternative $v ⇒ χ$ of the partial function that $(f\,v)$ evaluates to $χ$.
-\end{itemize}
-However, this process doesn't utilize examples at all \emph{during} term generation.
-This seems like a waste because we ought to be able to refine our search based off the example values that the user provides.
-
-\section{Introducing \texorpdfstring{$λ_{syn}$}{λsyn}}
-\label{sec:introducing-lsyn}
+\section{\texorpdfstring{$λ_{syn}$}{λsyn}: a Program Synthesis Calculus}
+\label{sec:lsyn-a-program-synthesis-calculus}
 
 So far, we modified the type checking judgment of \stlc{} to create a type-directed term enumeration judgment and defined a grammar of example values to serve as our specification.
-Let us combine these two into a \emph{synthesis calculus}, \lsyn{}, that synthesizes \stlc{} terms.
+Let's combine these two into a \emph{synthesis calculus}, \lsyn{}, that synthesizes \stlc{} terms.
+
+\subsection{Integrating Search and Specification}
+\label{subsec:integrating-search-and-specification}
+
+How do we use our example values in tandem with term enumeration?
+A simple strategy to utilize our specification is to simply enumerate terms as per \autoref{fig:stlc-gen-normal} and check each to see if they satisfy the example values.
+This seems like a waste because example values ought to help rule out programs \emph{during} term generation.
+For example, if we have following input/output pairs in a partial function:
+\[
+… \bnfalt c_1 ⇒ c_2 \bnfalt c_2 ⇒ c_1 \bnfalt …
+\]
+We should never need to generate the constant functions $λx{:}T.\,c_1$ and $λx{:}T.\,c_2$ because the examples rule them out.
+
+To develop a more robust strategy that uses examples in a productive way, let's imagine how we might synthesize a function by hand using input/output examples.
+Consider synthesizing the $\mkwd{if}$ function of type $\mkwd{Bool} → T → T → T$ that we discussed in \autoref{subsec:example-specification-in-stlc} where $\mkwd{Bool}$ is shorthand for the type $T → T → T$.
+We were given the partial function
+\[
+  \mkwd{True} → c_1 → c_2 → c_1 \bnfalt \mkwd{False} → c_1 → c_2 → c_2
+\]
+as our example value with $\mkwd{True}$ and $\mkwd{False}$ of type $\mkwd{Bool}$ serving as shorthand for $λt{:}T.\,λf{:}T.\,t$ and $λt{:}T.\,λf{:}T.\,f$, respectively.
+
+Assuming that we have no top-level bindings to work with (\ie, we are operating in a closed context), we know from the desired goal type, $\mkwd{Bool} → T → T → T$, that the synthesized program should have the shape:
+\[
+  λb{:}\mkwd{Bool}.\,λt{:}T.\,λf{:}T.\,◼
+\]
+where the body of the function, denoted by the hole $◼$, must be filled with an expression of type $T$.
+When considering what to fill in for $◼$, we note that our two input/output pairs from our partial example value give rise to two possible states:
+\begin{align*}
+  b = \mkwd{True}, t = c_1, f = c_2, ◼ = c_1  \\
+  b = \mkwd{False}, t = c_1, f = c_2, ◼ = c_2
+\end{align*}
+Each state or \emph{example world} corresponds to an imaginary execution of the function being synthesized using each of the input/output pairs.
+The first world corresponds to the pair where we select the $\mkwd{True}$ argument, and the second world corresponds to the pair where we select the $\mkwd{False}$ argument.
+In each example world, we keep track of the value each argument is bound to as well as what the function should produce: $◼ = c_1$ and $◼ = c_2$, respectively.
+
+With all this information, the correct choice of program to fill in the hole is clear.
+The term $b t f$ has the correct type and satisfies our examples because we can substitute the values bound to the variables in each example world and evaluate to obtain
+\begin{align*}
+  \mkwd{True}\;c_1\;c_2 ⟶^* c_1 \\
+  \mkwd{False}\;c_1\;c_2 ⟶^* c_2.
+\end{align*}
+which are the example values we claimed that the term should evaluate to.
+
+\subsection{Introducing \texorpdfstring{$λ_{syn}$}{λsyn}}
+\label{subsec:introducing-lsyn}
 
 \input{figures/lsyn-defn.tex}
 
+In the previous example, we performed a mix of \emph{symbolic evaluation} and \emph{type-directed refinement} to synthesize the program.
+We now formalize this procedure within \lsyn{}, a core calculus for program synthesis with types.
+
 \autoref{fig:lsyn-defn} gives the syntax of \lsyn{} which features an external language of standard expressions $e$ taken from \stlc{} and an internal language that splits up expressions into introduction forms $I$ and elimination forms $E$.
-The internal language is a subset of the external language; as described in \autoref{subsec:enumerating-normal-forms}, it is precisely the normal forms of the external language.
+The internal language is a subset of the external language; as described in \autoref{subsec:enumerating-normal-forms}, it is precisely the normal forms of the external language that we synthesize.
 
 Type checking and evaluation in the external language is the same as \stlc{}.
 We provide additional rules for type checking the additional constructs introduced in \lsyn{}.
@@ -291,37 +320,250 @@ We note that during regular type checking, $E$ terms \emph{generate} types (as a
 To make this explicit, we separate $E$ and $I$ type checking into two separate judgments were we generate types $(E ⇒ τ)$ in the former case and check against types in $(τ ⇐ I)$ in the latter case.
 For example when type checking a variable (\rulename{t-Evar}), we can extract the type of that variable from the context.
 In contrast, when type checking a function (\rulename{t-Ilam}), while we know the type of the argument from the ascription, we have no information about the body, so we must check the body against a given input type.
-
 Type checking examples values $χ$, in contrast, is straightforward.
-The unit example value $()$ has type $\mkwd{Unit}$ (\rulename{t-ex-unit}).
-A partial function $\many{v_i ⇒ χ_i}{i < m}$ has type $τ_1 → τ_2$ if all of $v_i$ have type $τ_1$ and all of the $χ_i$ have type $τ_2$.
-When synthesizing a program, we give both a set of example values and a goal type $τ$ with the assumption that each example value has type $τ$.
+Constants $c_k$ all have type $T$ (\rulename{t-ex-base}), and a partial function $\many{v_i ⇒ χ_i}{i < m}$ has type $τ_1 → τ_2$ if all of $v_i$ have type $τ_1$ and all of the $χ_i$ have type $τ_2$.
 
-The user does not provide a single example, but sets of examples $Χ$.
+\subsection{Example Worlds}
+\label{subsec:example-worlds}
 
+Example worlds were a critical component of how we synthesized $\mkwd{if}$ in \autoref{subsec:integrating-search-and-specification}.
+Recall that each example world contained not only an example value that the synthesized program needed to evaluate to, but also a collection of values that each free variable of the program takes on in that example world.
+To codify this, we define an example world as a pair $σ ↦ χ$ of a \emph{goal example value} $χ$ and an \emph{environment} $σ$ that maps variables to values.
+A collection of these example worlds is denoted with $Χ$, and when it is unambiguous to do so, we refer to these collections of example worlds as our ``examples''.
 
-\subsection{Example Refinement}
-\label{subsec:example-refinement}
+When lifting typechecking of example values to example worlds, written $Γ ⊢ Χ : τ$, we ensure (via \rulename{t-exw-cons}) that for each pair $σ ↦ χ$ that $χ$ has type $τ$ but also that $σ$ is well-typed.
+For an environment to be well-typed, it suffices that for each binding in $σ$ to be well-typed according to the type recorded in $Γ$ (\rulename{t-env-cons}).
+In addition, \rulename{t-exw-cons} requires that each $σ$ contains a binding for each variable bound in $Γ$.
+This, coupled with \rulename{t-env-cons}, gives us the following consistency principle for example worlds:
+\begin{lemma}[Consistency of Example Worlds]
+  \label{lem:consistency-of-example-worlds}
+  If $Γ ⊢ Χ : τ_1$, then $∀σ ↦ χ ∈ Χ.\,x{:}τ \in Γ ↔ ([x/v] \in σ ∧ Γ ⊢ v : τ)$.
+\end{lemma}
+\begin{proof}
+  \rulename{t-exw-cons} enforces the $→$ direction, and \rulename{t-env-cons} enforces the $←$ direction.
+\end{proof}
+Because our synthesis strategy requires evaluation, \autoref{lem:consistency-of-example-worlds} is necessary to ensure that every free variable has a (well-typed) value.
 
-While we have defined \emph{what} our specification is---input/output example values $χ$---we have not yet described \emph{how} to use this specification to refine our search.
-A simple way to utilize specification is to simply enumerate terms and check each to see if they satisfy the example values.
-With our simple grammar of example values, this is straightforward:
-\begin{itemize}
-  \item At $\mkwd{Unit}$ type, the example value must be a $()$.  Therefore, the term must evaluate to $()$.
-  \item At arrow type, the example value must all be partial functions $\many{v_i ⇒ χ_i}{i < m}$.
-    The term $f$ that we synthesize is a function, so it suffices to check for each alternative $v ⇒ χ$ of the partial function that $(f\,v)$ evaluates to $χ$.
-\end{itemize}
-However, this process doesn't utilize examples at all \emph{during} term generation.
-This seems like a waste because we ought to be able to refine our search based off the example values that the user provides.
+\subsection{Synthesis}
+\label{subsec:synthesis}
 
 \input{figures/lsyn-synthesis.tex}
 
-To fix this problem, we introduce \emph{example refinement} to create a full-fledged synthesis procedure within \lsyn{}.
+In \lsyn{}, we further refine the term enumeration judgment we derived in \autoref{sec:generating-lambda-terms} to create a full-fledged synthesis judgment that takes advantage of example values as specification.
 We break up synthesis into two judgments as shown in \autoref{fig:lsyn-synthesis}:
 \begin{itemize}
   \item $Γ ⊢ τ ⇝ E$ (\rulename{eguess}): guess an $E$ of type $τ$.
   \item $Γ ⊢ τ ▷ Χ ⇝ I$ (\rulename{irefine}): refine and synthesize an $I$ of type $τ$ that agrees with examples $Χ$.
 \end{itemize}
+The synthesis problem in \lsyn{} can be characterized as follows:
+\begin{quote}
+Given a context $Γ$, goal type $τ$, and examples $Χ$ where $Γ ⊢ X : τ$, synthesize a program $I$ of type $τ$ that satisfies the examples $Χ$.
+\end{quote}
+The two mutually recursive judgments constitute a non-deterministic synthesis procedure where a complete \rulename{irefine} derivation corresponds to a solution of this synthesis problem.
 
-With $I$-terms, we are able to leverage the examples the user provides.
-For example, at $\mkwd{Unit}$ type, there is only one value, $()$ of that type, so the examples values must all be $()$.
+In \autoref{subsec:introducing-lsyn}, we observed that distinguishing between introductory forms $I$ and elimination forms $E$ helps identify when types function as input or output during typechecking.
+This insight also applies to how we treat examples in tandem with term generation.
+With introduction forms, the shape of the term and its corresponding type dictate how we refine example values.
+For example, at base type, our example values consist of constants.
+\rulename{irefine-base} says that we can synthesize a particular constant $c_k$ if the examples all agree on that constant, \ie, the goal example value of each example world is $c_k$.
+Note that if the example worlds contain differing constants, then this rule does not apply, and we would need to synthesize some other expression instead.
+
+In contrast, at arrow type our example values consist of a set of partial functions.
+\rulename{irefine-arr} says that we can synthesize a lambda leaving a synthesis sub-problem of synthesizing its body.
+To understand how \rulename{irefine-arr} refines examples, first consider the case where $Χ$ is a single example world, $σ ↦ \many{v_i ⇒ χ_i}{i < m}$.
+The example value is a single partial function consisting of $m$ alternatives.
+In this situation, the $\mfun{apply}$ meta-function generates a collection of $m$ new example worlds.
+The goal example value of each world is the range (\ie, the right-hand side) of each alternative, $χ_i$.
+The environment of each new world consists of the original environment $σ$ extended with a binding for the lambda's variable, $x$.
+The value bound to that variable is the domain (\ie, the left-hand side) of each alternative, $v_i$.
+We then use these new example worlds to synthesize the body of the lambda.
+
+In general, $Χ$ may contain $n$ example worlds $σ_1 ↦ pf_1, …, σ_n ↦ pf_n$.
+When there are multiple example worlds, we simply $\mfun{apply}$ each of the example worlds to generate a collection $Χ_1, …, X_n$ of example worlds and then concatenate them all together to create the final collection of example worlds $X'$ to be used to synthesize the body of the lambda.
+This occurs if the user specifies multiple partial functions rather than a single partial function.
+Surprisingly, there is a subtle semantic distinction between a collection of a partial functions and a single partial function.
+
+To see this, consider synthesizing at goal type $T → T$ with the example worlds
+\begin{align*}
+  σ_1 &↦ c_1 ⇒ c_2 \bnfalt c_3 ⇒ c_4 \\
+  σ_2 &↦ c_5 ⇒ c_6 \bnfalt c_7 ⇒ c_8 \bnfalt c_9 ⇒ c_{10}.
+\end{align*}
+If we apply \rulename{irefine-arr}, the resulting set of example worlds $X'$ that we use to synthesize the body of lambda is:
+\begin{gather*}
+  [x/c_1]σ_1 ↦ c_2, [x/c_3]σ_1 ↦ c_4, \\
+  [x/c_5]σ_2 ↦ c_6, [x/c_7]σ_2 ↦ c_8, [x/c_9]σ_2 ↦ c_{10}.
+\end{gather*}
+In contrast, if we combined the two example worlds into a single example world:
+\begin{align*}
+  σ ↦ c_1 ⇒ c_2 \bnfalt c_3 ⇒ c_4 \bnfalt c_5 ⇒ c_6 \bnfalt c_7 ⇒ c_8 \bnfalt c_9 ⇒ c_{10},
+\end{align*}
+then applying \rulename{irefine-arr} results in the following set:
+\begin{gather*}
+  [x/c_1]σ ↦ c_2, [x/c_3]σ ↦ c_4, \\
+  [x/c_5]σ ↦ c_6, [x/c_7]σ ↦ c_8, [x/c_9]σ ↦ c_{10}.
+\end{gather*}
+The only difference between the two cases is the original environments, $σ_1$ and $σ_2$ versus $σ$, that we extend when deriving $X'$.
+
+However, with $E$-terms, we are unable to refine the examples in this manner.
+This is because an $E$-term can be generated at any type and the shape of the $E$-term alone does not determine how we can decompose examples in a meaningful way.
+In particular, say that we try to synthesize a function application and choose a particular term $E$ with some function type $τ_1 → τ_2$.
+When synthesizing $I$, we would like to pass refined examples $Χ'$ such that $E\;I$ satisfies $X$.
+In general, though, this requires reasoning about the behavior of $E$, an arbitrary function, which is difficult to do.
+In the presence of richer language features, \eg, recursion, this is an undecidable.
+We can assume axiomatic reasoning principles for particular functions~\todo{cite}, but these are merely admissible heuristics in \lsyn{} so we do not consider them here.
+\todo{Add a note about where in the thesis we talk about them in more detail.}
+
+Therefore, for $E$-terms the \rulename{eguess} judgment resorts to term enumeration as developed in \autoref{subsec:enumerating-normal-forms}.
+The rules for generating variables (\rulename{eguess-var}) and application (\rulename{eguess-app}) merely generate a term of an appropriate type.
+Note that when generating the argument to an application $I$ in \rulename{eguess-app}, we pass provide the \emph{empty} set of examples.
+When $X$ is empty, you can see that the \rulename{irefine} judgment degenerates to simple term enumeration, as well.
+
+However, we are not content generating any $E$-term of an appropriate type.
+We want such a term that satisfies the provided examples.
+The bridge rule \rulename{irefine-guess} enforces this by not only generating an $E$-term, but also explicitly ensuring that $E$ satisfies $Χ$, written $I ⊢ Χ$ (noting that $E$s are a proper subset of the $I$s).
+This satisfaction judgment ensures that, for each example world, evaluating $I$ under that environment (written $σ(I)$, the result of applying the environment or substitution $σ$ to $I$) results in a value $v$ that is compatible to the goal example value for that world.
+This compatibility relation%
+\footnote{%
+  Because the relation is between two different syntactic classes, it is not an equivalence as it cannot be reflexive.
+  Although, morally, we are trying to compute an equivalence between regular values and example values.
+},
+written $v ≃ χ$ only needs to compare between a value $v$ and some goal example value $χ$.
+At base type, $v$ and $χ$ are constants so it suffices to ensure they are the same constant (\rulename{eq-base}).
+At arrow type, $v$ is a lambda and $χ$ is a partial function.
+To ensure compatibility, it is sufficient to check for each input/output pair of the partial function that running $v$ on the input of the pair produces a value compatible with the output of the pair (\rulename{eq-lam-pf}).
+
+\subsection{Synthesis Examples}
+\label{subsec:synthesis-examples}
+
+To better understand how \lsyn{} operates, let's work through a number of examples.
+
+\begin{example}
+  First, consider the degenerate case where the example set is empty ($Χ = ·$).
+  We claimed in \autoref{subsec:synthesis} that the \rulename{irefine} judgment degenerates to raw term enumeration when the example set is empty.
+  To see that this is true, let's look at how each \rulename{irefine} rule behaves with no examples.
+  \rulename{irefine-arr} is valid (as long as the goal type is an arrow) and passes along the empty example set ($X' = ·$) when synthesizing the body of the lambda.
+  \rulename{irefine-base} is also valid (as long as the goal type is $T$) and allows you to synthesize any constant $c_k$ since $X$ is empty.
+  Finally, \rulename{irefine-guess} allows you to synthesize any $E$ because $E ⊢ ·$ holds vacuously.
+\end{example}
+
+\begin{example}
+  Consider the example set $X = c_1 ⇒ c_1 \bnfalt c_2 ⇒ c_2$ with goal type $T → T$ in the empty context.
+  The following is a valid synthesis derivation of the identity function:
+  \[
+    \inferrule*[Right=irefine-arr]
+    {\inferrule*[Right=irefine-guess]
+      {\inferrule*[lab=eguess-var]
+        {x{:}T ∈ x{:}T}
+        {x{:}T ⊢ T ⇝ x} \\
+       \inferrule*[lab=satisfies]
+        {[c_1/x](x) ⟶^* c_1 ∧ [c_2/x](x) ⟶^* c_2}
+        {x ⊢ [c_1/x] ↦ c_1, [c_2/x] ↦ c_2}}
+      {x{:}T ⊢ T ▷ [c_1/x] ↦ c_1, [c_2/x] ↦ c_2 ⇝ x}}
+    {· ⊢ T → T ▷ · ↦ c_1 ⇒ c_1 \bnfalt c_2 ⇒ c_2 ⇝ λx{:}T.\,x}
+  \]
+  With the way the synthesis judgments are set up, we always make a number of $\rulename{irefine}$ derivations ending in a number of $\rulename{eguess}$ derivations.
+  This observation leads to a critical implementation optimization, \emph{refinement trees}, that we explore in \autoref{ch:implementation}.
+\end{example}
+
+\begin{example}
+  Consider under-constraining the example set from the previous example: $X = c_1 ⇒ c_1$ with goal type $T → T$ in the empty context.
+  We can now synthesize the constant function with a simpler derivation:
+  \[
+    \inferrule*[Right=irefine-arr]
+    {\inferrule*[Right=irefine-base]
+      {X = [c_1/x] ↦ c_1}
+      {x{:}T ⊢ T ▷ [c_1/x] ↦ c_1 ⇝ c_1}}
+    {· ⊢ T → T ▷ · ↦ c_1 ⇒ c_1 ⇝ λx{:}T.\,c_1}
+  \]
+  Note that the identity function is still derivable in this context:
+  \[
+    \inferrule*[Right=irefine-arr]
+    {\inferrule*[Right=irefine-guess]
+      {\inferrule*[lab=eguess-var]
+        {x{:}T ∈ x{:}T}
+        {x{:}T ⊢ T ⇝ x} \\
+       \inferrule*[lab=satisfies]
+        {[c_1/x](x) ⟶^* c_1}
+        {x ⊢ [c_1/x] ↦ c_1}}
+      {x{:}T ⊢ T ▷ [c_1/x] ↦ c_1 ⇝ x}}
+    {· ⊢ T → T ▷ · ↦ c_1 ⇒ c_1 ⇝ λx{:}T.\,x}
+  \]
+  Choosing one particular program over another requires that we adopt some heuristics.
+  While both programs are the same size, we may choose the program with the smaller derivation tree (the constant function), or we might choose the program that uses the most variables (the identity function).
+  In any event, these are implementation details that we discuss in \autoref{ch:implementation}.
+  It is sufficient for \lsyn{} to admit all programs that agree with the examples.
+\end{example}
+
+\begin{example}
+  Next, consider synthesizing the $\mkwd{if}$ function from \autoref{subsec:example-specification-in-stlc}.
+  Again we use the shorthand:
+  \begin{align*}
+    \mkwd{Bool}  &≝ T → T → T   \\
+    \mkwd{true}  &≝ λt{:}T.\,λf{:}T.\,t \\
+    \mkwd{false} &≝ λt{:}T.\,λf{:}T.\,f
+  \end{align*}
+  to maintain readability.
+  Here, we are trying to synthesize a program of type $\mkwd{Bool} → T → T → T$ with the example set
+  \begin{align*}
+    X = · ↦ \mkwd{true} ⇒ c_1 ⇒ c_2 ⇒ c_1, · ↦ \mkwd{false} ⇒ c_1 ⇒ c_2 ⇒ c_2
+  \end{align*}
+  We can synthesize the desired $\mkwd{if}$ function in \lsyn{} as follows.
+  First we can apply \rulename{irefine-arr} three times to arrive at the synthesis state:
+  \[
+    b{:}\mkwd{Bool}, t{:}T, f{:}T ⊢ T ▷ X ⇝ ◼
+  \]
+  where the example set $X$ is:
+  \begin{align*}
+    [\mkwd{true}/b][c_1/t][c_2/f] &↦ c_1 \\
+    [\mkwd{false}/b][c_1/t][c_2/f] &↦ c_2
+  \end{align*}
+  Now, we apply \rulename{irefine-guess} to generate the application.
+  The following \rulename{eguess} derivation generates the application itself (with $Γ = b{:}\mkwd{Bool}, t{:}T, f{:}T$).
+  \[
+    \inferrule*[Right=eguess-app]
+      {\inferrule*[Left=eguess-app]
+        {\inferrule*[Left=eguess-var]
+          {b{:}T → T → T ∈ Γ}
+          {Γ ⊢ T → T → T ⇝ b} \\
+         \inferrule*[lab=eguess-var]
+          {t{:}T ∈ Γ}
+          {Γ ⊢ T ⇝ t}
+        }
+        {Γ ⊢ T → T ⇝ b\;t} \\
+      \inferrule*[Right=eguess-var]
+        {f{:}T ∈ Γ}
+        {Γ ⊢ T ⇝ f}
+      }
+      {Γ ⊢ T ⇝ b\;t\;f}
+  \]
+  Finally, we verify that $b\;t\;f$ satisfies the examples:
+  \begin{gather*}
+    [\mkwd{true}/b][c_1/t][c_2/f](b\;t\;f) ⟶^* c_1 \\
+    [\mkwd{false}/b][c_1/t][c_2/f](b\;t\;f) ⟶^* c_2. \\
+  \end{gather*}
+\end{example}
+
+\begin{example}
+  For our last example, consider what happens if we provide contradictory examples.
+  Suppose that we are synthesizing a program of type $T → T$ and provide the partial function $c_1 ⇒ c_1 \bnfalt c_1 ⇒ c_2$.
+  There is no function that we can synthesize that satisfies this specification as $c_1$ is mapped to two distinct outputs.
+  To see this within \lsyn{}, note that \rulename{irefine-ctor} will never apply because the goal example values are different, and \rulename{irefine-guess} will never succeed because we will never be able to generate an $E$ that satisfies both $c_1$ and $c_2$ given that the argument to the function is bound to $c_1$.
+  Consequently there are no valid synthesis derivations in \lsyn{} for contradictory examples.
+
+  Detecting such contradictory examples turns out to be tricky.
+  At first glance, it seems like a simple syntactic check is sufficient: check to see that the partial functions involved map similar inputs to similar outputs.
+  However, because we allow lambdas as inputs to partial functions, this problem reduces to deciding function equivalence.
+  Furthermore, even this check is insufficient.
+  For example, consider the worlds $[c_1/x] ↦ c_1 ⇒ c_1, [c_2/x] c_1 ⇒ c_2$.
+  While the partial functions map $c_1$ to distinct outputs, they still do not contradict each other because we fulfill the eventual goal example value with the variable $x$.
+  Thus, we must decide not only equivalence between example values but also environments.
+
+  \todo{%
+    How do we want to conclude this part?
+    I believe that $βη$-equivalence is decidable in \stlc{}, so we could perform the required equivalence checks in this simple setting.
+    However, this doesn't scale up appropriately to more complicated type systems.
+    Furthermore, our idea of enumerating to a certain size does not work because some types are uninhabited and so we'll never produce a program of that type!
+    I guess we need to assume some existential definition of consistent examples here.
+  }
+\end{example}
+
