@@ -428,7 +428,7 @@ This compatibility relation%
   Although, morally, we are trying to compute an equivalence between regular values and example values.
 },
 written $v ≃ χ$ only needs to compare between a value $v$ and some goal example value $χ$.
-At base type, $v$ and $χ$ are constants so it suffices to ensure they are the same constant (\rulename{eq-base}).
+At base type, $v$ and $χ$ are constants so it suffices to ensure they are the same constant (\rulename{eq-ctor}).
 At arrow type, $v$ is a lambda and $χ$ is a partial function.
 To ensure compatibility, it is sufficient to check for each input/output pair of the partial function that running $v$ on the input of the pair produces a value compatible with the output of the pair (\rulename{eq-lam-pf}).
 

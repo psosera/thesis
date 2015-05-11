@@ -16,7 +16,7 @@
           {Γ ⊢ τ_1 → τ_2 ▷ Χ ⇝ λx{:}τ_1.\,I} \\
         \inferrule[irefine-base]
           {Χ = σ_1 ↦ c_k, …, σ_n ↦ c_k}
-          {Γ ⊢ 1 ▷ Χ ⇝ c_k} \qquad
+          {Γ ⊢ T ▷ Χ ⇝ c_k} \qquad
         \inferrule[irefine-guess]
           {Γ ⊢ τ ⇝ E \\ E ⊢ Χ}
           {Γ ⊢ τ ▷ Χ ⇝ E} \\
@@ -25,13 +25,13 @@
           {∀σ ↦ χ ∈ Χ.\;σ(I) ⟶^* v ∧ v ≃ χ}
           {I ⊢ Χ} \\
       \fbox{$v ≃ χ$} \qquad
-        \inferrule[eq-base]
+        \inferrule[eq-ctor]
           { }
           {c_k ≃ c_k} \qquad
         \inferrule[eq-lam-pf]
           {∀i ∈ 1, …, m.\; (λx{:}τ.\,e)\;v_i ⟶^* v ∧ v ≃ χ_i}
           {λx{:}τ.\,e ≃ \many{v_i ⇒ χ_i}{i < m}} \\
-      \mfun{apply}(x, σ, \many{v_i ⇒ χ_i}{i < m}) = [v_i/x]σ ↦ χ_i, …, [v_m/x]σ ↦ χ_m
+      \mfun{apply}(x, σ, \many{v_i ⇒ χ_i}{i < m}) = [v_1/x]σ ↦ χ_1, …, [v_m/x]σ ↦ χ_m
     \end{gather*}
   \end{center}
 

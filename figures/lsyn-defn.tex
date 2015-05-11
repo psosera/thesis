@@ -31,7 +31,10 @@
           {Γ ⊢ λx{:}τ_1.\;I ⇐ τ_1 → τ_2} \qquad
         \inferrule[t-Ibase]
           { }
-          {Γ ⊢ T ⇐ c} \\
+          {Γ ⊢ T ⇐ c} \qquad
+        \inferrule[t-Ielim]
+          {Γ ⊢ E ⇒ τ}
+          {Γ ⊢ E ⇐ τ} \\
       \fbox{$Γ ⊢ χ : τ$} \qquad
         \inferrule[t-ex-base]
           { }
