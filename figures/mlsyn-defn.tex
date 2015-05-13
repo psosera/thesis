@@ -1,0 +1,27 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$}}
+      τ  & \bnfdef & T \bnfalt \munit \bnfalt τ_1 → τ_2 \\
+      p  & \bnfdef & C(x_1, …, x_k) \\
+      pf & \bnfdef & \many{v_i ⇒ χ_i}{i < m} \\
+      e  & \bnfdef & x \bnfalt () \bnfalt e_1\;e_2 \bnfalt pf \bnfalt \mkwd{fix}\;f\;(x{:}τ_1) : τ_2 = e \\
+         & \bnfalt & C\;(e_1, …, e_k) \bnfalt \mmatch\;e\;\mwith\;\many{p_i → e_i}{i < m} \\
+      v  & \bnfdef & () \bnfalt pf \bnfalt \mfix\;f\;(x{:}τ_1) : τ_2 = e \bnfalt C\;(v_1, …, v_k) \\
+      ℰ  & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ \bnfalt C\;(v_1, …, ℰ, …, e_k) \\
+         & \bnfalt & \mmatch\;ℰ\;\mwith\;\many{p_i → e_i}{i < m} \\
+      b  & \bnfdef & · \bnfalt \mrec \bnfalt \marg{f} \bnfalt \mdec{f} \\
+      Γ  & \bnfdef & · \bnfalt x{:}τ\{b\}, Γ \\
+      Σ  & \bnfdef & · \bnfalt C{:}τ_1 * … * τ_k → T, Σ \\
+      \\
+      E  & \bnfdef & x \bnfalt E\;I \\
+      I  & \bnfdef & E \bnfalt () \bnfalt \mkwd{fix}\;f\;(x{:}τ_1) : τ_2 = I \\
+         & \bnfalt & C(I_1, …, I_k) \bnfalt \mmatch\;E\;\mwith\;\many{p_i → I_i}{i < m} \\
+      σ  & \bnfdef & · \bnfalt [v/x]σ \\
+      χ  & \bnfdef & () \bnfalt pf \bnfalt C(χ_1, …, χ_k) \\
+      Χ  & \bnfdef & · \bnfalt σ ↦ χ, Χ \\
+    \end{tabular}
+  \end{center}
+  \hrule
+  \caption{\mlsyn{} syntax}
+  \label{fig:mlsyn-defn}
+\end{figure}

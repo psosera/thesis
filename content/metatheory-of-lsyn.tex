@@ -3,9 +3,11 @@ So far, we have introduced \lsyn{}, a core calculus for program synthesis with t
 However, in moving towards an algorithm, we would like to understand whether the design decisions we make to gain determinism, tractability, and expressiveness are admissible in our system or result in weakening the properties of \lsyn{}.
 
 In this section, we establish these properties by proving soundness and completeness of synthesis in \lsyn{}.
-We present the full details of the proofs here to provide a template for reasoning about these properties for the more complicated systems we discuss in later chapters.
+We present the full details of the proofs here to provide a template for reasoning about the metatheory of  more complicated type-directed program synthesis systems we discuss in later chapters.
 
 \section{Auxiliary Properties}
+
+First, we require some auxiliary results
 
 \begin{lemma}[Example Value Canonicity]
   \label{lem:example-value-canonicity}
@@ -16,14 +18,59 @@ We present the full details of the proofs here to provide a template for reasoni
   \end{enumerate}
 \end{lemma}
 \begin{proof}
-  Immediate by inverting the type checking judgment for $χ$ as there is a one-to-one correspondence between the shape of a type and an example value of that type.
+  By case analysis on $τ$ and the well-typedness of $χ$, noting that there is a one-to-one correspondence between the shape of a type and an example value of that type.
 \end{proof}
+Canonicity of example values allows us to reason about the shape of $χ$s given the type they type check against.
+
+\begin{lemma}[Strong Normalization of \lsyn{}]
+  \label{lem:strong-normalization-of-lsyn}
+  If $Γ ⊢ e : τ$ then either $e$ is a value or $e ⟶^* v$.
+\end{lemma}
+\begin{proof}
+  The external language fragment of \lsyn{} is merely \stlc{} (extended with a base type) which is known to be strongly normalizing~\todo{cite}.
+\end{proof}
+The satisfication judgment (\rulename{satisfies}) relies on evaluation to values, and so whenever we need to show that a program satisfies a set of examples, notably in completeness, we implicitly rely on strong normalization to guarantee that evaluation produces a value.
+
+\begin{lemma}[Type Preservation of $\mfun{apply}$]
+  \label{lem:type-preservation-of-apply}
+  If $Γ ⊢ σ ↦ \many{v_i ⇒ χ_i}{i < m} : τ_1 → τ_2$ then $x{:}τ_1, Γ ⊢ \mfun{apply}(x, σ, \many{v_i ⇒ χ_i}{i < m}) : τ_2$.
+\end{lemma}
+\begin{proof}
+  Unfolding the definition $\mfun{apply}$, we know that $\mfun{apply}(x, σ_i, \many{v_i ⇒ χ_i}{i < m}) = [v_1/x]σ ↦ χ_1, …, [v_m/x]σ ↦ χ_m$.
+  To show that the new example set has type $τ_2$, it suffices to show (through \rulename{t-exw-cons}) that:
+  \begin{itemize}
+    \item For all $i ∈ 1, …, m$, $[v_i/x]σ$ is well-typed.
+      We know that $σ$ is well-typed because the original example set is well-typed.
+      The additional binding $[v_i/x]$ is well-typed because the extended context demands that $x$ has type $τ_1$ and $v_i$ has type $τ_1$ because the partial function is well-typed.
+    \item For all $i ∈ 1, …, m$, for all $y{:}τ ∈ x{:}τ_1, Γ$, there exists $v$ such that $[y/v] ∈ [v_i/x]σ$.
+      Because the original example set is well-typed, we know that $σ$ covers all of the bindings in $Γ$.
+      We know that the additional type binding for $x$ is covered by the additional environment binding $[v_i/x]$.
+    \item For all $i ∈ 1, …, m$, $χ_i$ has type $τ_2$.
+      Because the partial function is well-typed, we know through \rulename{t-ex-pf} that each $χ_i$ has type $τ_2$.
+  \end{itemize}
+\end{proof}
+
+\begin{lemma}[Type Preservation of Example World Concatenation]
+  \label{lem:type-preservation-of-example-world-concatenation}
+  If $Γ ⊢ Χ : τ$ and $Γ ⊢ Χ' : τ$ then $Γ ⊢ Χ \concat Χ' : τ$.
+\end{lemma}
+\begin{proof}
+  From \rulename{t-exw-cons}, we know that each individual example world in $Χ$ and $Χ'$ are well-typed at type $τ$.
+  By \rulename{t-exw-cons}, we can cons together all of these example worlds together to form a single set of example worlds that is well-typed at type $τ$.
+\end{proof}
+
+\autoref{lem:type-preservation-of-apply} and \autoref{lem:type-preservation-of-example-world-concatenation} allow us to conclude that the \rulename{irefine-arr} rule produces a well-typed example set ($Χ'$) for its synthesis sub-problem.
 
 \section{Soundness}
 
 Soundness states that the programs that we synthesis are ``correct''.
-In type-directed program synthesis, synthesized programs are correct if they are well-typed at the goal type, \emph{type soundness}, and if they satisfy the examples, \emph{example soundness}.
+In type-directed program synthesis, correctness has two components:
+\begin{itemize}
+  \item The synthesized program is well-typed at the goal type, \emph{type soundness}, and
+  \item The synthesized program satisfies the examples, \emph{example soundness}.
+\end{itemize}
 
+Intutively, type soundness follows from the fact that we derived the synthesis algorithm from the type checking judgment.
 \begin{lemma}[Type Soundness of \lsyn{}]\ %
   \begin{enumerate}
     \item If $Γ ⊢ τ ⇝ E$, then $Γ ⊢ E ⇒ τ$.
@@ -54,40 +101,9 @@ In type-directed program synthesis, synthesized programs are correct if they are
   \end{description}
 \end{proof}
 
-Before proving example soundness, we must establish an additional property that states that $\mfun{apply}$ produces well-typed example sets.
-
-\begin{lemma}[Type Preservation of $\mfun{apply}$]
-  \label{lem:type-preservation-of-apply}
-  If $Γ ⊢ σ ↦ \many{v_i ⇒ χ_i}{i < m} : τ_1 → τ_2$ then $x{:}τ_1, Γ ⊢ \mfun{apply}(x, σ, \many{v_i ⇒ χ_i}{i < m}) : τ_2$.
-\end{lemma}
-\begin{proof}
-  Unfolding the definition $\mfun{apply}$, we know that $\mfun{apply}(x, σ_i, \many{v_i ⇒ χ_i}{i < m}) = [v_1/x]σ ↦ χ_1, …, [v_m/x]σ ↦ χ_m$.
-  To show that the new example set has type $τ_2$, it suffices to show (through \rulename{t-exw-cons}) that:
-  \begin{itemize}
-    \item For all $i ∈ 1, …, m$, $[v_i/x]σ$ is well-typed.
-      We know that $σ$ is well-typed because the original example set is well-typed.
-      The additional binding $[v_i/x]$ is well-typed because the extended context demands that $x$ has type $τ_1$ and $v_i$ has type $τ_1$ because the partial function is well-typed.
-    \item For all $i ∈ 1, …, m$, for all $y{:}τ ∈ x{:}τ_1, Γ$, there exists $v$ such that $[y/v] ∈ [v_i/x]σ$.
-      Because the original example set is well-typed, we know that $σ$ covers all of the bindings in $Γ$.
-      We know that the additional type binding for $x$ is covered by the additional environment binding $[v_i/x]$.
-    \item For all $i ∈ 1, …, m$, $χ_i$ has type $τ_2$.
-      Because the partial function is well-typed, we know through \rulename{t-ex-pf} that each $χ_i$ has type $τ_2$.
-  \end{itemize}
-\end{proof}
-
-\begin{lemma}[Type Preservation of Example World Concatenation]
-  \label{lem:type-preservation-of-example-world-concatenation}
-  If $Γ ⊢ Χ : τ$ and $Γ ⊢ Χ' : τ$ then $Γ ⊢ Χ \concat Χ' : τ$.
-\end{lemma}
-\begin{proof}
-  From \rulename{t-exw-cons}, we know that each individual example world in $Χ$ and $Χ'$ are well-typed at type $τ$.
-  By \rulename{t-exw-cons}, we can cons together all of these example worlds together to form a single set of example worlds that is well-typed at type $τ$.
-\end{proof}
-
 In general, to prove example soundness, we need to show that each \rulename{irefine} rule produces well-typed example sets to invoke our inductive hypotheses.
+\autoref{lem:type-preservation-of-apply} and \autoref{lem:type-preservation-of-example-world-concatenation} allow us to conclude this for arrow types.
 When we introduce additional types in later chapters, we will need to show similar lemmas for each additional introduction form and corresponding \rulename{irefine} rule.
-With this fact established, we can now proceed:
-
 \begin{lemma}[Example Soundness of \lsyn{}]
   If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $I ⊢ Χ$.
 \end{lemma}
@@ -138,7 +154,7 @@ First, we show the completeness of term enumeration in \lsyn{}.
   \end{enumerate}
 \end{lemma}
 \begin{proof}
-  By mutual induction on the typing derivations of $E$- and $I$-terms.
+  By mutual induction on the typing derivations for $E$- and $I$-terms.
   \begin{description}
     \item[Case \normalfont{\rulename{t-Evar}}:]
       $E = x$.
@@ -167,11 +183,11 @@ However, it turns out this variant is trivially true!
 If $Γ ⊢ I ⇐ τ$ then there exists a $Χ$ such if $Γ ⊢ Χ : τ$ and $I ⊢ Χ$, then $Γ ⊢ τ ▷ Χ ⇝ I$.
 \end{lemma}
 \begin{proof}
-  Consider $Χ = ·$.
-  By \autoref{lem:completeness-of-lsyn-term-enumeration}, we are able to synthesize any well-typed $I$-term!
+  Consider the empty example set, $Χ = ·$.
+  By \autoref{lem:completeness-of-lsyn-term-enumeration}, from $Χ$ we are able to synthesize any well-typed $I$-term!
 \end{proof}
 
-The more interesting statement of completeness instead fixes a particular example set $Χ$.
+The more interesting statement of completeness instead chooses a particular example set $Χ$.
 This statement makes the stronger claim that any example set satisfied by a program is sufficient to synthesize that program in \lsyn{}.
 \begin{lemma}[Completeness of \lsyn{}]
 If $Γ ⊢ I ⇐ τ$, $Γ ⊢ Χ : τ$, and $I ⊢ Χ$, then $Γ ⊢ τ ▷ Χ ⇝ I$.

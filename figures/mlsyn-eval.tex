@@ -1,0 +1,51 @@
+\begin{figure}
+  \begin{center}
+    \begin{gather*}
+      \fbox{$e → e'$} \qquad
+        \inferrule[eval-ctx]
+          {e ⟶ e'}
+          {ℰ[e] ⟶ ℰ[e']} \qquad
+        \inferrule[eval-nomatch]
+          {}
+          {ℰ[\mnomatch] ⟶ \mnomatch} \qquad
+        \inferrule[eval-app]
+          {}
+          {(λx{:}τ.\,e)\;v ⟶ [v/x]e} \\
+        \inferrule[eval-pf-good]
+          {v ≃ v_j \\ j ∈ 1, …, m}
+          {(\many{v_i ⇒ χ_i}{i < m})\;v → χ_j} \qquad
+        \inferrule[eval-pf-bad]
+          {∀i ∈ 1, …, m.\,v ≄ v_i}
+          {(\many{v_i ⇒ χ_i}{i < m})\;v → \mnomatch}
+    \end{gather*}
+    \[
+      \begin{array}{l}
+        \rulename{eval-match} \\
+        \quad \mmatch\;C(v_1, …, v_k)\;\mwith\;p_1 → e_1 \bnfalt … \bnfalt C(x_1, …, x_k) → e \bnfalt … \bnfalt p_m → e_m \\
+        \qquad ⟶ [v_1/x_1]…[v_k/x_k](e)
+      \end{array}
+    \]
+    \begin{gather*}
+      \fbox{$v ≃ v'$} \qquad
+        \inferrule[eq-refl]
+          {}
+          {v ≃ v} \qquad
+        \inferrule[eq-sym]
+          {v' ≃ v}
+          {v ≃ v'} \\
+        \inferrule[eq-pf-pf]
+          {∀i ∈ 1, …, m.\,∃j ∈ 1, …, n.\,v_i ≃ v_j ∧ χ_i ≃ χ_j \\\\
+           ∀j ∈ 1, …, n.\,∃i ∈ 1, …, m.\,v_i ≃ v_j ∧ χ_i ≃ χ_j}
+          {\many{v_i ⇒ χ_i}{i < m} ≃ \many{v_j ⇒ χ_j}{j < n}} \\
+        \inferrule[eq-fix-px]
+          {∀i ∈ 1, …, m.\,(\mfix\;f\;(x{:}τ_1) : τ_2 = e)\;v_i ⟶^* v ∧ v ≃ χ_i}
+          {\mfix\;f\;(x{:}τ_1) : τ_2 = e ≃ \many{v_i ⇒ χ_i}{i < m}} \\
+        \inferrule[eq-ctor]
+          {v_{11} ≃ v_{21} \;…\; v_{1k} ≃ v_{2k}}
+          {C(v_{11}, …, v_{1k}) ≃ C(v_{21}, …, v_{2k})}
+    \end{gather*}
+  \end{center}
+  \hrule
+  \caption{\mlsyn{} evaluation and compatibility rules}
+  \label{fig:mlsyn-eval}
+\end{figure}

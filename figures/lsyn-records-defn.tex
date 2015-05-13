@@ -1,0 +1,54 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      τ  & \bnfdef & … \bnfalt \{\many{l_i{:}τ_{i}}{i < m}\} & Types \\
+      e  & \bnfdef & … \bnfalt \{\many{l_i = e_i}{i < m}\} \bnfalt e.l & Terms \\
+      v  & \bnfdef & … \bnfalt \{\many{l_i = v_i}{i < m}\} & Values \\
+      ℰ  & \bnfdef & … \bnfalt \{l_1 = v_1, …, l = ℰ, …, l_m = e_m\} \bnfalt ℰ.l & Evaluation Contexts \\
+      E  & \bnfdef & … \bnfalt E.l & Elimination Forms \\
+      I  & \bnfdef & … \bnfalt \{\many{l_i = I_i}{i < m}\} & Introduction Forms \\
+      χ  & \bnfdef & … \bnfalt \{\many{l_i = χ_i}{i < m}\} & Example Values \\
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \fbox{$Γ ⊢ e : τ$} \qquad
+        \inferrule[t-record]
+          {\many{Γ ⊢ e_i : τ_i}{i <m}}
+          {Γ ⊢ \{\many{l_i = e_i}{i < m}\} : \{\many{l_i{:}τ_{i}}{i < m}\}} \qquad
+        \inferrule[t-proj]
+          {Γ ⊢ e : \{\many{l_i{:}τ_{i}}{i < m}\}}
+          {Γ ⊢ e.l_i : τ_i} \\
+      \fbox{$Γ ⊢ I ⇐ τ$} \qquad
+        \inferrule[t-Irecord]
+          {\many{Γ ⊢ I_i ⇐ τ_i}{i <m}}
+          {Γ ⊢ \{\many{l_i = I_i}{i < m}\} : \{\many{l_i{:}τ_{i}}{i < m}\}} \\
+      \fbox{$Γ ⊢ E ⇒ τ$} \qquad
+        \inferrule[t-proj]
+          {Γ ⊢ e ⇒ \{\many{l_i{:}τ_{i}}{i < m}\}}
+          {Γ ⊢ e.l_i ⇒ τ_i} \qquad
+      \fbox{$e ⟶ e'$} \qquad
+        \inferrule[eval-proj]
+          {}
+          {\{\many{l_i = v_i}{i < m}\}.l_i ⟶ v_i} \\
+      \fbox{$Γ ⊢ τ ⇝ E$} \qquad
+        \inferrule[eguess-proj]
+          {Γ ⊢ \{\many{l_i{:}τ_i}{i < m}\} ⇝ E}
+          {Γ ⊢ τ_i ⇝ E.l_i} \qquad
+      \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \\
+        \inferrule[irefine-record]
+          {X = \many{σ_j ↦ \{l_1 = χ_{1j}, …, l_m = χ_{mj}\}}{j < n} \\\\
+           \mfun{rproj}(X) = X_1, …, X_m \\ \many{Γ ⊢ τ_i ▷ X_i ⇝ I_i}{i < m}}
+          {Γ ⊢ \{\many{l_i{:}τ_i}{i < m}\} ▷ Χ ⇝ \{\many{l_i = I_i}{i < m}\}}
+    \end{gather*}
+    \[
+      \begin{array}{l}
+        \mfun{rproj}(\many{σ_j ↦ \{l_1 = χ_{1j}, …, l_m = χ_{mj}\}}{j < n}) = X_1, …, X_m \\
+        \quad \textrm{where} \\
+        \qquad ∀i ∈ 1, …, m.\,X_i = \many{σ_j ↦ χ_{ij}}{i < m}
+      \end{array}
+    \]
+  \end{center}
+  \hrule
+  \caption{\lsyn{} records definitions}
+  \label{fig:lsyn-records-defn}
+\end{figure}

@@ -4,6 +4,7 @@
 
 \newcommand{\stlc}{$λ^{→}$}
 \newcommand{\lsyn}{$λ_{syn}^{→}$}
+\newcommand{\mlsyn}{$\textsc{ML}_{syn}$}
 
 %%%%% }}}
 
@@ -24,12 +25,12 @@
 
 %%%%% Math typesetting {{{
 
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
-\newtheorem{property}{Property}
-\newtheorem{invariant}{Invariant}
-\newtheorem{definition}{Definition}
-\newtheorem{claim}{Claim}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{property}{Property}[section]
+\newtheorem{invariant}{Invariant}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{claim}{Claim}[section]
 
 \theoremstyle{definition}
 \newtheorem{example}{Example}[section]
@@ -47,11 +48,35 @@
   \mathrel{\!\colon\!\!\colon\!\mathord{=}}%
 }
 \newcommand{\concat}{\mathbin{+\!\!+}}
-\newcommand{\synE}{\stackrel{E}{⇝}}
-\newcommand{\synI}{\stackrel{I}{⇝}}
+\newcommand{\semisep}{\mathrel{;}}
+\newcommand{\synE}{\overset{⇝}{E}}
+\newcommand{\synI}{\overset{⇝}{I}}
+\newcommand{\appprod}{\underset{app}{⊗}}
 
 \newcommand{\many}[2]{\overline{#1}^{#2}}
 \newcommand{\mkwd}[1]{\mathsf{#1}}
 \newcommand{\mfun}[1]{\mathbf{#1}}
+
+\newcommand{\mfst}[1]{\mkwd{fst}\;#1}
+\newcommand{\msnd}[1]{\mkwd{snd}\;#1}
+\newcommand{\minl}[2][]{%
+  \ifthenelse{\equal{#1}{}}
+    {\mkwd{inl}\;#2}
+    {\mkwd{inl}_{#1}\;#2}
+}
+\newcommand{\minr}[2][]{%
+  \ifthenelse{\equal{#1}{}}
+    {\mkwd{inr}\;#2}
+    {\mkwd{inr}_{#1}\;#2}
+}
+\newcommand{\munit}{\mkwd{Unit}}
+\newcommand{\mmatch}{\mkwd{match}}
+\newcommand{\mwith}{\mkwd{with}}
+\newcommand{\mfix}{\mkwd{fix}}
+\newcommand{\mrec}{\mkwd{rec}}
+\newcommand{\marg}[1]{\mkwd{arg}\;#1}
+\newcommand{\mdec}[1]{\mkwd{dec}\;#1}
+\newcommand{\mnomatch}{\mkwd{NoMatch}}
+\newcommand{\mgen}{\mfun{gen}}
 
 %%%%% }}}

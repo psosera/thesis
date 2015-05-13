@@ -1,0 +1,27 @@
+\begin{figure}
+  \begin{center}
+    \[
+      \begin{array}{l}
+      \mfun{proj}(Χ) = \many{σ_i ↦ χ_{1i}}{i < n}, …, \many{σ_i ↦ χ_{ki}}{i < n} \\
+      \quad \mathrm{where}\;Χ = \many{σ_i ↦ C(χ_{1i}, …, χ_{ki})}{i < n} \\[6pt]
+      \mfun{apply}(f, x, σ ↦ pf) = \many{[pf/f][v_i/x] σ ↦ χ_i}{i < m} \\
+      \quad \mathrm{where}\;pf = \many{v_i ⇒ χ_i}{i < m} \\[6pt]
+      \mfun{distribute}(Σ, T, Χ, E) = (p_1, Χ'_1), …, (p_m, Χ'_m) \\
+      \quad \mathrm{where} \\
+      \qquad \mfun{ctors}(Σ, T) = C_1, …, C_m \\
+      \qquad ∀i ∈ 1, …, n.\,p_i = \mfun{pattern}(Σ, C_i) \\
+      \qquad ∀i ∈ 1, …, n.\,Χ'_i = [σ'σ ↦ χ \bnfalt σ ↦ χ ∈ Χ, σ(E) ⟶^* C_i(χ1, …, χ_k), \\
+      \qquad\quad \mfun{vbinders}(p_i, χ_1, …, χ_k) = σ'] \\[6pt]
+      \mfun{ctors}(Σ, T) = C_1, …, C_n \\
+      \quad \mathrm{where}\;∀i ∈ 1, …, n.\,C_i : τ_1 * … * τ_k → T ∈ Σ \\[6pt]
+      \mfun{pattern}(Σ, C) = C(x_1, …, x_k) \\
+      \quad \mathrm{where}\;C : τ_1 * … * τ_k → T ∈ Σ \\[6pt]
+      \mfun{vbinders}(p, e_1, …, e_k) = [e_1/x_1]…[e_k/x_k] \\
+      \quad \mathrm{where}\;p = C(x_1, …, x_k)
+      \end{array}
+    \]
+  \end{center}
+  \hrule
+  \caption{\mlsyn{} synthesis auxiliary functions}
+  \label{fig:mlsyn-aux}
+\end{figure}

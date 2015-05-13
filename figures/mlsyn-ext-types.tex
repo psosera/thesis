@@ -1,0 +1,59 @@
+\begin{figure}
+  \begin{center}
+    \begin{gather*}
+      \fbox{$Σ;Γ ⊢ e : τ$} \qquad
+        \inferrule[t-var]
+          {x{:}τ ∈ Γ}
+          {Σ;Γ ⊢ x : τ} \qquad
+        \inferrule[t-unit]
+          { }
+          {Σ;Γ ⊢ () : \munit} \\
+        \inferrule[t-app]
+          {Σ;Γ ⊢ e_1 : τ_1 → τ_2 \\
+           Σ;Γ ⊢ e_2 : τ_1 \\\\
+           \mfun{struct}(Γ, e_1, e_2)}
+          {Σ;Γ ⊢ e_1\;e_2 : τ_2} \qquad
+        \inferrule[t-ctor]
+          {C : τ_1, …, τ_k → T ∈ Σ \\ \many{Σ;Γ ⊢ e_i : τ_i}{i < k}}
+          {Σ;Γ ⊢ C\;(e_1, …, e_k) : T} \\
+        \inferrule[t-pf]
+          {\many{Σ;Γ ⊢ v_i : τ_1}{i < m} \\ \many{Σ;Γ ⊢ χ_i : τ_2}{i < m}}
+          {Σ;Γ ⊢ \many{v_i ⇒ χ_i}{i < m} : τ_1 → τ_2} \qquad
+        \inferrule[t-fix]
+          {Σ;f{:}τ_1 → τ_2 \{\mrec\}, x{:}τ_1 \{\marg{f}\}, Γ ⊢ e : τ_2}
+          {Σ;Γ ⊢ \mfix\;f\;(x{:}τ_1) : τ_2 = e : τ_1 → τ_2} \\
+        \inferrule[t-match]
+          {Σ;Γ ⊢ e : T \\ \mfun{complete}(Σ, \many{p_i}{i < m}, T) \\\\
+          \many{\mfun{binders}(Γ, e, p_i) = Γ_i}{i < m} \\ \many{Σ; Γ_i, Γ ⊢ e_i : τ}{i < m}}
+          {Σ;Γ ⊢ \mmatch\;e\;\mwith\;\many{p_i → e_i}{i < m} : τ} \\
+      \fbox{$\mfun{struct}(e_1, e_2)$} \qquad
+        \inferrule[struct-var-rec]
+          {f{:}τ_1 → τ_2\{\mrec\} ∈ Γ \\
+           x{:}τ_1\{\mdec{f}\} ∈ Γ}
+          {\mfun{struct}(Γ, f, x)} \\
+        \inferrule[struct-var-not-rec]
+          {f{:}τ_1 → τ_2\{b\} ∈ Γ \\ b ≠ \mrec}
+          {\mfun{struct}(Γ, f, e)} \qquad
+        \inferrule[struct-not-var]
+          {e_1 ≠ f}
+          {\mfun{struct}(e_1, e_2)} \\
+      \fbox{$\mfun{complete}(Σ, \many{p_i}{i < m}, T)$} \qquad
+        \inferrule[complete]
+          {C ∈ τ_1 * … * τ_k → T ∈ Σ ↔ C(x_1, …, x_k) \in \many{p_i}{i < m}}
+          {\mfun{complete}(Σ, \many{p_i}{i < m})}
+    \end{gather*}
+    \[
+      \begin{array}{l}
+        \mfun{binders}(Γ, e, C(x_1, …, x_k)) = x_1{:}τ_1 \{b_1\}, …, x_k{:}τ_k \{b_k\} \\
+        \quad \textrm{where} \\
+        \qquad ∀i ∈ 1, …, k.\, b_i = \begin{cases}
+          \mdec{f} & e = x, x{:}τ \{b\} ∈ Γ, b = \marg{f} ∨ b = \mrec{f}, τ_i = τ \\
+            · & \textrm{otherwise}
+          \end{cases}
+      \end{array}
+    \]
+  \end{center}
+  \hrule
+  \caption{\mlsyn{} external language type checking}
+  \label{fig:mlsyn-ext-types}
+\end{figure}

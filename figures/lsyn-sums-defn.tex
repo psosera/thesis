@@ -1,0 +1,48 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$}}
+      τ  & \bnfdef & … \bnfalt τ_1 + τ_2 \\
+      e  & \bnfdef & … \bnfalt \mmatch\;e\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 \bnfalt \minl[τ_1 + τ_2]{e} \bnfalt \minr[τ_1 + τ_2]{e} \\
+      v  & \bnfdef & … \bnfalt \minl[τ_1 + τ_2]{v} \bnfalt \minr[τ_1 + τ_2]{v} \\
+      ℰ  & \bnfdef & … \bnfalt \mmatch\;ℰ\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 \\
+      E  & \bnfdef & … \\
+      I  & \bnfdef & … \bnfalt \mmatch\;E\;\mwith\;\minl{x_1} → I_1 \semisep \minr{x_2} → I_2 \bnfalt \minl[τ_1 + τ_2]{I} \bnfalt \minr[τ_1 + τ_2]{I} \\
+      χ  & \bnfdef & … \bnfalt \minl[τ_1 + τ_2]{χ} \bnfalt \minr[τ_1 + τ_2]{χ} \\
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \fbox{$Γ ⊢ e : τ$} \qquad
+        \inferrule[t-inl]
+          {Γ ⊢ e : τ_1}
+          {Γ ⊢ \minl[τ_1 + τ_2]{e} : τ_1 + τ_2} \qquad
+        \inferrule[t-inr]
+          {Γ ⊢ e : τ_2}
+          {Γ ⊢ \minr[τ_1 + τ_2]{e} : τ_1 + τ_2} \\
+        \inferrule[t-match]
+          {Γ ⊢ e : τ_1 + τ_2 \\\\
+           x_1{:}τ_1, Γ ⊢ e_1 : τ \\ x_2{:}τ_2, Γ ⊢ e_2 : τ}
+          {Γ ⊢ \mmatch\;e\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 : τ} \\
+      \fbox{$Γ ⊢ I ⇐ τ$} \qquad
+        \inferrule[t-Iinl]
+          {Γ ⊢ I ⇐ τ_1}
+          {Γ ⊢ \minl[τ_1 + τ_2]{I} ⇐ τ_1 + τ_2} \qquad
+        \inferrule[t-Iinr]
+          {Γ ⊢ I ⇐ τ_2}
+          {Γ ⊢ \minr[τ_1 + τ_2]{I} ⇐ τ_1 + τ_2} \\
+        \inferrule[t-Imatch]
+          {Γ ⊢ E ⇒ τ_1 + τ_2 \\\\
+           x_1{:}τ_1, Γ ⊢ I_1 ⇐ τ \\ x_2{:}τ_2, Γ ⊢ I_2 ⇐ τ}
+          {Γ ⊢ \mmatch\;E\;\mwith\;\minl{x_1} → I_1 \semisep \minr{x_2} → I_2 : τ} \\
+      \fbox{$e ⟶ e'$} \qquad
+        \inferrule[eval-match-inl]
+          {}
+          {\mmatch\;\minl[τ_1 + τ_2]{v}\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 ⟶ [v/x_1]e_1} \\
+        \inferrule[eval-match-inr]
+          {}
+          {\mmatch\;\minr[τ_1 + τ_2]{v}\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 ⟶ [v/x_2]e_2}
+    \end{gather*}
+  \end{center}
+  \hrule
+  \caption{\lsyn{} sums definitions}
+  \label{fig:lsyn-sums-defn}
+\end{figure}

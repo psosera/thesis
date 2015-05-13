@@ -1,0 +1,62 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      τ  & \bnfdef & … \bnfalt τ_1 × τ_2 & Types \\
+      e  & \bnfdef & … \bnfalt \mfst{e} \bnfalt \msnd{e} \bnfalt (e_1, e_2) & Terms \\
+      v  & \bnfdef & … \bnfalt (v_1, v_2) & Values \\
+      ℰ  & \bnfdef & … \bnfalt (ℰ, e) \bnfalt (v, ℰ) & Evaluation Contexts \\
+      E  & \bnfdef & … \bnfalt \mfst{E} \bnfalt \msnd{E} & Elimination Terms \\
+      I  & \bnfdef & … \bnfalt (I_1, I_2) & Introduction Terms \\
+      χ  & \bnfdef & … \bnfalt (χ_1, χ_2) & Example Values \\
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \fbox{$Γ ⊢ e : τ$} \qquad
+        \inferrule[t-pair]
+          {Γ ⊢ e_1 : τ_1 \\ Γ ⊢ e_2 : τ_2}
+          {Γ ⊢ (e_1, e_2) : τ_1 × τ_2} \qquad
+        \inferrule[t-fst]
+          {Γ ⊢ e : τ_1 × τ_2}
+          {Γ ⊢ \mfst{e} : τ_1} \qquad
+        \inferrule[t-snd]
+          {Γ ⊢ e : τ_1 × τ_2}
+          {Γ ⊢ \msnd{e} : τ_2} \\
+      \fbox{$Γ ⊢ E ⇒ τ$} \qquad
+        \inferrule[t-Efst]
+          {Γ ⊢ E ⇒ τ_1 × τ_2}
+          {Γ ⊢ \mfst{E} ⇒ τ_1} \qquad
+        \inferrule[t-Esnd]
+          {Γ ⊢ E ⇒ τ_1 × τ_2}
+          {Γ ⊢ \msnd{E} ⇒ τ_2} \\
+      \fbox{$Γ ⊢ I ⇐ τ$} \qquad
+        \inferrule[t-Ipair]
+          {Γ ⊢ I_1 ⇐ τ_1 \\ Γ ⊢ I_2 ⇐ τ_2}
+          {Γ ⊢ (I_1, I_2) ⇐ τ_1 × τ_2} \\
+      \fbox{$e ⟶ e'$} \qquad
+        \inferrule[eval-fst]
+          {}
+          {\mfst{(v_1, v_2)} ⟶ v_1} \qquad
+        \inferrule[eval-snd]
+          {}
+          {\msnd{(v_1, v_2)} ⟶ v_2} \\
+      \fbox{$Γ ⊢ τ ⇝ E$} \qquad
+        \inferrule[eguess-fst]
+          {Γ ⊢ τ_1 × τ_2 ⇝ E}
+          {Γ ⊢ τ_1 ⇝ \mfst{E}} \qquad
+        \inferrule[eguess-snd]
+          {Γ ⊢ τ_1 × τ_2 ⇝ E}
+          {Γ ⊢ τ_2 ⇝ \msnd{E}} \\
+      \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
+        \inferrule[irefine-prod]
+          {Γ ⊢ τ_1 ▷ \many{σ_i ↦ v_{1i}}{i < n} ⇝ I_1 \\ Γ ⊢ τ_2 ▷ \many{σ_i ↦ v_{2i}}{i < n} ⇝ I_2}
+          {Γ ⊢ τ_1 × τ_2 ▷ \many{σ_i ↦ (v_{1i}, v_{2i})}{i < n} ⇝ (I_1, I_2)} \\
+      \fbox{$v ≃ χ$} \qquad
+        \inferrule[eq-pair]
+          {v_1 ≃ χ_1 \\ v_2 ≃ χ_2}
+          {(v_1, v_2) ≃ (χ_1, χ_2)}
+    \end{gather*}
+  \end{center}
+  \hrule
+  \caption{\lsyn{} products}
+  \label{fig:lsyn-products}
+\end{figure}

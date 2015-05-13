@@ -1,7 +1,26 @@
-\todo{To demonstrate the extensibility of the system, we extend $λ_{syn}$ with types and records (in anticipation of recursive data types in the next section).
-  \begin{itemize}
-    \item Add tuples to the language, discuss focusing, other challenges.
-    \item Add records to the language, discuss challenges.
-    \item Finally add algebraic data types and discuss more challenges.
-  \end{itemize}%
-}
+\lsyn{} is a core calculus for program synthesis with types.
+As such, it only contains the bare essence of a typed, functional programming language, namely lambdas and function application.
+However, one of the appeals of the type-directed synthesis approach is that we derive the synthesis judgment directly from the type checking judgment; we merely flip its inputs and outputs.
+In other words, type checking immediately gives us insight into program synthesis for new types!
+
+In this chapter, we explore the process of integrating new types into \lsyn{} by considering a number of additional basic types: products, sums, and records.
+By playing this game with the type system of flipping inputs and outputs, we learn how to generate terms and refine examples of these types.
+In some cases, this is sufficient to synthesize this type within \lsyn{}.
+However in other cases, especially with more complex types that we consider in future chapters, we must do additional work to properly synthesize programs of those types.
+
+\todo{Add note about Jonathan's and Rohan's contributions to products and records, respectively.}
+
+\section{Products}
+
+\input{figures/lsyn-products}
+
+\section{Records}
+
+\input{figures/lsyn-records-defn}
+
+\section{Sums}
+
+\input{figures/lsyn-sums-defn}
+\input{figures/lsyn-sums-synthesis}
+
+\section{Let Binding}
