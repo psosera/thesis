@@ -1,9 +1,13 @@
-\todo{We evolve $λ_{syn}$ to the PLDI paper, adding in recursion.  This is the punchline of the first third of the paper!
-  \begin{itemize}
-    \item Motivate adding partial functions as expressions to ``bridge the gap''
-    \item This is where logicality breaks down!  Show what we need to do in the metatheory to retain good properties.
-  \end{itemize}%
-}
+So far, we have considered adding a variety of basic types to \lsyn{}.
+While these types allow us to synthesize programs that more closely match those found in actual functional programming languages, they have not significantly changed the expressiveness of our core language.
+Next we will consider adding recursion to \lsyn{} which greatly increases its expressiveness.
+
+\subsection{\texorpdfstring{$μ$}{μ} Types}
+
+\input{figures/lsyn-mu-defn}
+
+One way to express recursion within a typed lambda calculus is with $μ$-types.
+The type $μα.\,τ$ binds a recursive occurrence of a type to the type variable $α$ which appears in its definition $τ$.
 
 \input{figures/mlsyn-defn}
 

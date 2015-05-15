@@ -22,6 +22,10 @@
         \inferrule[t-Irecord]
           {\many{Γ ⊢ I_i ⇐ τ_i}{i <m}}
           {Γ ⊢ \{\many{l_i = I_i}{i < m}\} : \{\many{l_i{:}τ_{i}}{i < m}\}} \\
+      \fbox{$Γ ⊢ χ : τ$} \qquad
+        \inferrule[t-ex-record]
+          {\many{Γ ⊢ χ_i : τ_i}{i <m}}
+          {Γ ⊢ \{\many{l_i = χ_i}{i < m}\} : \{\many{l_i{:}τ_{i}}{i < m}\}} \\
       \fbox{$Γ ⊢ E ⇒ τ$} \qquad
         \inferrule[t-proj]
           {Γ ⊢ e ⇒ \{\many{l_i{:}τ_{i}}{i < m}\}}
@@ -34,17 +38,21 @@
         \inferrule[eguess-proj]
           {Γ ⊢ \{\many{l_i{:}τ_i}{i < m}\} ⇝ E}
           {Γ ⊢ τ_i ⇝ E.l_i} \qquad
-      \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \\
+      \fbox{$v ≃ χ$} \qquad
+        \inferrule[eq-record]
+          {\many{v_i ≃ χ_i}{i < m}}
+          {\many{l_i = v_i}{i < m} ≃ \many{l_i = χ_i}{i < m}} \\
+      \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
         \inferrule[irefine-record]
-          {X = \many{σ_j ↦ \{l_1 = χ_{1j}, …, l_m = χ_{mj}\}}{j < n} \\\\
-           \mfun{rproj}(X) = X_1, …, X_m \\ \many{Γ ⊢ τ_i ▷ X_i ⇝ I_i}{i < m}}
+          {Χ = \many{σ_j ↦ \{l_1 = χ_{1j}, …, l_m = χ_{mj}\}}{j < n} \\\\
+           \mfun{rproj}(Χ) = Χ_1, …, Χ_m \\ \many{Γ ⊢ τ_i ▷ Χ_i ⇝ I_i}{i < m}}
           {Γ ⊢ \{\many{l_i{:}τ_i}{i < m}\} ▷ Χ ⇝ \{\many{l_i = I_i}{i < m}\}}
     \end{gather*}
     \[
       \begin{array}{l}
-        \mfun{rproj}(\many{σ_j ↦ \{l_1 = χ_{1j}, …, l_m = χ_{mj}\}}{j < n}) = X_1, …, X_m \\
+        \mfun{rproj}(\many{σ_j ↦ \{l_1 = χ_{1j}, …, l_m = χ_{mj}\}}{j < n}) = Χ_1, …, Χ_m \\
         \quad \textrm{where} \\
-        \qquad ∀i ∈ 1, …, m.\,X_i = \many{σ_j ↦ χ_{ij}}{i < m}
+        \qquad ∀i ∈ 1, …, m.\,Χ_i = \many{σ_j ↦ χ_{ij}}{i < m}
       \end{array}
     \]
   \end{center}

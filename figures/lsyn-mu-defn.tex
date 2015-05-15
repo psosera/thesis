@@ -1,0 +1,59 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      τ  & \bnfdef & … \bnfalt α \bnfalt μα.\,τ & Types \\
+      e  & \bnfdef & … \bnfalt \mfold{e} \bnfalt \munfold{e} & Terms \\
+      v  & \bnfdef & … \bnfalt \mfold{v} & Values \\
+      ℰ  & \bnfdef & … \bnfalt \mfold{ℰ} \bnfalt \munfold{ℰ} & Evaluation Contexts \\
+      E  & \bnfdef & … \bnfalt \munfold{E} & Elimination Terms \\
+      I  & \bnfdef & … \bnfalt \mfold{I} & Introduction Terms \\
+      χ  & \bnfdef & … \bnfalt \mfold{χ} & Example Values \\
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \fbox{$Γ ⊢ e : τ$} \qquad
+        \inferrule[t-fold]
+          {Γ ⊢ e : [μα.\,τ/α] τ}
+          {Γ ⊢ \mfold{e} : μα.\,τ} \qquad
+        \inferrule[t-unfold]
+          {Γ ⊢ e : μα.\,τ}
+          {Γ ⊢ \munfold{e} : [μα.\,τ/α] τ} \\
+      \fbox{$Γ ⊢ E ⇒ τ$} \qquad
+        \inferrule[t-unfold]
+          {Γ ⊢ E ⇒ μα.\,τ}
+          {Γ ⊢ \munfold{E} ⇒ [μα.\,τ/α] τ} \\
+      \fbox{$Γ ⊢ I ⇐ τ$} \qquad
+        \inferrule[t-Ipair]
+          {Γ ⊢ I ⇐ [μα.\,τ] τ}
+          {Γ ⊢ \mfold{I} ⇐ μα.\,τ} \\
+      \fbox{$e ⟶ e'$} \qquad
+        \inferrule[eval-unfold-fold]
+          {}
+          {\munfold{\mfold{v}} ⟶ v} \\
+      \fbox{$Γ ⊢ τ ⇝ E$} \qquad
+        \inferrule[eguess-unfold]
+          {Γ ⊢ μα.\,τ ⇒ E}
+          {Γ ⊢ [μα.\,τ/α] τ ⇒ \munfold{E}} \\
+      \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
+        \inferrule[irefine-mu]
+          {Χ = \many{σ_i ↦ \mfold{χ_i}}{i < n} \\ Γ ⊢ [μα.\,τ/α] τ ▷ \mfun{unfold}(Χ') ⇝ I}
+          {Γ ⊢ μα.\,τ ▷ Χ ⇝ \mfold{I}} \\
+      \fbox{$Γ ⊢ χ : τ$} \qquad
+        \inferrule[t-ex-fold]
+          {Γ ⊢ χ : [μα.\,τ/α] τ}
+          {Γ ⊢ \mfold{χ} : μα.\,τ} \qquad
+      \fbox{$v ≃ χ$} \qquad
+        \inferrule[eq-pair]
+          {v ≃ χ}
+          {\mfold{v} ≃ \mfold{χ}}
+    \end{gather*}
+    \[
+      \begin{array}{l}
+        \mfun{unfold}(\many{σ_i ↦ \mfold{χ_i}}{i < n}) = \many{σ_i ↦ χ_i}{i < n} \\
+      \end{array}
+    \]
+  \end{center}
+  \hrule
+  \caption{\lsyn{} $μ$ types}
+  \label{fig:lsyn-my-defn}
+\end{figure}

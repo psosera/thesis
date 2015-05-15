@@ -5,34 +5,49 @@ However, in moving towards an algorithm, we would like to understand whether the
 In this section, we establish these properties by proving soundness and completeness of synthesis in \lsyn{}.
 We present the full details of the proofs here to provide a template for reasoning about the metatheory of  more complicated type-directed program synthesis systems we discuss in later chapters.
 
-\section{Auxiliary Properties}
+\section{Soundness}
 
-First, we require some auxiliary results
+Soundness states that the programs that we synthesis are ``correct''.
+In type-directed program synthesis, correctness has two components:
+\begin{itemize}
+  \item The synthesized program is well-typed at the goal type, \emph{type soundness}, and
+  \item The synthesized program satisfies the examples, \emph{example soundness}.
+\end{itemize}
 
-\begin{lemma}[Example Value Canonicity]
-  \label{lem:example-value-canonicity}
-  If $Γ ⊢ χ : τ$ then:
+Intuitively, type soundness follows from the fact that we derived the synthesis algorithm from the type checking judgment.
+\begin{lemma}[Type Soundness of \lsyn{}]\ %
   \begin{enumerate}
-    \item If $τ = T$ then $χ = c$.
-    \item If $τ = τ_1 → τ_2$ then $χ = pf$.
+    \item If $Γ ⊢ τ ⇝ E$, then $Γ ⊢ E ⇒ τ$.
+    \item If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $Γ ⊢ I ⇐ τ$.
   \end{enumerate}
 \end{lemma}
 \begin{proof}
-  By case analysis on $τ$ and the well-typedness of $χ$, noting that there is a one-to-one correspondence between the shape of a type and an example value of that type.
+  By mutual induction on the synthesis derivations for $E$- and $I$-terms.
+  Consider the final rule used in the derivation:
+  \begin{description}
+    \item[Case \normalfont{\rulename{eguess-var}}:]
+      $E = x$.
+      By the premise of \rulename{eguess-var}, $x{:}τ ∈ Γ$ which is sufficient to conclude by \rulename{t-Evar} that $x$ is well-typed.
+    \item[Case \normalfont{\rulename{eguess-app}}:]
+      $E = E_1\;I$.
+      By the premises of \rulename{eguess-app} and our inductive hypotheses, we know that $E_1$ and $I$ are well-typed at $τ_1 → τ$ and $τ_1$, respectively.
+      With this, we can conclude via \rulename{t-Eapp} that $E_1\;I$ is well-typed at type $τ$.
+    \item[Case \normalfont{\rulename{irefine-guess}}:]
+      $I = E$.
+      By the premises of \rulename{irefine-guess} and our inductive hypothesis, we know that $E$ is well-typed as an $E$-form and from \rulename{t-Ielim} $E$ is well-typed as an $I$-form.
+    \item[Case \normalfont{\rulename{irefine-ctor}}:]
+      $I = c$ and $τ = T$.
+      We can immediately conclude by \rulename{t-Ictor} that $c$ has type $T$.
+    \item[Case \normalfont{\rulename{irefine-arr}}:]
+      $I = λx{:}τ_1.\,I_1$ and $τ = τ_1 → τ_2$.
+      By the premises of \rulename{irefine-arr} and our inductive hypothesis, we know that $I_1$ is well-typed at type $τ_2$.
+      Therefore, we can conclude by \rulename{t-Ilam} that $λx{:}τ_1.\,I_1$ is well-typed at type $τ_1 → τ_2$.
+  \end{description}
 \end{proof}
-Canonicity of example values allows us to reason about the shape of $χ$s given the type they type check against.
 
-\begin{lemma}[Strong Normalization of \lsyn{}]
-  \label{lem:strong-normalization-of-lsyn}
-  If $Γ ⊢ e : τ$ then either $e$ is a value or $e ⟶^* v$.
-\end{lemma}
-\begin{proof}
-  The external language fragment of \lsyn{} is merely \stlc{} (extended with a base type) which is known to be strongly normalizing~\todo{cite}.
-\end{proof}
-The satisfication judgment (\rulename{satisfies}) relies on evaluation to values, and so whenever we need to show that a program satisfies a set of examples, notably in completeness, we implicitly rely on strong normalization to guarantee that evaluation produces a value.
-
+In general, to prove example soundness, we need to show that each \rulename{irefine} rule produces well-typed example sets in order to invoke our inductive hypotheses.
 \begin{lemma}[Type Preservation of $\mfun{apply}$]
-  \label{lem:type-preservation-of-apply}
+\label{lem:type-preservation-of-apply}
   If $Γ ⊢ σ ↦ \many{v_i ⇒ χ_i}{i < m} : τ_1 → τ_2$ then $x{:}τ_1, Γ ⊢ \mfun{apply}(x, σ, \many{v_i ⇒ χ_i}{i < m}) : τ_2$.
 \end{lemma}
 \begin{proof}
@@ -49,61 +64,17 @@ The satisfication judgment (\rulename{satisfies}) relies on evaluation to values
       Because the partial function is well-typed, we know through \rulename{t-ex-pf} that each $χ_i$ has type $τ_2$.
   \end{itemize}
 \end{proof}
-
 \begin{lemma}[Type Preservation of Example World Concatenation]
-  \label{lem:type-preservation-of-example-world-concatenation}
+\label{lem:type-preservation-of-example-world-concatenation}
   If $Γ ⊢ Χ : τ$ and $Γ ⊢ Χ' : τ$ then $Γ ⊢ Χ \concat Χ' : τ$.
 \end{lemma}
 \begin{proof}
   From \rulename{t-exw-cons}, we know that each individual example world in $Χ$ and $Χ'$ are well-typed at type $τ$.
   By \rulename{t-exw-cons}, we can cons together all of these example worlds together to form a single set of example worlds that is well-typed at type $τ$.
 \end{proof}
+\autoref{lem:type-preservation-of-apply} and \autoref{lem:type-preservation-of-example-world-concatenation} allow us to conclude type preservation of example refinement at arrow types.
+With this fact, we can now prove example soundness.
 
-\autoref{lem:type-preservation-of-apply} and \autoref{lem:type-preservation-of-example-world-concatenation} allow us to conclude that the \rulename{irefine-arr} rule produces a well-typed example set ($Χ'$) for its synthesis sub-problem.
-
-\section{Soundness}
-
-Soundness states that the programs that we synthesis are ``correct''.
-In type-directed program synthesis, correctness has two components:
-\begin{itemize}
-  \item The synthesized program is well-typed at the goal type, \emph{type soundness}, and
-  \item The synthesized program satisfies the examples, \emph{example soundness}.
-\end{itemize}
-
-Intutively, type soundness follows from the fact that we derived the synthesis algorithm from the type checking judgment.
-\begin{lemma}[Type Soundness of \lsyn{}]\ %
-  \begin{enumerate}
-    \item If $Γ ⊢ τ ⇝ E$, then $Γ ⊢ E ⇒ τ$.
-    \item If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $Γ ⊢ I ⇐ τ$.
-  \end{enumerate}
-\end{lemma}
-\begin{proof}
-  By mutual induction on the synthesis derivations for $E$- and $I$-terms.
-  Consider the final rule used in the derivation:
-  \begin{description}
-    \item[Case \normalfont{\rulename{eguess-var}}:]
-      $E = x$.
-      By the premise of \rulename{eguess-var}, $x{:}τ ∈ Γ$ which is sufficient to conclude by \rulename{t-Evar} that $x$ is well-typed.
-    \item[Case \normalfont{\rulename{eguess-app}}:]
-      $E = E_1\;I$.
-      By the premises of \rulename{eguess-app} and our inductive hypotheses, we know that $E_1$ and $I$ are well-typed at $τ_1 → τ$ and $τ_1$, respectively..
-      With this, we can conclude via \rulename{t-Eapp} that $E_1\;I$ is well-typed at type $τ$.
-    \item[Case \normalfont{\rulename{irefine-guess}}:]
-      $I = E$.
-      By the premises of \rulename{irefine-guess} and our inductive hypothesis, we know that $E$ is well-typed as an $E$-form and from \rulename{t-Ielim} $E$ is well-typed as an $I$-form.
-    \item[Case \normalfont{\rulename{irefine-ctor}}:]
-      $I = c$ and $τ = T$.
-      We can immediately conclude by \rulename{t-Ictor} that $c$ has type $T$.
-    \item[Case \normalfont{\rulename{irefine-arr}}:]
-      $I = λx{:}τ_1.\,I_1$ and $τ = τ_1 → τ_2$.
-      By the premises of \rulename{irefine-arr} and our inductive hypothesis, we know that $I_1$ is well-typed at type $τ_2$.
-      Therefore, we can conclude by \rulename{t-Ilam} that $λx{:}τ_1.\,I_1$ is well-typed at type $τ_1 → τ_2$.
-  \end{description}
-\end{proof}
-
-In general, to prove example soundness, we need to show that each \rulename{irefine} rule produces well-typed example sets to invoke our inductive hypotheses.
-\autoref{lem:type-preservation-of-apply} and \autoref{lem:type-preservation-of-example-world-concatenation} allow us to conclude this for arrow types.
-When we introduce additional types in later chapters, we will need to show similar lemmas for each additional introduction form and corresponding \rulename{irefine} rule.
 \begin{lemma}[Example Soundness of \lsyn{}]
   If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $I ⊢ Χ$.
 \end{lemma}
@@ -144,8 +115,53 @@ When we introduce additional types in later chapters, we will need to show simil
 
 \section{Completeness}
 
-Completeness states that we are able to synthesis all well-typed programs.
-First, we show the completeness of term enumeration in \lsyn{}.
+Before we prove completeness we need several auxiliary theorems and lemmas.
+The first theorem is strong normalization which states that every term evaluates to a value (\ie, terminates).
+The satisfaction judgment (\rulename{satisfies}) relies on evaluation to values, and so whenever we need to show that a program satisfies a set of examples, we implicitly rely on strong normalization to guarantee that evaluation produces a value.
+\begin{lemma}[Strong Normalization of \lsyn{}]
+\label{lem:strong-normalization-of-lsyn}
+  If $Γ ⊢ e : τ$ then either $e$ is a value or $e ⟶^* v$.
+\end{lemma}
+\begin{proof}
+  The external language fragment of \lsyn{} is merely \stlc{} (extended with a base type) which is known to be strongly normalizing~\todo{cite}.
+\end{proof}
+
+Next, we need to reason about the shape of well-typed example values.
+\begin{lemma}[Example Value Canonicity]
+\label{lem:example-value-canonicity}
+  If $Γ ⊢ χ : τ$ then:
+  \begin{enumerate}
+    \item If $τ = T$ then $χ = c$.
+    \item If $τ = τ_1 → τ_2$ then $χ = pf$.
+  \end{enumerate}
+\end{lemma}
+\begin{proof}
+  By case analysis on $τ$ and the well-typedness of $χ$, noting that there is a one-to-one correspondence between the shape of a type and an example value of that type.
+\end{proof}
+
+Finally, we need to show the examples that the \rulename{irefine} rules create preserve example satisfaction.
+Here is the relevant lemma for refining at arrow types.
+\begin{lemma}[Satisfaction Preservation of $\mfun{apply}$]
+\label{lem:satisfaction-preservation-of-apply}
+  If $λx{:}τ.\,I ⊨ \many{σ_i ↦ pf_i}{i < n}$ then $I ⊨ X'$ where $X' = \mfun{apply}(x, σ_i ↦ pf_1) \concat … \concat \mfun{apply}(x, σ_n ↦ pf_n)$.
+\end{lemma}
+\begin{proof}
+  Consider a single example world $σ ↦ pf$.
+  Unfolding the definition of \rulename{satisfies} for $λx{:}τ.\,I ⊢ Χ$ and that example world:
+  \[
+    σ(λx{:}τ_1.\,I) ⟶ λx{:}τ_1.\,σ(I) ∧ λx{:}τ_1.\,σ(I) ≃ pf.
+  \]
+  If $pf = \many{v_i ⇒ χ_i}{i < m}$, then by \rulename{eq-lam-pf}, we know that
+  \[
+    ∀i ∈ 1, …, n.\,(λx{:}τ_1.\,σ(I))\;v_i ⟶ [v_i/x]σ(I) ⟶^* v ∧ v ≃ χ_i.
+  \]
+  By unfolding the definition of $\mfun{apply}$ and $\concat$, we know that Χ' contains exactly every such $v_i ⇒ χ_i$ as an example world $[v_i/x]σ ↦ χ_i$.
+  Putting these two facts together, we can conclude that $I ⊢ Χ'$.
+\end{proof}
+
+Now we are ready to tackle completeness.
+Intuitively, completeness states that we are able to synthesis all well-typed programs.
+First, we show the completeness of term enumeration in \lsyn{} which is straightforward.
 \begin{lemma}[Completeness of \lsyn{} Term Enumeration]\ %
 \label{lem:completeness-of-lsyn-term-enumeration}
   \begin{enumerate}
@@ -193,38 +209,34 @@ This statement makes the stronger claim that any example set satisfied by a prog
 If $Γ ⊢ I ⇐ τ$, $Γ ⊢ Χ : τ$, and $I ⊢ Χ$, then $Γ ⊢ τ ▷ Χ ⇝ I$.
 \end{lemma}
 \begin{proof}
-    By induction on the typing derivation of $I$.
-    \item[Case \normalfont{\rulename{t-Ielim}}:]
-      $I = E$.
-      By \autoref{lem:completeness-of-lsyn-term-enumeration}, $Γ ⊢ τ ⇝ E$.
-      By \rulename{irefine-guess} and our premises (in particular, $E ⊢ Χ$), we can conclude that $Γ ⊢ τ ▷ Χ ⇝ E$.
-    \item[Case \normalfont{\rulename{t-Ictor}}:]
-      $I = c$ and $τ = T$.
-      Because $Χ$ is well-typed at type $T$, we know by \autoref{lem:example-value-canonicity} that $Χ = σ_1 ↦ c_1, …, σ_n ↦ c_n$.
-      Furthermore, because $c ⊢ Χ$, we know that for all $i ∈ 1, …, n$, $σ_i(c) ⟶ c$ so $c ≃ c_i$.
-      By \rulename{eq-ctor}, this means that each $c_i$ is identical to $c$.
-      Therefore, by \rulename{irefine-base}, we can conclude that $Γ ⊢ T ▷ Χ ⇝ c$.
-    \item[Case \normalfont{\rulename{t-Ilam}}:]
-      $I = λx{:}τ_1.\,I_1$ and $τ = τ_1 → τ_2$.
-      Because $Χ$ is well-typed at $τ_1 → τ_2$, we know by \autoref{lem:example-value-canonicity} that $Χ = σ_1 ↦ pf_1, …, σ_n ↦ pf_n$.
-      Let $Χ' = \mfun{apply}(x, σ_1, pf_1) \concat … \concat \mfun{apply}(x, σ_n, pf_n)$.
-      To invoke our inductive hypothesis to conclude that we can synthesize $I_1$, we must show that:
-      \begin{itemize}
-        \item $x{:}τ_1, Γ ⊢ I_1 ⇐ τ_2$ which follows by the premise of \rulename{t-Ilam}.
-        \item $x{:}τ_1, Γ ⊢ Χ' : τ_2$ which follows by \autoref{lem:type-preservation-of-apply} and \autoref{lem:type-preservation-of-example-world-concatenation}.
-        \item $I_1 ⊢ Χ'$.
-          To show this, consider a single example world $σ ↦ pf ∈ Χ$.
-          Unfolding the definition of \rulename{satisfies} for $I ⊢ Χ$ and that example world:
-          \[
-            σ(λx{:}τ_1.\,I_1) ⟶ λx{:}τ_1.\,σ(I_1) ∧ λx{:}τ_1.\,σ(I_1) ≃ pf.
-          \]
-          If $pf = \many{v_i ⇒ χ_i}{i < m}$, then by \rulename{eq-lam-pf}, we know that
-          \[
-            ∀i ∈ 1, …, n.\,(λx{:}τ_1.\,σ(I_1))\;v_i ⟶ [v_i/x]σ(I_1) ⟶^* v ∧ v ≃ χ_i.
-          \]
-          By unfolding the definition of $\mfun{apply}$, we know that Χ' contains exactly every such $v_i ⇒ χ_i$ as an example world $[v_i/x]σ ↦ χ_i$.
-          Putting these two facts together, we can conclude that $I_1 ⊢ Χ'$.
-      \end{itemize}
-      Therefore, we can invoke our inductive hypothesis to conclude that $x{:}τ_1, Γ ⊢ τ_2 ▷ Χ' ⇝ I_1$.
-      By \rulename{irefine-arr}, we can therefore conclude that $Γ ⊢ τ_1 → τ_2 ▷ Χ ⇝ λx{:}τ_1.\,I_1$.
+  By induction on the typing derivation of $I$.
+  \item[Case \normalfont{\rulename{t-Ielim}}:]
+    $I = E$.
+    By \autoref{lem:completeness-of-lsyn-term-enumeration}, $Γ ⊢ τ ⇝ E$.
+    By \rulename{irefine-guess} and our premises (in particular, $E ⊢ Χ$), we can conclude that $Γ ⊢ τ ▷ Χ ⇝ E$.
+  \item[Case \normalfont{\rulename{t-Ictor}}:]
+    $I = c$ and $τ = T$.
+    Because $Χ$ is well-typed at type $T$, we know by \autoref{lem:example-value-canonicity} that $Χ = σ_1 ↦ c_1, …, σ_n ↦ c_n$.
+    Furthermore, because $c ⊢ Χ$, we know that for all $i ∈ 1, …, n$, $σ_i(c) ⟶ c$ so $c ≃ c_i$.
+    By \rulename{eq-ctor}, this means that each $c_i$ is identical to $c$.
+    Therefore, by \rulename{irefine-base}, we can conclude that $Γ ⊢ T ▷ Χ ⇝ c$.
+  \item[Case \normalfont{\rulename{t-Ilam}}:]
+    $I = λx{:}τ_1.\,I_1$ and $τ = τ_1 → τ_2$.
+    Because $Χ$ is well-typed at $τ_1 → τ_2$, we know by \autoref{lem:example-value-canonicity} that $Χ = σ_1 ↦ pf_1, …, σ_n ↦ pf_n$.
+    Let $Χ' = \mfun{apply}(x, σ_1, pf_1) \concat … \concat \mfun{apply}(x, σ_n, pf_n)$.
+    To invoke our inductive hypothesis to conclude that we can synthesize $I_1$, we must show that:
+    \begin{itemize}
+      \item $x{:}τ_1, Γ ⊢ I_1 ⇐ τ_2$ which follows by the premise of \rulename{t-Ilam}.
+      \item $x{:}τ_1, Γ ⊢ Χ' : τ_2$ which follows by \autoref{lem:type-preservation-of-apply} and \autoref{lem:type-preservation-of-example-world-concatenation}.
+      \item $I_1 ⊢ Χ'$ which follows by \autoref{lem:satisfaction-preservation-of-apply}.
+    \end{itemize}
+    Therefore, we can invoke our inductive hypothesis to conclude that $x{:}τ_1, Γ ⊢ τ_2 ▷ Χ' ⇝ I_1$.
+    By \rulename{irefine-arr}, we can therefore conclude that $Γ ⊢ τ_1 → τ_2 ▷ Χ ⇝ λx{:}τ_1.\,I_1$.
 \end{proof}
+
+In summary, we need the following critical lemmas to prove soundness and completeness in the presence of new features:
+\begin{itemize}
+  \item \emph{type preservation} lemmas for examples produced by \rulename{irefine} rules and
+  \item \emph{satisfaction preservation} lemmas for examples produced by \rulename{irefine} rules.
+\end{itemize}
+These lemmas, taken together, state that our \rulename{irefine} rules decompose the examples correctly.

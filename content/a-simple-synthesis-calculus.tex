@@ -420,7 +420,7 @@ When $X$ is empty, you can see that the \rulename{irefine} judgment degenerates 
 
 However, we are not content generating any $E$-term of an appropriate type.
 We want such a term that satisfies the provided examples.
-The bridge rule \rulename{irefine-guess} enforces this by not only generating an $E$-term, but also explicitly ensuring that $E$ satisfies $Χ$, written $I ⊢ Χ$ (noting that $E$s are a proper subset of the $I$s).
+The bridge rule \rulename{irefine-guess} enforces this by not only generating an $E$-term, but also explicitly ensuring that $E$ satisfies $Χ$, written $I ⊨ Χ$ (noting that $E$s are a proper subset of the $I$s).
 This satisfaction judgment ensures that, for each example world, evaluating $I$ under that environment (written $σ(I)$, the result of applying the environment or substitution $σ$ to $I$) results in a value $v$ that is compatible to the goal example value for that world.
 This compatibility relation%
 \footnote{%
@@ -443,7 +443,7 @@ To better understand how \lsyn{} operates, let's work through a number of exampl
   To see that this is true, let's look at how each \rulename{irefine} rule behaves with no examples.
   \rulename{irefine-arr} is valid (as long as the goal type is an arrow) and passes along the empty example set ($X' = ·$) when synthesizing the body of the lambda.
   \rulename{irefine-base} is also valid (as long as the goal type is $T$) and allows you to synthesize any constant $c_k$ since $X$ is empty.
-  Finally, \rulename{irefine-guess} allows you to synthesize any $E$ because $E ⊢ ·$ holds vacuously.
+  Finally, \rulename{irefine-guess} allows you to synthesize any $E$ because $E ⊨ ·$ holds vacuously.
 \end{example}
 
 \begin{example}
@@ -457,7 +457,7 @@ To better understand how \lsyn{} operates, let's work through a number of exampl
         {x{:}T ⊢ T ⇝ x} \\
        \inferrule*[lab=satisfies]
         {[c_1/x](x) ⟶^* c_1 ∧ [c_2/x](x) ⟶^* c_2}
-        {x ⊢ [c_1/x] ↦ c_1, [c_2/x] ↦ c_2}}
+        {x ⊨ [c_1/x] ↦ c_1, [c_2/x] ↦ c_2}}
       {x{:}T ⊢ T ▷ [c_1/x] ↦ c_1, [c_2/x] ↦ c_2 ⇝ x}}
     {· ⊢ T → T ▷ · ↦ c_1 ⇒ c_1 \bnfalt c_2 ⇒ c_2 ⇝ λx{:}T.\,x}
   \]
@@ -484,7 +484,7 @@ To better understand how \lsyn{} operates, let's work through a number of exampl
         {x{:}T ⊢ T ⇝ x} \\
        \inferrule*[lab=satisfies]
         {[c_1/x](x) ⟶^* c_1}
-        {x ⊢ [c_1/x] ↦ c_1}}
+        {x ⊨ [c_1/x] ↦ c_1}}
       {x{:}T ⊢ T ▷ [c_1/x] ↦ c_1 ⇝ x}}
     {· ⊢ T → T ▷ · ↦ c_1 ⇒ c_1 ⇝ λx{:}T.\,x}
   \]
@@ -566,4 +566,3 @@ To better understand how \lsyn{} operates, let's work through a number of exampl
     I guess we need to assume some existential definition of consistent examples here.
   }
 \end{example}
-

@@ -48,13 +48,24 @@
           {Γ ⊢ τ_2 ⇝ \msnd{E}} \\
       \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
         \inferrule[irefine-prod]
-          {Γ ⊢ τ_1 ▷ \many{σ_i ↦ v_{1i}}{i < n} ⇝ I_1 \\ Γ ⊢ τ_2 ▷ \many{σ_i ↦ v_{2i}}{i < n} ⇝ I_2}
-          {Γ ⊢ τ_1 × τ_2 ▷ \many{σ_i ↦ (v_{1i}, v_{2i})}{i < n} ⇝ (I_1, I_2)} \\
+          {Χ = \many{σ_i ↦ (v_{1i}, v_{2i})}{i < n} \\ \mfun{proj}(Χ) = (Χ_1, Χ_2) \\\\
+           Γ ⊢ τ_1 ▷ \many{σ_i ↦ v_{1i}}{i < n} ⇝ I_1 \\ Γ ⊢ τ_2 ▷ \many{σ_i ↦ v_{2i}}{i < n} ⇝ I_2}
+          {Γ ⊢ τ_1 × τ_2 ▷ Χ ⇝ (I_1, I_2)} \\
+      \fbox{$Γ ⊢ χ : τ$} \qquad
+        \inferrule[t-ex-pair]
+          {Γ ⊢ χ_1 : τ_1 \\ Γ ⊢ χ_2 : τ_2}
+          {Γ ⊢ (χ_1, χ_2) : τ_1 × τ_2} \qquad
       \fbox{$v ≃ χ$} \qquad
         \inferrule[eq-pair]
           {v_1 ≃ χ_1 \\ v_2 ≃ χ_2}
           {(v_1, v_2) ≃ (χ_1, χ_2)}
     \end{gather*}
+    \[
+      \begin{array}{l}
+        \mfun{proj}(\many{σ_i ↦ (v_{1i}, v_{2i})}{i < n}) = (Χ_1, Χ_2) \\
+        \quad\text{where}\;X_1 = \many{σ_i ↦ v_{1i}}{i < n}, X_2 = \many{σ_i ↦ v_{2i}}{i < n}
+      \end{array}
+    \]
   \end{center}
   \hrule
   \caption{\lsyn{} products}

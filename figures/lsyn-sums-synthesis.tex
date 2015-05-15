@@ -4,10 +4,10 @@
       \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
         \inferrule[irefine-sum-inl]
           {Γ ⊢ τ_1 ▷ \many{σ_i ↦ χ_i}{i < n} ⇝ I}
-          {Γ ⊢ τ_1 + τ_2 ▷ \many{σ_i ↦ \minl[τ_1 + τ_2]{χ_i}}{i < n} ⇝ \minl[τ_1 + τ_2]{I}} \\
+          {Γ ⊢ τ_1 + τ_2 ▷ \many{σ_i ↦ \minl{χ_i}}{i < n} ⇝ \minl{I}} \\
         \inferrule[irefine-sum-inr]
           {Γ ⊢ τ_2 ▷ \many{σ_i ↦ χ_i}{i < n} ⇝ I}
-          {Γ ⊢ τ_1 + τ_2 ▷ \many{σ_i ↦ \minr[τ_1 + τ_2]{χ_i}}{i < n} ⇝ \minl[τ_1 + τ_2]{I}} \\
+          {Γ ⊢ τ_1 + τ_2 ▷ \many{σ_i ↦ \minr{χ_i}}{i < n} ⇝ \minl{I}} \\
         \inferrule[irefine-match]
           {Γ ⊢ τ_1 + τ_2 ⇝ E \\\\
            \mfun{distribute}(E, Χ) = (Χ_l, Χ_r) \\\\
@@ -16,17 +16,17 @@
       \fbox{$v ≃ χ$} \qquad
         \inferrule[eq-inl]
           {v ≃ χ}
-          {\minl[τ_1 + τ_2]{v} ≃ \minl[τ_1 + τ_2]{χ}} \qquad
+          {\minl{v} ≃ \minl{χ}} \qquad
         \inferrule[eq-inr]
           {v ≃ χ}
-          {\minr[τ_1 + τ_2]{v} ≃ \minr[τ_1 + τ_2]{χ}}
+          {\minr{v} ≃ \minr{χ}}
     \end{gather*}
     \[
       \begin{array}{l}
         \mfun{distribute}(E, Χ) = (X_l, X_r) \\
         \quad \textrm{where} \\
-        \qquad X_l = \{[v/x_1]σ ↦ χ \bnfalt σ ↦ χ ∈ Χ ∧ σ(E) ⟶^* \minl[τ_1 + τ_2]{v}\} \\
-        \qquad X_r = \{[v/x_2]σ ↦ χ \bnfalt σ ↦ χ ∈ Χ ∧ σ(E) ⟶^* \minr[τ_1 + τ_2]{v}\}
+        \qquad X_l = \{[v/x_1]σ ↦ χ \bnfalt σ ↦ χ ∈ Χ ∧ σ(E) ⟶^* \minl{v}\} \\
+        \qquad X_r = \{[v/x_2]σ ↦ χ \bnfalt σ ↦ χ ∈ Χ ∧ σ(E) ⟶^* \minr{v}\}
       \end{array}
     \]
   \end{center}
