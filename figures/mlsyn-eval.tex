@@ -7,7 +7,7 @@
           {ℰ[e] ⟶ ℰ[e']} \qquad
         \inferrule[eval-nomatch]
           {}
-          {ℰ[\mnomatch] ⟶ \mnomatch} \qquad
+          {ℰ[\mNoMatch] ⟶ \mNoMatch} \qquad
         \inferrule[eval-app]
           {}
           {(λx{:}τ.\,e)\;v ⟶ [v/x]e} \\
@@ -16,7 +16,7 @@
           {(\many{v_i ⇒ χ_i}{i < m})\;v → χ_j} \qquad
         \inferrule[eval-pf-bad]
           {∀i ∈ 1, …, m.\,v ≄ v_i}
-          {(\many{v_i ⇒ χ_i}{i < m})\;v → \mnomatch}
+          {(\many{v_i ⇒ χ_i}{i < m})\;v → \mNoMatch}
     \end{gather*}
     \[
       \begin{array}{l}

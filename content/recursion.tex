@@ -2,21 +2,557 @@ So far, we have considered adding a variety of basic types to \lsyn{}.
 While these types allow us to synthesize programs that more closely match those found in actual functional programming languages, they have not significantly changed the expressiveness of our core language.
 Next we will consider adding recursion to \lsyn{} which greatly increases its expressiveness.
 
-\subsection{\texorpdfstring{$μ$}{μ} Types}
+\section{\texorpdfstring{$μ$}{μ}-types}
 
 \input{figures/lsyn-mu-defn}
 
 One way to express recursion within a typed lambda calculus is with $μ$-types.
+\autoref{fig:lsyn-mu-defn} shows how we can add $μ$-types to \lsyn{}.
 The type $μα.\,τ$ binds a recursive occurrence of a type to the type variable $α$ which appears in its definition $τ$.
+We introduce a $μ$-type with the $\mfold{\!}$ term and eliminate a $μ$-type with the $\munfold{\!}$ term.
+For example, we may use $μ$-types, pair, sums, and $\mUnit{}$ to encode a list type:
+\[
+  \mkwd{List} ≝ μα.\,\munit + T * α.
+\]
+$\mfold{\!}$s in a term explicitly mark points where the recursive type variable is used:
+\[
+  \mfold{\minl{(c_1, \mfold{\minl{(c_2, \mfold{\minr{()}})}})}}.
+\]
+To use these recursive types, we explicitly $\munfold{\!}$ the $\mfold{\!}$s where ever they appear, for example:
+\[
+  \begin{array}{l}
+    (\mmatch\;\mfold{\minl{(c_1, \mfold{\minr{()}})}}\;\mwith \\
+    \quad \minl{x_1} → \mfst x_1 \\
+    \quad \minr{x_2} → c_2) ⟶^* c_1. \\
+  \end{array}
+\]
+
+Synthesis rules, again, are derivable directly from the typing rules.
+To generate an $\munfold{\!}$ (\rulename{eguess-unfold}), it is sufficient to guess a $μ$-type whose one-step unrolling is the goal type in question.
+When refining at $μ$-type (\rulename{iguess-mu}), we know that all our examples are $\mfold{\!}$ values.
+Refining such a value is straightforward; because $\mfold{\!}$s have no computational content, we simply shed the top-level $\mfold{\!}$ constructors of the examples, leaving behind example values of an appropriate type that we can use to synthesize the unfolded program.
+
+Up until now, $I$-refinement has always decomposed down a goal type down into a base type.
+At first glance, $μ$-types seem to pose a problem for type-directed example refinement because a $μ$-type can be unfolded infinitely, for example, our $\mkwd{List}$ type:
+\begin{align*}
+    & μα.\,\munit + T * α \\
+  ≡ & \munit + (T * μα.\,\munit + T * α) \\
+  ≡ & \munit + (T * \munit + (T * μα.\,\munit + T * α)) \\
+  ≡ & …
+\end{align*}
+However, example values save us because while a $μ$-type represents an infinite family of types, example values are necessarily finite structures.
+This simple example value of type $\mkwd{List}$:
+\[
+  \mfold{\minl{(c, \mfold{\minr{()}})}}
+\]
+Can only be unfolded twice, corresponding to the two $\mfold{\!}$s in the value.
+
+\subsection{Non-determinism}
+
+The rules in \autoref{fig:lsyn-mu-defn} seem perfectly sensible.
+Indeed, they are sound as we can show with the appropriate lemma (for example soundness):
+\begin{lemma}[Example-Type Preservation of $\mfun{unfold}$]
+  If $Γ ⊢ Χ : μα.\,τ$ then $Γ ⊢ \mfun{unfold}(Χ) : [μα.\,τ/α] τ$.
+\end{lemma}
+\begin{proof}
+  Immediate from our premise.
+  \rulename{t-exw-cons} says that each $σ_i$ is well-typed and \rulename{t-ex-fold} says that each example $\mfold{\!}$ is well typed along with their components at type $[μα.\,τ/α] τ$.
+\end{proof}
+It turns out that the necessary completeness lemma also holds rather trivially:
+\begin{lemma}[Satisfaction Preservation of $\mfun{unfold}$]
+  If $\mfold{I} ⊨ Χ$ then $I ⊨ \mfun{unfold}(Χ)$.
+\end{lemma}
+\begin{proof}
+  Consider a single example world $σ ↦ \mfold{χ}$.
+  By \rulename{satisfies} and \rulename{eq-fold}, we know that $σ(I) ≃ χ$.
+  We know from the definition of $\mfun{unfold}$ that $∀σ ↦ \mfold{χ}.\,σ ↦ χ ∈ \mfun{unfold}(Χ)$ which is sufficient to conclude that $I ⊨ \mfun{unfold}(Χ)$.
+\end{proof}
+The problem is that we know that the addition of $μ$-types into the \stlc{} introduces non-termination~\todo{cite}!
+In particular, let $ω$ be diverging term.
+Then the expression $λx:τ.\,ω$ cannot be synthesized in \lsyn{} extended with $μ$-types.
+Because $\rulename{irefine-guess}$ relies on evaluation, we will never be able to use it to synthesize $ω$ (which is an $E$-term).
+Thus in the presence of recursion, we lose completeness.
+
+However, recursion poses even more of a problem than this.
+It is is unlikely for us to encounter $ω$ if we enumerate programs in order of size as suggested in \autoref{ch:a-simple-synthesis-calculus} because its encoding in \lsyn{} is roughly 30 AST nodes which is too large to generate in a reasonable amount of time.
+However, such non-terminating expressions in a standard functional programming language are much smaller by comparison.
+For example imagine that we are synthesizing the body of a function in an ML-like language:
+\begin{lstlisting}
+  let rec f (x:int) : int = ?.
+\end{lstlisting}
+We may try to $E$-guess the expression \lstinline|f x| for the body of \lstinline|f| which produces an infinite loop.
+This expression, in contrast to $ω$, is a mere 3 AST nodes which makes it very likely that we would encounter the term during enumeration.
+Furthermore, because this looping term is so small, we'll enumerate many other equivalent terms that contain it, \eg \lstinline|f (f x)| or \lstinline|f (f (f x))|.
+We could alter our evaluation strategy to include a timeout or limit on number of evaluation steps, but with some many non-terminating terms, this approach would not scale appropriately.
+
+\section{A Functional Synthesis Programming Language}
 
 \input{figures/mlsyn-defn}
+
+Because we can easily enumerate infinite loops that ruin our generate-and-test $E$-guess strategy, we need some way of restricting recursion so that we do not have this problem.
+Rather than trying to solve this problem within \lsyn{} where we do not have many hooks for limiting recursive definitions, we graduate to \mlsyn{}, a core ML-like calculus for program synthesis and adopt standard techniques to remove non-termination from the system.
+\autoref{fig:mlsyn-defn} defines the syntax of \mlsyn{} which is divided into an external language of expressions $e$ and an internal language of introduction terms $I$ and elimination terms $E$ that constitute the $β$-normal forms of $e$.
+
+\mlsyn{} more closely approximates a real-world functional programming language like OCaml, F\#, or Haskell.~\todo{Cite all three.}
+On top of the lambdas and application introduced in \lsyn{}, \mlsyn{} introduces two major features:
+\begin{enumerate}
+  \item Algebraic data types and
+  \item Recursive function definitions.
+\end{enumerate}
+
+\paragraph{Algebraic Data Types}
+
+Rather than sums and products, \mlsyn{} features algebraic data types defined by a signature of constructors $Σ$.
+Constructors $C$ are defined to take a tuple of arguments of type $τ_1 * … * τ_k$ and produce a value of a particular data type $T$.
+This tuple may be empty in which case we define a nullary constructor, \ie, a constructor that takes no arguments and is directly a value of type $T$.
+We constrain patterns to be of the form $C(x_1, …, x_k)$, disallowing nested patterns in order to simplify our presentation without loss of expressiveness.
+
+Note that this particular formulation of constructors implies that a constructor $C(e_1, …, e_k)$ must be fully saturated, that is, it is always provided all its arguments.
+This choice mirrors OCaml and F\# which also require that all constructor values are fully saturated, but stands in opposition to Haskell which treats a constructor as a function $τ_1 → … → τ_k → T$ that may be partially applied.
+While this design choice has implications for the implementation of data types in these languages, it does not affect synthesis in any significant way as we have demonstrated that our synthesis approach handles both tuples and partially applied functions without problems.
+
+\paragraph{Recursive Functions}
+
+In addition to algebraic data types, \mlsyn{} also features recursive function values: $\mkwd{fix}\;f\;(x{:}τ_1) : τ_2 = e$.
+By default \mlsyn{} synthesizes recursive functions where $e$ may mention the function $f$.
+If $f$ is not in the free variables of $e$, then we use the usual lambda notion $λx{:}τ_1.\,e$ as syntactic sugar.
+
+Recall from \autoref{subsec:synthesis} that we synthesized a (non-recursive) function by splitting input/output examples (realized as partial function example values).
+This way, we are able to provide a value binding for each argument that we record in each example world's environment $σ$.
+Because the functions we synthesize will be recursive, we expect to add a binding for the function $f$ itself in addition to its argument.
+But then, what value binding can we provide for $f$ as we are currently synthesizing it!
+
+As we discuss in detail in \autoref{subsec:synthesis-in-mlsyn}, we use the partial function that specifies $f$ as its own value.
+To do this, we promote partial function values from mere example values to (external language) values.
+In \lsyn{}, example values $χ$ were a distinct grammar production from $v$.
+The two productions differed in their representation of values at arrow types: example values provide partial function terms $\many{χ_i ⇒ v_i}{i < m}$ and proper values provide lambdas $λx{:}t.\,e$.
+In \mlsyn{}, the grammar of example values $χ$ is a proper subset of the values; $χ$ does not include lambdas so that functions cannot appear in the goal position of input/output pairs.
+This design decision has important ramifications for the metatheory of \mlsyn{} that we discuss in~\todo{what section will we discuss the metatheory?}
+
+\subsection{Static and Dynamic Semantics of \texorpdfstring{\mlsyn{}}{MLsyn}}
 
 \input{figures/mlsyn-ext-types}
 
 \input{figures/mlsyn-int-types}
 
+\autoref{fig:mlsyn-ext-types} and \autoref{fig:mlsyn-int-types} gives the rules for type checking the external and internal languages of \mlsyn{}, respectively.
+With some minor differences, the rules mirror the type checking rules of \lsyn{}:
+\begin{enumerate}
+  \item To admit recursive definitions, \rulename{t-fix} introduces a binder for the function value $f$ in addition to its argument $x$.
+  \item Expanding on the sum rule which binds a single variable, a constructor pattern can bind an arbitrary number of variables.
+    \rulename{t-match} delegates this work to the $\mfun{binders}$ meta-function.
+\end{enumerate}
+
+In addition to these standard rules, we enforce three additional properties to ensure totality of the system:
+\begin{description}
+  \item[Structural recursion:]
+    To ensure that a chain of recursive function calls always terminates, we require that each recursive call is made to a structurally smaller argument.
+    This way, we know that the recursion bottoms out once we have completely decomposed a value.
+    To track this information, we introduce \emph{binding specifications} $b$ to the bindings in $Γ$ and update them as we type check a program.
+    There are four possible binding specifications:
+    \begin{itemize}
+      \item $·$: no specification,
+      \item $\mrec$: denotes a recursive function,
+      \item $\marg{f}$: denotes an argument to a function $f$, and
+      \item $\mdec{f}$: denotes a structurally decreasing variable to the function $f$.
+    \end{itemize}
+
+    The judgment $\mfun{struct}(e_1, e_2)$ ensures that two expressions constitute a valid function application.
+    Non-recursive functions applications are always valid.
+    If the function $e_1$ is a recursive function (currently being defined), \ie, is a variable $f$ annotated with $\mrec$, then the argument $e_2$ must be a variable annotated with $\mdec{f}$
+    We require that any recursive function application consists of a variable $f$ annotated with $\mrec$ and a variable $x$ annotated with $\mdec{f}$.
+    In particular, a recursive function application involving an argument that is not a variable is always invalid.
+    This is strictly more constraining than Coq which performs some $β$-reductions to admit more programs~\todo{cite}, but still ensures that recursive functions are always called with structurally decreasing arguments.
+
+    \rulename{t-app} ensures that every application is structurally recursive (or non-recursive) with $\mfun{struct}$.
+    When type checking a function with \rulename{t-fix}, we recorder bindings for both the argument $x$ and the function itself $f$.
+    $f$ is marked as a recursive function, $\mrec$, and the argument $x$ is marked as an argument of $f$, $\marg{f}$.
+    The only way to obtain a structurally decreasing value of $f$ is to pattern match on a variable that is either an argument of $f$, $\marg{f}$, or is already structurally decreasing with respect to $f$, $\mdec{f}$.
+    When computing the binders of a pattern match in \rulename{t-match}, we appeal to the helper function $\mfun{binders}(Γ, e, p)$ which creates binders for each of the pattern variables in $p$.
+    When computing the binding specifications for each variable, we check to see if the scrutinee of the pattern match $e$ is a variable that is annotated as $\marg{f}$ or $\mdec{f}$ of some recursive function $f$.
+    If it is, then any sub-component of that pattern is marked $\mdec{f}$ if its type coincides with the type of $e$, \ie, it is a recursive occurrence of a data type in a constructor.
+  \item[Pattern completeness:]
+    We ensure that every pattern match over some data type $T$ covers all the possible constructor values of $T$.
+    Because we require patterns to be of the form $C(x_1, …, x_k)$, this restriction amounts to having exactly one branch for each constructor of type $T$.
+    This constraint is enforced by the judgment $\mfun{complete}(Σ, \many{p_i}{i < m}, T)$ which ensures there is a one-to-one correspondence between a set of patterns and constructors at type $T$.
+  \item[Positivity restriction:]
+    Finally, we enforce a positivity restriction on data types similar to Coq and Agda~\todo{cite} that ensures that a recursive occurrence of a data type does not occur to the left of an arrow in the type of a constructor.
+    To see why this restriction is necessary, consider the data type:
+    \[
+      \mdata\;d = D\;\mof\; d → t
+    \]
+    For some other data type $t$.
+    Now consider the function:
+    \[
+      \begin{array}{l}
+        \mlet\;f\;(x{:}d) : t =   \\
+        \⇥{1} \mmatch\;d\;\mwith  \\
+        \⇥{2} D\,g → g\,d.
+      \end{array}
+    \]
+    Then the application $f\,(D\,f)$ is well-typed but goes into an infinite loop.
+    The judgment $\mfun{pos}(T, τ)$ enforces this constraint for a particular argument type $τ$ against a data type $T$.
+    When checking that a signature is well-formed ($⊢ Σ$), we ensure that each argument of each constructor in $Σ$ obeys the positivity restriction.
+\end{description}
+
 \input{figures/mlsyn-eval}
+
+\autoref{fig:mlsyn-eval} gives the evaluation rules and the compatibility judgment for the system.
+On top of the usual evaluations rules, we also provide evaluation rules for partial functions as they are now values.
+Partial functions values behave like a pattern match (\rulename{eval-pf-good}): when applied to an argument $v_j$, the partial function $\many{v_i ⇒ χ_i}{i < m}$ produces the output $χ_j$ (where $j ∈ 1, …, m$), taking advantage of the fact that example values are now a proper subset of the values.
+
+However, if $v_j$ are not among the $\many{v_i}{i < m}$ of the pattern match, evaluation produces a $\mNoMatch$ exception value (\rulename{eval-pf-bad}) which then becomes the overall result of the computation (\rulename{eval-nomatch}).
+The $\mNoMatch$ value type checks at any type $T$ (\rulename{t-nomatch}), and it only exists in the external language as it only arises as the result of evaluating a partial function.
+Note that we've already restricted our $\mmatch$ expressions to be complete (via the $\mfun{complete}$ judgment), so $\mNoMatch$ values can only arise due to pattern match failures when evaluating partial functions.
+
+To determine which value to produce, we utilize the compatibility judgment ($≃$) that we use during synthesis to verify that an $E$-guessed term satisfies our examples.
+In \lsyn{} the compatibility judgment compared an example value $χ$ and a value $v$.
+However, when evaluating partial functions, we will compare two values---the argument and the input of each alternative---so we must expand compatibility to compare two values.
+Now that the syntactic classes are the same on both sides, we use symmetry (\rulename{eq-sym}) to account for the new case when we compare a partial function on the left to a function on the right, \ie, the flipped version of \rulename{eq-fix-pf}.
+We can now also compare two partial functions for compatibility.
+\rulename{eq-pf-pf} says that two partial functions are compatible if and only if we can draw a one-to-one correspondence between their alternatives where compatible inputs produce compatible outputs.
+Finally, because we are comparing two values, we may end up comparing two functions for compatibility.
+In \lsyn{} such a comparison is possible because functions are non-recursive so we can resort to a strategy based off of $βη$-equivalence.
+However, in \mlsyn{} this is not the case as our functions are recursive by default; in general, determining compatibility in this case is undecidable!~\todo{cite}.
+To remedy this, we add a reflexivity rule (\rulename{eq-refl}) that equates two syntactically identical terms.
+This is only an approximation, as we only consider a function equivalent to itself, but this works well in \mlsyn{} because comparing syntactically distinct, yet equivalent functions is uncommon.~\todo{Probably should expand on this}.
+
+\subsection{Synthesis in \texorpdfstring{\mlsyn{}}{MLsyn}}
+\label{subsec:synthesis-in-mlsyn}
 
 \input{figures/mlsyn-synthesis}
 
 \input{figures/mlsyn-aux}
+
+Like \lsyn{}, we simply adapt the internal language typing judgment to perform synthesis by making the type of the judgment an input and the term an output as shown in \autoref{fig:mlsyn-synthesis}.
+With the \rulename{irefine} rules, we proceed by the shape of the goal type, synthesizing an introduction form $I$ along with refining the examples $Χ$.
+As with our presentation of \lsyn{}, we make this transformation explicit by delegating all of this additional example refinement behavior to meta-functions---$\mfun{proj}$, $\mfun{apply}$, and $\mfun{distribute}$ for constructors (\rulename{irefine-base}), functions (\rulename{irefine-arr}), and matches (\rulename{irefine-match}), respectively.
+The definition of these meta-functions are found in \autoref{fig:mlsyn-aux}.
+
+Constructor synthesis generalizes both product and sum synthesis from \lsyn{}.
+Whereas products only have two components in \lsyn{}, constructors have arbitrary, finite arity in \mlsyn{}.
+And whereas sums only have two ``tags'', $\minl{\!}$ and $\minr{\!}$, constructors have an arbitrary, finite amount of tags as dictated by $Σ$.
+At base type, we are free to $I$-refinement a particular constructor $C$ with \rulename{irefine-base} if all the examples share the same head constructor $C$.
+To synthesize the $i$th argument of the constructor expression, we extract the $i$th arguments of each of the examples and use those---along with their respective environments---as our example values.
+For example, if we had the following collection of example worlds:
+\begin{align*}
+  Χ =\;& σ_1 ↦ C(χ_{11}, χ_{12}, χ_{13}), \\
+       & σ_2 ↦ C(χ_{21}, χ_{22}, χ_{23}).
+\end{align*}
+Then \rulename{irefine-base} would $\mfun{split}$ the examples into three collections of example worlds
+\begin{align*}
+  Χ_1 &= σ_1 ↦ χ_{11}, σ_2 ↦ χ_{21} \\
+  Χ_2 &= σ_1 ↦ χ_{12}, σ_2 ↦ χ_{22} \\
+  Χ_3 &= σ_1 ↦ χ_{13}, σ_2 ↦ χ_{23}
+\end{align*}
+which would be used to synthesize the arguments $I_1$, $I_2$, and $I_3$ to $C$, respectively.
+
+Synthesizing at arrow type is comparatively straightforward.
+In fact, the \rulename{irefine-arr} rule is almost identical to its \lsyn{} variant.
+The only difference is that with $\mfun{fix}$, we must create a binding for $f$, the function that we are currently defining or synthesizing.
+The binding has the goal type, $τ_1 → τ_2$, and as mentioned previously, we use the example itself---a partial function---as its value.
+
+Note that $Χ$ is a collection of example worlds where each example world has the form $σ ↦ χ$.
+Because of this, we may be refining several example worlds when applying \rulename{irefine-arr}, each of which contains its own partial function value.
+In \lsyn{}, refining a single example world versus multiple example worlds using \rulename{irefine-arr} produced the same set of example values and bindings; only the original environments differed.
+Assuming that the initial environments paired with the example worlds are the same, then the two situations were equivalent.
+
+In \mlsyn{}, this is no longer the case.
+Consider the same collection of example worlds from \autoref{subsec:synthesis}:
+\begin{align*}
+  Χ &= σ_1 ↦ \mpf_1, σ_2 ↦ \mpf_2 \\
+  \mpf_1 &= v_1 ⇒ χ_1 \bnfalt v_2 ⇒ χ_2 \\
+  \mpf_2 &= v_3 ⇒ χ_3 \bnfalt v_4 ⇒ χ_4 \bnfalt v_5 ⇒ χ_5.
+\end{align*}
+Applying \rulename{irefine-arr} in \mlsyn{} produces the following collection of example worlds:
+\begin{align*}
+  Χ' =\;& [\mpf_1/f][v_1/x]σ_1 ↦ χ_1, [\mpf_1/f][v_2/x]σ_1 ↦ χ_2 \\
+        & [\mpf_2/f][v_3/x]σ_2 ↦ χ_3, [\mpf_2/f][v_4/x]σ_2 ↦ χ_4, [\mpf_2/f][v_5/x]σ_2 ↦ χ_5
+\end{align*}
+Even if $σ_1$ and $σ_2$ are identical, $f$ is bound to either $\mpf_1$ or $\mpf_2$
+When evaluating applications to $f$ in these example worlds, we will get different results as $\mpf_1$ and $\mpf_2$ are different partial functions.
+In particular, we will likely encounter $\mNoMatch$ exceptions when evaluating one partial function but not the other because they will likely have some distinct branches.
+
+Finally, $\rulename{irefine-match}$ generalizes the synthesis of sums to data types with an arbitrary number of constructors of arbitrary arity.
+Like \lsyn{}, $\rulename{irefine-match}$ proceeds in three steps:
+\begin{enumerate}
+  \item Guess a value of sum type to pattern match against.
+  \item Distribute the example worlds among the branches of the pattern match.
+  \item Recursively synthesize the branches of the pattern match.
+\end{enumerate}
+The $\mfun{distribute}$ takes care of the critical second step, creating $m$ sets of example worlds $Χ_1, …, Χ_m$ corresponding to the $m$ possible constructors of the data type.
+It proceeds by evaluating the scrutinee, $E$, within each example world of $Χ$ and sends that example world to the branch corresponding to the constructor that $E$ evaluates to.
+Along the way, it binds the appropriate variables and constructor argument values for that branch.
+
+As a concrete example, consider a definition of a $\mBool$ data type with constructors $\mtrue$ and $\mfalse$.
+That is,
+\[
+  Σ = \mtrue : \mBool, \mfalse : \mBool.
+\]
+Then, if we have the following example worlds,
+\[
+  Χ = [\mtrue/b] ↦ \mfalse, [\mfalse/b] ↦ \mtrue,
+\]
+applying \rulename{irefine-match} with $b$ as the scrutinee results in the following two sets of example worlds
+\[
+  Χ_1 = [\mtrue/b] ↦ \mfalse
+  Χ_2 = [\mfalse/b] ↦ \mtrue
+\]
+where $Χ_1$ are the examples for the $\mtrue$ branch of the pattern match (because $b$ evaluates to $\mtrue$ in those example worlds) and $Χ_2$ are the examples for the $\mfalse$ branch of the pattern match (because $b$ evaluates to $\mfalse$).
+
+\subsection{Structural Recursion in Synthesis}
+
+In \autoref{ch:simple-type-extensions} we saw that our type-directed synthesis strategy lent itself well to extending the synthesis procedure to new language features.
+We were able to re-appropriate the type checking rules for a new language feature into synthesis rules.
+In \mlsyn{} we see that these benefits extend beyond language features to any property that a type system may enforce!
+In particular, we carry over the structural checks (\ie, the $\mfun{struct}$ judgment) to ensure that we only synthesize total functions.
+The $\mfun{apply}$ meta-function of \rulename{irefine-arr} annotates the function binding $f$ as recursive ($\mrec$) and the argument binding $x$ as an argument of $f$ ($\marg{f}$).
+The $\mfun{distribute}$ meta-function of \rulename{irefine-match} checks to see if an argument of a recursive function is decomposed with a pattern match and annotates any recursive bindings as structurally decreasing ($\mdec{f}$).
+And finally, $\rulename{eguess-app}$ ensures that for any synthesized application involving a function $f$ marked as $\mrec$ that its argument is marked as $\mdec{f}$.
+
+Note that the other judgments that we used to ensure totality during type checking are unnecessary, so we omit them in the synthesis judgment.
+The completeness check $\mfun{completeness}$ is implicitly realized because we always synthesize complete pattern matches for a data type.
+And the positivity restriction on data types is irrelevant because synthesis takes (a well-formed) $Σ$ as a given input.
+
+\section{Examples in \texorpdfstring{\mlsyn{}}{MLsyn}}
+
+Let's explore the expressive power of \mlsyn{} with a number of examples.
+To begin with, data types allow us to directly synthesize programs that we had to encode in \lsyn{} and its extensions.
+First, consider synthesizing the boolean $\mkwd{and}$ operator from \autoref{subsec:example-boolean-operators}.
+We require a signature corresponding to the boolean data type:
+\[
+  Σ = \mtrue : \mBool, \mfalse : \mBool.
+\]
+Now, we can synthesize a program at goal type $\mBool → \mBool → \mBool$ and use the same set of examples from before:
+\begin{align*}
+  \mtrue  ⇒ \mtrue  ⇒ \mtrue \\
+  \mfalse ⇒ \mtrue  ⇒ \mfalse \\
+  \mtrue  ⇒ \mfalse ⇒ \mfalse \\
+  \mfalse ⇒ \mfalse ⇒ \mfalse.
+\end{align*}
+First, we apply \rulename{irefine-arr} twice to refine away the arrows.
+This produces the following synthesis state:
+\[
+  Γ ⊢ \mBool ▷ Χ ⇝ \mfix\;f\;(b_1{:}\mBool) : \mBool = \mfix \;g\;(b_2{:}\mBool) : \mBool = ◼
+\]
+where
+\begin{align*}
+  Γ =\;& f{:}\mBool → \mBool → \mBool \{\mrec\}, b_1{:}\mBool \{\marg{f}\}, g{:}\mBool → \mBool \{\mrec\}, b_2{:}\mBool ⊢ \mBool \\
+  Χ =\;& [\mtrue ⇒ \mtrue ⇒ \mtrue/f][\mtrue/b_1][\mtrue ⇒ \mtrue/g][\mtrue/b_1] ↦ \mtrue, \\
+       & [\mfalse ⇒ \mtrue ⇒ \mfalse/f][\mfalse/b_1][\mtrue ⇒ \mfalse/g][\mtrue/b_1] ↦ \mfalse, \\
+       & [\mtrue ⇒ \mfalse ⇒ \mfalse/f][\mtrue/b_1][\mfalse ⇒ \mfalse/g][\mfalse/b_1] ↦ \mfalse, \\
+       & [\mfalse ⇒ \mfalse ⇒ \mfalse/f][\mfalse/b_1][\mfalse ⇒ \mfalse/g][\mfalse/b_1] ↦ \mfalse,
+\end{align*}
+Even though we have recursive functions, we will never be able to use them in this synthesis derivation.
+This is because we will never be able to manufacture a binding that is structurally decreasing with respect to $f$ or $g$ as neither of the $\mBool$ constructors contain recursive instances of $\mBool$ in their types.
+
+Because of this, synthesis proceeds identically to \lsyn{} from this point on.
+We apply \rulename{irefine-match} to synthesize a $\mmatch$ pattern matching on $b_1$ with two branches.
+In the first branch, the $\mtrue$ branch, we have to apply \rulename{irefine-match} a second time to pattern match over $b_2$.
+From there, we can use \rulename{irefine-base} to synthesize $\mtrue$ and $\mfalse$.
+In the second branch, the $\mfalse$ branch, both example world's goal values are $\mfalse$, so we can synthesize $\mfalse$ directly using \rulename{irefine-base}.
+
+Next, let's consider synthesizing a recursive function over some inductive data types.
+Suppose that we have the following signature corresponding to natural numbers $\mnat$ and lists over natural numbers $\mlist$,
+\begin{align*}
+  Σ =\;& \mO : \mnat, \mS : \mnat → \mnat, \\
+       & \mNil : \mlist, \mCons : \mnat → \mlist → \mlist,
+\end{align*}
+and our goal type is $\mlist → \mlist$.
+
+First, let's introduce shorthand for these data types.
+We use numbers in the place of natural numbers, \eg,
+\begin{align*}
+  0 &≝ \mO \\
+  1 &≝ \mS(\mO) \\
+  2 &≝ \mS(\mS(\mO)) \\
+  3 &≝ \mS(\mS(\mS(\mO))).
+\end{align*}
+And we use standard list notation in the place of successive invocations of $\mNil$ and $\mCons$, \eg,
+\begin{align*}
+  [] &≝ \mNil \\
+  [0] &≝ \mCons(\mO, \mNil) \\
+  [1, 0] &≝ \mCons(\mS(\mO), \mCons(\mO, \mNil)) \\
+  [2, 1, 0] &≝ \mCons(\mS(\mS(\mO)), \mCons(\mS(\mO), \mCons(\mO, \mNil)))
+\end{align*}
+
+Now, let's consider the example:
+\begin{align*}
+  \mpf =\;& [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [0, 0] \\
+  \bnfalt & [1, 0] ⇒ [1, 1, 0, 0]
+\end{align*}
+which is a single partial function with three alternatives.
+The examples suggest that we should synthesize the standard $\mkwd{stutter}$ function that duplicates every element of a list.
+
+First, we apply \rulename{irefine-arr} to refine the goal to a base type.
+This leaves us with the following synthesis state:
+\[
+  f{:}\mlist → \mlist \{\mrec\}, l{:}\mlist \{\marg{f}\} ⊢ \mlist ▷ Χ ⇝ \mfix\;f\;(l{:}\mlist) : \mlist = ◼
+\]
+where
+\begin{align*}
+  Χ =\;& [\mpf/f][[]/l] ↦ [] \\
+       & [\mpf/f][[0]/l] ↦ [0, 0] \\
+       & [\mpf/f][[1,0]/l] ↦ [1, 1, 0, 0].
+\end{align*}
+In each of the three resulting example worlds, $f$ is bound to the original partial function $\mpf$ and the argument $l$ is bound to each of the left-hand side values of the partial function alternatives.
+
+At this point, we cannot apply \rulename{irefine-base} because the goal example values do not share the same head constructor ($\mNil$ for the first values and $\mCons$ for the others).
+We can try to $E$-guess with \rulename{irefine-guess} but no $E$-term we can generate at this point satisfies all the examples.
+Therefore, we must apply \rulename{irefine-match} to try to make more progress.
+
+The only $E$-term that we can guess as a scrutinee of the $\mmatch$ is $l$.
+The $\mlist$ data type has two constructors, so we have to synthesize two branches for the $\mmatch$ corresponding to when $l$ is $\mNil$ and $l$ is $\mCons$, respectively.
+Correspondingly, $\mfun{distribute}$ creates two sets of example worlds, one for each branch.
+It sends the first example world to the first branch (because $l$ evaluates to $\mNil$ in that branch) and the remaining example worlds to the second branch (because $l$ evaluates to some $\mCons(v_1, v_2)$ in those branches).
+
+Let's consider synthesizing the $\mNil$ branch first.
+The synthesis state here looks as follows
+\[
+  f{:}\mlist → \mlist \{\mrec\}, l{:}\mlist \{\marg{f}\} ⊢ \mlist ▷ Χ ⇝ ◼
+\]
+where
+\[
+  Χ = [\mpf/f][[]/l] ↦ [].
+\]
+This synthesis problem is straightforward to solve.
+We can either apply $\rulename{irefine-base}$ to synthesize $\mNil$ since our only example value is $\mNil$ or
+$\rulename{irefine-guess}$ to guess $l$ which evaluates to $\mNil$ as desired.
+
+Now, let's turn our attention to the $\mCons$ branch.
+The synthesis state here looks as follows
+\[
+  x{:}\mnat, l'{:}\mlist \{\mdec{f}\}, f{:}\mlist → \mlist \{\mrec\}, l{:}\mlist \{\marg{f}\} ⊢ \mlist ▷ Χ ⇝ ◼
+\]
+where
+\begin{align*}
+  Χ =\;& [0/x][[]/l'][\mpf/f][[0]/l] ↦ [0, 0] \\
+       & [1/x][[0]/l'][\mpf/f][[1, 0]/l] ↦ [1, 1, 0, 0].
+\end{align*}
+First, we can immediately apply $\rulename{irefine-base}$ because the example goal values share the same head constructor, $\mCons$.
+This results in two more synthesis sub-goals to fill in the arguments to $\mCons$.
+The first sub-goal corresponds to the following refined examples:
+\begin{align*}
+  Χ =\;& [0/x][[]/l'][\mpf/f][[0]/l] ↦ 0 \\
+       & [1/x][[0]/l'][\mpf/f][[1, 0]/l] ↦ 1.
+\end{align*}
+which we can satisfy by applying $\rulename{irefine-guess}$ and $E$-guessing $x$.
+The second sub-goal corresponds to the following refined examples:
+\begin{align*}
+  Χ =\;& [0/x][[]/l'][\mpf/f][[0]/l] ↦ [0] \\
+       & [1/x][[0]/l'][\mpf/f][[1, 0]/l] ↦ [1, 0, 0].
+\end{align*}
+which is identical to the original set of examples except with the head of the example values peeled off.
+We can apply $\rulename{irefine-base}$ and $\rulename{irefine-guess}$ to arrive at the following partial program for the $\mCons$ branch of the pattern match
+\[
+  \mCons(x, \mCons(x, ◼))
+\]
+where the final hole has type $\mlist$ and the examples have been refined to:
+\begin{align*}
+  Χ =\;& [0/x][[]/l'][\mpf/f][[0]/l] ↦ [] \\
+       & [1/x][[0]/l'][\mpf/f][[1, 0]/l] ↦ [0, 0].
+\end{align*}
+
+Finally, we can apply $\rulename{irefine-guess}$ to guess the recursive function call $f\,l'$.
+To verify that this $E$-term satisfies the example, we must evaluate $f\,l'$ in each example world:
+\begin{itemize}
+  \item In the first world, $l' = []$, so $\mpf [] ⟶ []$ which is identical to the first world's goal value.
+  \item In the second world, $l' = [0]$, so $\mpf [0] ⟶ [0, 0]$ which is identical to the second world's goal value.
+\end{itemize}
+Because $f\,l'$ satisfies the examples, it is a valid completion of the term, leaving us with the final program:
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → \mNil \\
+    \⇥{1}   \bnfalt \mCons(x, l') → \mCons(x, \mCons(x, f\,l'))
+  \end{array}
+\]
+which is a correct implementation of the desired $\mkwd{stutter}$ function.
+
+\subsection{Trace Completeness}
+
+Note that verifying that the recursive call $f\,l'$ when synthesizing $\mkwd{stutter}$ depends on the value assigned to $f'$.
+Because $f'$ was the $\mkwd{stutter}$ function we were synthesizing, we used the partial function $\mpf$ that we used as our initial specification of the synthesis problem as $f'$'s value.
+It turns out our choice of alternatives for $\mpf$ was quite convenient as it allowed us to deduce that $f\,l'$ was a satisfying $E$-term.
+However, what if we aren't as careful with our specification?
+
+Consider synthesizing the $\mkwd{stutter}$ function with this alternative partial function:
+\begin{align*}
+  \mpf' =\;& [] ⇒ [] \\
+  \bnfalt  & [1, 0] ⇒ [1, 1, 0, 0]
+\end{align*}
+which is identical to $\mpf$ except that we removed the alternative $[0] ⇒ [0, 0]$.
+With this set of examples, we can, of course, synthesize a simpler function:
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → [] \\
+    \⇥{1}   \bnfalt \mCons(x, l') → [1, 1, 0, 0]
+  \end{array}
+\]
+which satisfies the examples but doesn't generalize to the $\mkwd{stutter}$ function that we want.
+But, regardless, the $\mkwd{stutter}$ function we synthesized previously certainly satisfies these examples as it is a subset of the input/output examples we gave in $\mpf$, so we ought to be able to derive it with $\mpf'$.
+The synthesis derivation with $\mpf'$ proceeds identically to the derivation with $\mpf$ until we arrive at determining if $f\,l'$ satisfies the examples.
+In this case, there is a single example world:
+\[
+  Χ = [1/x][[0]/l'][\mpf'/f][[1, 0]/l] ↦ [0, 0].
+\]
+However, $\mpf'\,[0] ⟶ \mNoMatch$ because $\mpf'$ does not provide an input/output example for $[0]$.
+According to our compatibility rules, $\mNoMatch$ is not compatible with anything (other than itself), and so we cannot conclude that $f\,l'$ is a satisfying expression.
+
+In general, when we synthesize recursive function calls, for every input/output example we provide, we must provide a corresponding input/output example that describes that function's behavior on an input that is structurally smaller with respect to the original example's input.
+We call this property of our input/output examples \emph{trace completeness}.
+For example, consider the input/output examples for $\mpf$ above:
+\begin{itemize}
+  \item The example $[1, 0] ⇒ [1, 1, 0, 0]$ requires the example $[0] ⇒ [0, 0]$ where $[0]$ is structurally smaller than $[1, 0]$.
+  \item In turn, the example $[0] ⇒ [0, 0]$ requires the example $[] ⇒ []$ where $[]$ is structurally smaller than $[0]$.
+  \item Finally, $[]$ is a base case, so the example $[] ⇒ []$ does not require any structurally smaller examples.
+\end{itemize}
+
+Note that the input of each additional example that we require is the \emph{largest} term possible that is structurally smaller than the original example's input.
+Theoretically this is not necessary; we only require a descending chain of input/output examples that satisfies the pattern of decomposition the candidate program makes.
+In the case of $\mkwd{stutter}$ and most other recursive functions, decreasing the size of the input by a single constructor, \ie, what a single $\mmatch$ produces, is sufficient.
+However, other recursive functions may demand different decompositions of the arguments to the function.
+For example, we may attempt to synthesize a function of the following form
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : τ = \\
+    \⇥{1} \mmatch\;x\;\mwith \\
+    \⇥{1}   \bnfalt \mCons(x, l') → \\
+    \⇥{2}     \mmatch\;l'\;\mwith \\
+    \⇥{3}       \bnfalt \mCons(y, l'') → … f l'' … \\
+    \⇥{1} …
+  \end{array}
+\]
+where we peel away two constructors before making a recursive call.
+
+Our input/output examples need only mimic this behavior, for example, the partial function
+\begin{align*}
+  & [] ⇒ 0 \\
+  \bnfalt & [1, 0] ⇒ 1 \\
+  \bnfalt & [3, 2, 1, 0] ⇒ 2
+\end{align*}
+is trace complete and the above program would satisfy it.
+However, developing such an example set requires some knowledge about how the eventual implementation of the function behaves which partially defeats the purpose of using a program synthesizer in the first place!
+Furthermore, we may not be able to avoid specifying other input/output examples even though our desired function has this behavior.
+For example, if we needed to specify odd-length example lists to synthesize the hypothetical function above, for example, $[2, 1, 0]$, then we would need to specify the missing structurally decreasing example lists of odd-length.
+
+Therefore, in practice, to fulfill trace completeness we always peel away single constructors---in other words, we choose the \emph{largest} structurally decreasing value with respect to an example---when completing the trace.
+For example, the examples of $\mkwd{stutter}$ satisfy this property.
+In some cases we may be able to get away with fewer examples, but this approach has the benefit of:
+\begin{enumerate}
+  \item Completeness with respect to synthesis as this choice of supporting examples ensures that any recursive function call with any decomposition of that call's original argument will have a corresponding input/output example in the partial function.
+  \item Requiring that we only know \emph{which} argument of a recursive function will be structurally decreasing which is much more reasonable to assume than the corresponding pattern of recursive calls.
+\end{enumerate}
+The downside to trace completeness is that it can greatly increase the number of examples needed to synthesize a program, especially when multiple arguments are involved.
+In \autoref{ch:implementation}, we explore this phenomenon in more detail once we have imposed some choices in search order of programs into the synthesis process.
+
+Trace completeness allows us to overcome the fact that we do not have a complete value available for the recursive function that we are trying to synthesize.
+However, we typically have part of that function---sometimes even the whole function---already synthesized.
+For example, when we were synthesizing $\mkwd{stutter}$, the recursive call that we synthesized completed the program, and yet we didn't use this value for the recursive function.
+If we did, then we wouldn't need our examples to be trace complete because we can simply evaluate the recursive function like normal instead of appealing to a partial function value.
+The problem is that, in general, this may not be true as we may have only synthesized some of the branches of a pattern match before needing to evaluate a recursive function call.
+In \autoref{ch:recursive-backpatching}, we explore how we can use this partial program information to reduce the number of examples we need to provide to the synthesizer.

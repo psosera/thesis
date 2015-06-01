@@ -11,12 +11,9 @@
            \mfun{struct}(Γ, E, I)}
           {Σ;Γ ⊢ E\;I : τ_2} \\
       \fbox{$Σ;Γ ⊢ I ⇐ τ$} \qquad
-        \inferrule[t-Iunit]
-          { }
-          {Σ;Γ ⊢ () ⇐ \munit} \qquad
         \inferrule[t-Ielim]
           {Σ;Γ ⊢ E ⇒ τ}
-          {Σ;Γ ⊢ I ⇐ τ} \\
+          {Σ;Γ ⊢ I ⇐ τ} \qquad
         \inferrule[t-Ictor]
           {C : τ_1, …, τ_k → T ∈ Σ \\ \many{Σ;Γ ⊢ I_i ⇐ τ_i}{i < k}}
           {Σ;Γ ⊢ C\;(I_1, …, I_k) ⇐ T} \\

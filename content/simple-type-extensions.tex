@@ -53,7 +53,7 @@ We can easily prove the necessary lemma here:
 
 Completeness requires that we show that \rulename{irefine-prod} preserves satisifaction of examples.
 The version of the lemma for $\mfun{proj}$ is also straightforward to prove:
-\begin{lemma}[Satisfication Preservation of $\mfun{proj}$]
+\begin{lemma}[Satisfaction Preservation of $\mfun{proj}$]
 \label{lem:satisfaction-preservation-of-proj}
   If $(I_1, I_2) ⊨ Χ$ then $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ where $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
 \end{lemma}
@@ -229,8 +229,10 @@ and the hole filled in with the following program fragment:
 \]
 
 Synthesizing the $\minr{\!}$ branch is straightforward.
-The $inr{\!}$ branch is straightforward to synthesize.
-We apply \rulename{irefine-sum-inr} because all the examples agree that the synthesized program should be $\mfalse$.
+We synthesize $\mfalse$ for this branch because all the examples agree that the synthesized program should be $\mfalse$, \ie, all the example values are $\mfalse$.
+Note that this proceeds in two derivation steps.
+In the first step, we apply \rulename{irefine-sum-inr} because all of the goal example values are of the form of $\minr{χ}$.
+In the second step, we apply \rulename{irefine-unit} because all of the goal example values left are $\mUnit$ values.
 
 Synthesizing the $\minl{\!}$ branch is slightly trickier.
 We note that we cannot \rulename{eguess} an $E$-term that satisfies $Χ_1$.

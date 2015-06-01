@@ -5,14 +5,11 @@
         \inferrule[t-var]
           {x{:}τ ∈ Γ}
           {Σ;Γ ⊢ x : τ} \qquad
-        \inferrule[t-unit]
-          { }
-          {Σ;Γ ⊢ () : \munit} \\
         \inferrule[t-app]
           {Σ;Γ ⊢ e_1 : τ_1 → τ_2 \\
            Σ;Γ ⊢ e_2 : τ_1 \\\\
            \mfun{struct}(Γ, e_1, e_2)}
-          {Σ;Γ ⊢ e_1\;e_2 : τ_2} \qquad
+          {Σ;Γ ⊢ e_1\;e_2 : τ_2} \\
         \inferrule[t-ctor]
           {C : τ_1, …, τ_k → T ∈ Σ \\ \many{Σ;Γ ⊢ e_i : τ_i}{i < k}}
           {Σ;Γ ⊢ C\;(e_1, …, e_k) : T} \\
@@ -40,7 +37,21 @@
       \fbox{$\mfun{complete}(Σ, \many{p_i}{i < m}, T)$} \qquad
         \inferrule[complete]
           {C ∈ τ_1 * … * τ_k → T ∈ Σ ↔ C(x_1, …, x_k) \in \many{p_i}{i < m}}
-          {\mfun{complete}(Σ, \many{p_i}{i < m})}
+          {\mfun{complete}(Σ, \many{p_i}{i < m})} \\
+      \fbox{$\mfun{pos}(T, τ)$} \qquad
+        \inferrule[pos-base]
+          { }
+          {\mfun{pos}(T, T')} \qquad
+        \inferrule[pos-arr]
+          {τ_1 ≠ T \\ \mfun{pos}(T, τ_1) \\ \mfun{pos}(T, τ_2)}
+          {\mfun{pos}(T, τ_1 → τ_2)} \\
+      \fbox{$⊢ Σ$} \qquad
+        \inferrule[sig-empty]
+          { }
+          {⊢ · } \qquad
+        \inferrule[sig-cons]
+          {\mfun{pos}(T, τ_1) … \mfun{pos}(T, τ_k) \\ ⊢ Σ }
+          {⊢ C{:}τ_1 * … * τ_k, Σ}
     \end{gather*}
     \[
       \begin{array}{l}
