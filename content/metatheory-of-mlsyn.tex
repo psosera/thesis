@@ -1,0 +1,84 @@
+The simple type extensions to \lsyn{} that we explored in \autoref{ch:simple-type-extensions} did not change \lsyn{}'s metatheory.
+In particular, soundness and completeness followed from straightforward lemmas about the behavior of the new language features.
+However, the introduction of recursion in \mlsyn{} is significant enough to reexamine whether the key properties we established in \autoref{ch:metatheory-of-lsyn} hold and if not, why we lost them.
+
+\section{Soundness}
+
+Recall that soundness of type-directed program synthesis can be broken up into two components:
+\begin{enumerate}
+  \item We synthesize well-typed programs.
+  \item We synthesize programs that satisfy the examples.
+\end{enumerate}
+Unsurprisingly, both properties hold in \mlsyn{}.
+
+\begin{lemma}[Type Soundness of \mlsyn{}]\ %
+  \begin{enumerate}
+    \item If $Γ ⊢ τ ⇝ E$, then $Γ ⊢ E ⇒ τ$.
+    \item If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $Γ ⊢ I ⇐ τ$.
+  \end{enumerate}
+\end{lemma}
+\begin{proof}
+  By mutual induction on the synthesis derivations for $E$- and $I$-terms.
+  \todo{Fill this in.}
+\end{proof}
+
+\begin{lemma}[Example Soundness of \mlsyn{}]\ %
+  If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $I ⊨ Χ$.
+\end{lemma}
+\begin{proof}
+  By induction on the synthesis derivation of $I$.
+  \todo{Fill this in.}
+\end{proof}
+
+\section{Completeness}
+
+Soundness ensures that any program that we synthesize is correct with respect to its specification (\ie, types and examples).
+Completeness ensures that we can synthesize any program expressible in the language.
+\mlsyn{} poses two difficulties for completeness.
+The first is the presence of recursion.
+Because the synthesis judgment relies heavily on evaluation---in \rulename{irefine-match} when evaluating a scrutinee and in \rulename{irefine-guess} when normalizing an $E$-term to perform a compatibility check---synthesis may not terminate on certain inputs if evaluation goes into an infinite loop.
+Luckily, the \mlsyn{} type system ensures that any well-typed term terminates as the follow theorem claims:
+
+\begin{theorem}[Termination of \mlsyn{}]
+  If $⊢ Σ$ and $Σ; Γ ⊢ e : τ$, then either $e$ is some $v$ or $e ⟶^* v$ and $Σ; Γ ⊢ v : τ$.
+\end{theorem}
+\begin{proof}
+  We prove this fact via a standard logical relation.
+  \todo{Do this.}
+\end{proof}
+So recursion does not pose a problem for completeness as the language only considers terminating terms as well-typed.
+
+However, in addition to recursion, we also changed our grammar of example values to accommodate partial functions serving as a value for recursive functions.
+Specifically, we added partial functions to the grammar of plain values.
+It turns out that this modification alone is sufficient to make \mlsyn{} incomplete!
+This is because as discussed in \autoref{subsec:static-and-dynamic-semantics-of-mlsyn}, the evaluation rule for partial functions \rulename{eval-pf-good} requires that we compare the inputs of the partial function to the argument of the function call.
+The compatibility relation from \lsyn{} is insufficient for this purpose because it compares an example value $χ$ and a value $v$.
+We therefore extend the compatibility relation to compare two values, taking advantage of the fact that because we needed to extend values with partial functions, example values are now a proper subset of plain values.
+
+Because the compatibility relation now compares values, we must contend with comparing functions for equality.
+This arises when evaluating higher-order partial functions.
+For example, if we evaluate $(v_1 ⇒ χ)\,v_2$, then we may compare two function values for equality if $v_1$ and $v_2$ are $\mfix$es.
+In \lsyn{}, function equality, namely $βη$-equivalence over functions, is decidable.
+However, a normalization-based strategy does not work in \mlsyn{} because of recursion, even well-founded recursion as found in \mlsyn{}.
+\todo{Urk, what is true here; need to give this more thought.}
+
+Therefore, we must resort to \rulename{eq-refl} that only equates two function values if they are syntactically identical (up to $α$-equivalence by the Barendregt Convention).
+However, this approximation means that we cannot synthesizing some particular programs higher-order synthesis problems.
+For example, consider synthesizing at the higher goal type $((\mnat → \mnat) → \mnat) → \mnat$.
+Now suppose that we have a partial function with a single input/output example
+\[
+  (λx{:}\mnat.\,x ⇒ \mO) ⇒ \mO
+\]
+and synthesize in a context
+\[
+  Γ = \mkwd{plus} : \mnat → \mnat → \mnat, \mkwd{id} : \mnat → \mnat.
+\]
+In our starting environment, $\mkwd{plus}$ is bound to the usual definition of addition over natural numbers and $\mkwd{id}$ is bound to the value $λx{:}\mnat.\,plus\,x\,\mO$.
+Then, we are unable to synthesize the candidate function:
+\[
+  λf{:}(\mnat → \mnat) → \mnat.\,f\,\mkwd{id}.
+\]
+To see why, note that we must evaluate the body of the function, $f\,\mkwd{id}$, when applying \rulename{irefine-guess}.
+Evaluation results in $\mNoMatch$ because the functions $λx{:}\mnat.\,\mkwd{plus}\,x\,\mO$ and $λx{:}\mnat.\,x$ are not syntactically identical.
+
+\todo{Talk about consistency detection and how it is not possible in \mlsyn{} because we have lost completeness.}

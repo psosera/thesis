@@ -1,0 +1,29 @@
+\begin{figure}
+  \begin{center}
+    \begin{forest}
+      [$◼:\mBool → \mBool → \mBool$
+        [\rulename{irefine-arr}\\$λb_1{:}\mBool.\,◼:\mBool → \mBool$, align=center, base=bottom
+          [\rulename{irefine-arr}\\$λb_2{:}\mBool.\,◼:\mBool$, align=center, base=bottom
+            [\rulename{irefine-base}\\$\mtrue$, align=center]
+            [\rulename{irefine-guess}
+              [\rulename{eguess-var}\\$b_1$, align=center]
+            ]
+            [\rulename{irefine-guess}
+              [\rulename{eguess-var}\\$b_2$, align=center]
+            ]
+            [\rulename{irefine-match}\\$\mmatch\,b_1\,\mwith$\\$\bnfalt \mtrue → ◼_1:\mBool$\\$\bnfalt \mfalse → ◼_2:\mBool$, align=left, base=bottom
+              [(1)\\\rulename{irefine-base}\\$\mtrue$, align=center]
+              [(2)\\\rulename{irefine-guess}, align=center
+                [\rulename{eguess-var}\\$b_2$, align=center]
+              ]
+            ]
+          ]
+        ]
+      ]
+    \end{forest}
+  \end{center}
+
+\hrule
+\caption[Example synthesis tree]{Example synthesis tree.}
+\label{fig:synthesis-tree}
+\end{figure}

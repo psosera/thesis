@@ -1,10 +1,333 @@
-\todo{With the PLDI system presented, we now turn an eye towards implementation.
-  \begin{itemize}
-    \item Typed-term generation---presentation and properties.
-    \item Refinement trees---presentation and properties.
-    \item The results and all that discuss!
-    \item (I wonder if these could be two or three separate chapters?)
-  \end{itemize}%
-}
+So far, we have explored the theoretical foundations of program synthesis with types in detail by developing and extending core synthesis calculi equipped with increasingly complex types.
+Now that we have a core calculus that closely resembles a subset of a real-world functional programming language, \mlsyn{}, we now turn our attention to deriving a synthesis procedure from our synthesis calculus and then making that procedure efficient.
+
+\section{Synthesis Trees}
+\label{sec:synthesis-trees}
+
+Given a specification---a goal type and examples---the possible synthesis derivations form a tree of possible satisfying programs, a \emph{synthesis tree}.
+For example, consider synthesizing a function of goal type $\mBool → \mBool → \mBool $ from the partial function with a single input/output example
+\[
+  \mtrue ⇒ \mtrue ⇒ \mtrue.
+\]
+There are many programs that fulfill this specification, for example, the constant $\mtrue$ function
+\[
+  λb_1{:}\mBool.\,λb_2{:}\mBool.\,\mtrue,
+\]
+the left-select function
+\[
+  λb_1{:}\mBool.\,λb_2{:}\mBool.\,b_1,
+\]
+the right-select function,
+\[
+  λb_1{:}\mBool.\,λb_2{:}\mBool.\,b_2,
+\]
+or the $\mkwd{and}$ operator,
+\[
+  \begin{array}{l}
+    λb_1{:}\mBool.\,λb_2{:}\mBool.\,\mmatch\,b_1\,\mwith \\
+    \⇥{1} \bnfalt \mtrue → b_2 \\
+    \⇥{1} \bnfalt \mfalse → \mfalse.
+  \end{array}
+\]
+
+\input{figures/synthesis-tree}
+
+We give the synthesis tree corresponding to these potential derivations in \autoref{fig:synthesis-tree}.
+Nodes in this tree correspond to potential application of rules from our synthesis judgment, and edges connects the rule applications to the sub-goals, denoted by holes $◼$, that they fulfill.
+The root of the tree, the single $hole$, corresponds to our initial synthesis goal.
+In some cases, a single sub-goal is left behind after applying a rule, for example, when applying \rulename{irefine-arr}, so the children of that node represent the different ways we can complete that sub-goal.
+In other cases, multiple sub-goals are left behind, for example, when applying \rulename{irefine-match}.
+When this happens, we annotate the corresponding child nodes so it is clear which sub-goal they are meant fulfill.
+
+When we have talked about synthesizing a program in earlier chapters, we have chosen a particular derivation out of this tree.
+For example, the derivation corresponding to the $\mkwd{and}$ function that we syntheiszed in \autoref{ch:simple-type-extensions} is
+\begin{center}
+  \begin{forest}
+    [$◼:\mBool → \mBool → \mBool$
+      [\rulename{irefine-arr}\\$λb_1{:}\mBool.\,◼:\mBool → \mBool$, align=center, base=bottom
+        [\rulename{irefine-arr}\\$λb_2{:}\mBool.\,◼:\mBool$, align=center, base=bottom
+          [\rulename{irefine-match}\\$\mmatch\,b_1\,\mwith$\\$\bnfalt \mtrue → ◼_1:\mBool$\\$\bnfalt \mfalse → ◼_2:\mBool$, align=left, base=bottom
+            [(1)\\\rulename{irefine-base}\\$\mtrue$, align=center]
+            [(2)\\\rulename{irefine-guess}, align=center
+              [\rulename{eguess-var}\\$b_2$, align=center]
+            ]
+          ]
+        ]
+      ]
+    ]
+  \end{forest}
+\end{center}
+which corresponds to a path through the synthesis tree.
+When we arrive at the $\mmatch$ (and in general, any expression that produces multiple synthesis sub-goals), we choose one path for each branch of the $\mmatch$.
+
+\section{Collection Semantics}
+\label{sec:collection-semantics}
+
+Now that we are concerned with implementation, it is no longer sufficient to merely assert that a single derivation path exists.
+We must, instead, derive a synthesis procedure that constructs a refinement tree and extracts a derivation from that tree which corresponds to a satisfying program.
+Note that it may be useful to construct more of a refinement tree than a single derivation.
+For example, it may be more efficient derive parts of the refinement tree as we explore in \autoref{subsec:refinement-trees}.
+We may also want to be able to choose from among multiple satisfying programs using additional heuristics, \eg, number of variables or external functions used, or display the programs to the user and let them choose.
+
+For the purposes of our work, we'll restrict ourselves to generating a single satisfying program.
+To build a synthesis procedure, we observe that we can classify the synthesis rules of \mlsyn{} into three sorts:
+\begin{enumerate}
+  \item \emph{Refinement} rules that allow us to act in a type-directed manner by refining a synthesis goal according to the goal type and examples,
+  \item \emph{Guessing} rules that allow us to guess an $E$-term and check it against the examples, and
+  \item \emph{Matching} which allows us to generate more information by performing case analysis on a value.
+\end{enumerate}
+The refinement rules, \rulename{irefine-arr} and \rulename{irefine-base} apply at distinct types, so there is never any question as to which refinement rule to apply at a particular synthesis state.
+Guessing via \rulename{irefine-guess}, on the other hand, may apply at any time whenever we can generate an $E$-term from the context of the appropriate type.
+Likewise, \rulename{irefine-match} also applies whenever we can generate an $E$-term of base type to pattern match over.
+
+\input{figures/mlsyn-collection-semantics}
+
+\input{figures/mlsyn-term-generation}
+
+We can explore these possibilities by using an iterative deepening approach \todo{cite} by the size of the derivation.
+First let's define a \emph{collection semantics} derived from our synthesis rules.
+Let the function $\mrefine(Σ; Γ; τ; Χ; k)$ produce the set of all programs of goal type $τ$ that satisfy the examples $Χ$ that are exactly of AST size $k$.
+With this function, we can define a simple synthesis procedure over an initial synthesis state $(Σ, Γ, τ, Χ)$ as follows:
+\begin{enumerate}
+  \item Let $k = 1$ initially.
+  \item Calculate $\mathcal{E} = \mrefine(Σ; Γ; τ; Χ; k)$.
+    \begin{itemize}
+      \item If $\mathcal{E} ≠ ∅$, then return any program from $\mathcal{E}$.
+      \item If $\mathcal{E} = ∅$, then increment $k$ and repeat step (2).
+    \end{itemize}
+\end{enumerate}
+
+\autoref{fig:mlsyn-collection-semantics} and \autoref{fig:mlsyn-term-generation} give the definition of these semantics, appealing to the auxiliary functions and definitions for synthesis we defined earlier in \autoref{fig:mlsyn-synthesis} and \autoref{fig:mlsyn-aux}.
+This collection of functions improves on the synthesis judgments of \mlsyn{} in a number of ways:
+\begin{enumerate}
+  \item The non-deterministic choice of application of the rules at each synthesis step is made explicit.
+    In particular, with each call of $\mrefine$, we calculate the set of programs we would generate if we refined by type ($\mrefine$), guessed $E$-terms ($\mguess$), or pattern matched ($\mfmatch$) and take the union of them as the final result.
+  \item By placing an upper bound on the size of the synthesized programs, individual calls to $\mrefine$ always terminate as the size of the desired programs always decreases with each successive call to $\mrefine$ or one of its helper functions.
+  \item All implicitly quantified variables are made explicit.
+    For example, $\mfmatch$ implicitly quantifies over all base types, so we take the union of performing pattern matching over each of these types.
+\end{enumerate}
+These changes result in a synthesis procedure that is a straightforward translation of our original synthesis judgment.
+
+The three main synthesis operations that we identified are divided up into three functions: $\mguess$, $\mfmatch$, and $\mrefine$.
+$\mguess$ implements the behavior of the \rulename{irefine-guess} rule, generating the set of $E$-terms of size $k$ that satisfy the examples, written $E ⊨ Χ$.
+The satisfaction check, reproduced below from \autoref{ch:recursion}
+\[
+  ∀σ ↦ χ ∈ Χ.\, σ(E) ⟶^* v ∧ v ≃ χ.
+\]
+requires that, within each example world, the synthesized program evaluates to a value that is compatible the goal value for that world.
+$\mguess$ generates candidate $E$-terms through the $\mgen_E$ helper function which performs simple raw-term enumeration over a particular type.
+When enumerating applications, the argument may be an $I$-term according to the grammar of \mlsyn{}.
+To generate $I$-terms, we appeal back to $\mrefine$ but pass in the empty set of examples.
+Like the synthesis judgments from which it is derived, $\mrefine$ degenerates into raw-term enumeration when given no examples.
+
+$\mfmatch$ corresponds to invocations of \rulename{irefine-match} that generate matches for all possible scrutinee base types at a particular goal type.
+For a particular base type, we generate sets of expressions for all of the components of the match---the scrutinee and each of the branches---and form matches by taking the cartesian product of these sets.
+To create match expressions of size $k$, we also consider all the ways that we can distribute the size among these match components.
+Note that if any of the sets of expressions are empty, \eg, we were not able to generate any scrutinees of the given base type or a satisfying expression for a particular branch, then we do not produce a match expression for the base type that we are pattern matching over.
+
+Finally, $\mrefine$ performs type-directed program and example refinement.
+At arrow type, we perform refinement according to \rulename{irefine-arr}, and at base type when the examples share the same head constructor, we perform refinement according to \rulename{irefine-base}.
+In either case, we also invoke $\mguess$ and $\mfmatch$ as discussed earlier to capture the full set of possible synthesis derivations.
+
+\subsection{The Minimum Program Principle}
+\label{subsec:the-minimum-program-principle}
+
+The $\mrefine$ is goverened by the size of the derivation $k$.
+Because each rule application adds one abstract syntax tree (AST) node to the size of the synthesized programs, $k$ also corresponds to program size (in terms of AST nodes).
+Therefore, the above procedure produces the smallest program possible that satisfies the input examples.
+However, is this a desirable property of a program synthesizer?
+The following principle answers this question in the affirmative:
+\begin{definition}[The Minimum Program Principle]
+  In program synthesis, smaller satisfying program (in terms of program size) are more likely to generalize to the desired behavior intended by the user.
+\end{definition}
+The Minimum Program Principle is not a provable theorem, but a search heuristic exploited by many program synthesis tools (\todo{cite}) to refine the space of programs even further.
+
+Intuitively, the Minimum Program Principle observes that a smaller program is less likely to over-specialize on the examples given to the synthesizer.
+To see this, consider the specification we gave for $\mkwd{stutter}$ in \autoref{ch:recursion}:
+\begin{align*}
+  & [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [0, 0] \\
+  \bnfalt & [1, 0] ⇒ [1, 1, 0, 0]
+\end{align*}
+The desired function that we wanted to synthesize was
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → \mNil \\
+    \⇥{1}   \bnfalt \mCons(x, l') → \mCons(x, \mCons(x, f\,l')),
+  \end{array}
+\]
+and we demonstrated that there is a synthesis derivation of this program in \mlsyn{}.
+However, this is not the only synthesis derivation possible.
+For example, the following satisfying program is derivable in \mlsyn{}:
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → [] \\
+    \⇥{1}   \bnfalt \mCons(x, l') → \mmatch\;l'\;\mwith \\
+    \⇥{2}   \bnfalt \mNil → [0, 0] \\
+    \⇥{2}   \bnfalt \mCons(y, l'') → \mmatch\;l''\;\mwith \\
+    \⇥{3}   \bnfalt \mNil → [1, 1, 0, 0] \\
+    \⇥{3}   \bnfalt \mCons(z, l''') → [].
+  \end{array}
+\]
+which is the program that pattern matches repeatedly looking for the inputs specified by the partial function, produces the corresponding outputs, and produces an arbitrary value when the input is not specified.
+
+This second program is less desirable than the first because it overspecializes on the given examples.
+While it satisfies those particular examples, it does not generalize appropriately to other cases.
+Note that the overspecializing program is necessarily large because it must use repeated pattern matches and literal values to reproduce the behavior of the partial function.
+By our size metric of counting AST nodes, this overspecialized program has size 25 whereas the desired program only has size 11.
+In contrast, a smaller program is likely to use more $E$-forms---variables and applications---to satisify the examples because they require less size to accomplish more varied behavior.
+
+\subsection{Restricting the Search Space with Examples}
+
+Now that we have our synthesis procedure, it now makes sense to talk about the effect of examples on the output of the synthesis process.
+In the previous section, we saw that the examples that we have used to synthesize $\mkwd{stutter}$ admit multiple programs.
+In particular, we were able to derive the standard implementation of $\mkwd{stutter}$ along with a program that overspecialized on the examples.
+Consider a simpler example: synthesizing a program at goal type $\mlist → \mlist$ with the example
+\[
+  [] ⇒ [].
+\]
+Certainly, we can synthesize both the implementation of $\mkwd{stutter}$ and the overspecialized program from this single example.
+However, this simple partial function example admits many more programs, for example, the constant $[]$ function $λl{:}\mlist.\,[]$ and the identity function $λl{:}\mlist.\,l$.
+Because our synthesis procedure favors smaller programs, we will either produce the constant or identity functions from this example.
+
+From this, we can see that the effect of adding examples is to rule out these simpler programs from consideration.  In the case where we have all three examples for $\mkwd{sutter}$, the constant and identity functions are no longer satisfying programs.  Suppose that we instead provide only two input/output examples for $\mkwd{sutter}$:
+\begin{align*}
+  & [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [0, 0].
+\end{align*}
+Is this sufficient to synthesize $\mkwd{stutter}$ with our synthesis procedure?
+It turns out the answer is no as the procedure produces the following program:
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → \mNil \\
+    \⇥{1}   \bnfalt \mCons(x, l') → \mCons(x, l).
+  \end{array}
+\]
+This program is smaller than the desired $\mkwd{stutter}$---size 7 versus size 11---so our synthesis procedure would choose it first.
+Thus it turns out that all three examples are necessary for our procedure to rule out enough smaller programs to produce $\mkwd{stutter}$.
+
+What happens if we include more input/output examples than these three with the caveat that these new examples still imply the stutter function and preserve trace completeness?
+For example, consider the partial function
+\begin{align*}
+  & [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [0, 0] \\
+  \bnfalt & [1, 0] ⇒ [1, 1, 0, 0] \\
+  \bnfalt & [2, 1, 0] ⇒ [2, 2, 1, 1, 0, 0] \\
+  \bnfalt & [3, 2, 1, 0] ⇒ [3, 3, 2, 2, 1, 1, 0, 0]
+\end{align*}
+with two additional input/output examples.
+The program corresponding to the overspecialization of the examples is substantially larger at 76 AST nodes.
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → [] \\
+    \⇥{1}   \bnfalt \mCons(v, l1) → \mmatch\;l1\;\mwith \\
+    \⇥{2}   \bnfalt \mNil → [0, 0] \\
+    \⇥{2}   \bnfalt \mCons(w, l2) → \mmatch\;l2\;\mwith \\
+    \⇥{3}   \bnfalt \mNil → [1, 1, 0, 0] \\
+    \⇥{3}   \bnfalt \mCons(x, l3) → \mmatch\;l3\;\mwith \\
+    \⇥{4}   \bnfalt \mNil → [2, 2, 1, 1, 0, 0] \\
+    \⇥{4}   \bnfalt \mCons(y, l4) → \mmatch\;l4\;\mwith \\
+    \⇥{5}   \bnfalt \mNil → [3, 3, 2, 2, 1, 1, 0, 0] \\
+    \⇥{5}   \bnfalt \mCons(z, l5) → [].
+  \end{array}
+\]
+However, by definition the desired implementation of $\mkwd{stutter}$ satisfies these additional input/output examples.
+Furthermore, we know the original examples rule out all programs smaller than the desired program.
+So these additional examples neither change the output of our synthesis procedure nor rule out additional programs that we would have considered during the synthesis process.
+In fact, these additional examples only add additional overhead (a slight amount, as we discuss in \autoref{ch:evaluating-myth}) to the synthesis procedure as we must refine and check for satisfaction against more example worlds.
+
+Thus, there is a balance to providing examples to our synthesis procedure.
+We must provide enough examples to rule out smaller, trivial programs while satisfying trace completeness.
+But we should avoid providing too many examples as extra examples do not contribute to the synthesis process.
+In \autoref{ch:evaluating-myth}, we discuss our experience developing examples sets for this synthesis procedure with these desiderata in mind.
+
+\section{Optimizing The Synthesis Procedure}
+\label{sec:optimizing-the-synthesis-procedure}
+
+Now that we have defined our synthesis procedure, we turn our attention towards optimizing it.
+We have already pruned the search space significantly by considering only normal forms and limiting ourselves to structural recursion.
+Now, we introduce additional techniques inspired from logic and the proof search literature to further optimize our search.
+
+\subsection{Invertible Rules}
+\label{subsec:invertible-rules}
+
+We have already removed the set of programs from the search space that are $β$-equivalent to the normal forms that our syntax forces us to synthesize.
+Can we consider other equivalence classes and perform similar sorts of pruning?
+For now, we consider an optimization concerning \emph{invertible} rules in logic.
+An invertible rule is one where the premises of the rule are derivable whenever the conclusion is.
+For example, consider \rulename{irefine-arr}, reproduced below:
+\[
+  \inferrule[irefine-arr]
+    {X = σ_1 ↦ pf_1, …, σ_n ↦ pf_n \\\\
+     X' = \mfun{apply}(f, x, σ_1 ↦ pf_1) \concat … \concat \mfun{apply}(f, x, σ_n ↦ pf_n) \\\\
+     Σ;f{:}τ_1 → τ_2 \{\mrec\}, x{:}τ_1 \{\marg{f}\}, Γ ⊢ I ▷ X' ⇝ τ_2}
+    {Σ;Γ ⊢ τ_1 → τ_2 ▷ Χ ⇝ \mfix\;f\;(x{:}τ_1) : τ_2 = I}. \\
+\]
+Invertibility states that if we are able to synthesize a program at type $τ_1 → τ_2$ that satisfies $Χ$, then we are able to synthesize an $I$ at type $τ_2$ that satisfies $Χ'$.
+The usual interpretation of the inference rule makes the opposite claim---if we can synthesize $I$, then we can synthesize a $\mfix$ at type $τ_1 → τ_2$.
+This is true for \rulename{irefine-arr} because of $η$-expansion; if we have a program $I$ of type $τ_1 → τ_2$, it is equivalent to its $η$-expansion: $\mfix\;f\;(x{:}τ_1) : τ_2 = I\,x$.
+
+Because of this property, we can always apply \rulename{irefine-arr} first when searching for a program until it no longer applies without loss of completeness.
+\rulename{irefine-arr} acts in a type-directed manner over arrow types which are finite in length, so this process always terminates.
+In our collection semantics, we change $\mrefine$ to only perform program-and-example refinement at arrows:
+\[
+  \begin{array}{l}
+    \mrefine(Σ; Γ; τ_1 → τ_2; Χ; k) = \{ \mfix\;f\;(x{:}τ_1) : τ_2 = I \bnfalt \\
+    \⇥{1} Χ' = \mfun{apply}(f, x, σ_1 ↦ \mpf_1) \concat … \concat \mfun{apply}(f, x, σ_n ↦ \mpf_n), \\
+    \⇥{1} I ∈ \mrefine(Σ; f{:}τ_1 → τ_2 \{\mrec\}, x{:}τ_1 \{\marg{f}\}; Γ; Χ'; k-1) \\
+    \} \\
+    \⇥{1} \text{where} \\
+    \⇥{2}   Χ = σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n. \\
+  \end{array}
+\]
+Note that we no longer need to calculate $\mguess$ and $\mfmatch$ at arrow types, saving us a significant amount of work.
+
+With this optimization, we will always synthesize programs that are $η$-long in addition to $β$-normal.
+Concretely, this means that if we are producing a program of type $τ_1 → τ_2$ and can synthesize some non-$\mfix$ expression $I$ of that type to fulfill the goal, our synthesis procedure will produce its $η$-expansion rather than it directly.
+This results in slightly more verbose programs but prunes the search space significantly.
+
+\subsection{Reigning in Matches}
+\label{subsec:reigning-in-matches}
+
+In all program synthesis systems, the conditional proves to be tricky to generate efficiently.
+This is because conditionals only \emph{add} information to our synthesis problem.
+In the case of pattern matching, we clearly add additional variables into the context, but with plain old $\mfun{if}$-expressions,
+\[
+  \mfun{if}\;e_1\;\mfun{then}\;e_2\;\mfun{else},
+\]
+we get to assume that $e_1$ is $\mtrue$ in the first branch and $\mfalse$ in the second branch.
+In either case, the difficulty is choosing an appropriate pattern match or conditional scrutinee which amounts to guessing what additional information we need to make progress during synthesis.
+
+We see these problems clearly manifest themselves in our synthesis procedure.
+While we invoke $\mfmatch$ only at base types thanks to our invertibility optimization from \autoref{subsec:invertible-rules}, note that $\mfmatch$ still chooses arbitrary scrutinees generated via $\mgen$.
+For a given target program size $k$, there are, thankfully, a finite number of scrutinees so a call to $\mfmatch$ terminates.
+However, in the presence of a large context, there are a large amount of scrutinees that we would need to consider.
+We need some heuristics in order to decrease number.
+
+\todo{Informativeness}
+
+\todo{Restrictions without examples}
+
+\subsection{Efficient Raw-term Enumeration}
+\label{subsec:efficient-raw-term-enumeration}
 
 \input{figures/mlsyn-gen}
+
+\todo{Fill in.}
+
+\subsection{Refinement Trees}
+\label{subsec:refinement-trees}
+
+\todo{Fill in.}
+
+\paragraph{Short-circuiting Synthesis}
+
+\todo{Fill in.}

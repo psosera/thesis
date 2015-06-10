@@ -1,0 +1,18 @@
+\begin{figure}
+  \begin{center}
+    \[
+      \begin{array}{l}
+        \mgen(Σ; Γ; τ; 0) = \{ \} \\
+        \mgen(Σ; Γ; τ; 1) = \{ x \bnfalt x{:}τ ∈ Γ \} \\
+        \mgen(Σ; Γ; τ; k) = \displaystyle{%
+          \bigcup_{\scriptstyle x{:}τ_1 → τ ∈ Γ}
+          \bigcup_{\begin{array}{c}\scriptstyle k_1, k_2\;\text{for} \\\scriptstyle 1 + k_1 + k_2 = k\end{array}}} \\
+          \⇥{1} \{ E\,I \bnfalt E ∈ \mgen(Σ; Γ; τ_1 → τ; k_1), I ∈ \mrefine(Σ; Γ; τ_1; ·; k_2), \mfun{struct}(Γ, E, I) \} \\
+      \end{array}
+    \]
+  \end{center}
+
+\hrule
+\caption{\mlsyn{} term generation}
+\label{fig:mlsyn-term-generation}
+\end{figure}

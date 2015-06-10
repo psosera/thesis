@@ -1,0 +1,44 @@
+\begin{figure}
+  \begin{center}
+    \[
+      \begin{array}{l}
+        \mguess(Σ; Γ; τ; Χ; 0) = \{ \} \\
+        \mguess(Σ; Γ; τ; Χ; k) = \{ E \bnfalt E ∈ \mgen(Σ; Γ; τ; k), E ⊨ Χ \} \\
+        \\
+        \mfun{types}(Σ) = \{ T \bnfalt C : τ_1 * … * τ_m → T ∈ Σ \} \\
+        \mfmatch(Σ; Γ; τ; Χ; 0) = \{ \} \\
+        \mfmatch(Σ; Γ; τ; Χ; k) = \displaystyle{%
+          \bigcup_{\scriptstyle T ∈ \mfun{types}(Σ)}
+          \bigcup_{\begin{array}{c}\scriptstyle k', k_1, …, k_m\;\text{for} \\\scriptstyle 1 + k' + k_1 + … + k_m = k\end{array}}} \\
+        \⇥{1} \{ \mmatch\;E\;\mwith\;\many{p_i → I_i}{i < m} \bnfalt \\
+        \⇥{2}   E ∈ \mgen(Σ; Γ; T; k'), \\
+        \⇥{2}   \many{(p_i, Χ_i)}{i < m} = \mfun{distribute}(Σ, T, Χ, E), \\
+        \⇥{2}   \many{Γ_i}{i < m} = \mfun{binders}(Γ, E, p_i), \\
+        \⇥{2}   \many{I_i ∈ \mrefine(Σ; Γ_i, Γ; τ; Χ_i; k_i)}{i < m} \} \\
+        \\
+        \mrefine(Σ; Γ; τ; Χ; 0) = \{ \} \\
+        \\
+        \mrefine(Σ; Γ; τ_1 → τ_2; Χ; k) = \{ \mfix\;f\;(x{:}τ_1) : τ_2 = I \bnfalt \\
+        \⇥{1} Χ' = \mfun{apply}(f, x, σ_1 ↦ \mpf_1) \concat … \concat \mfun{apply}(f, x, σ_n ↦ \mpf_n), \\
+        \⇥{1} I ∈ \mrefine(Σ; f{:}τ_1 → τ_2 \{\mrec\}, x{:}τ_1 \{\marg{f}\}; Γ; Χ'; k-1) \\
+        \} ∪ \mguess(Σ; Γ; τ; Χ; k) ∪ \mfmatch(Σ; Γ; τ; Χ, k) \\
+        \⇥{1} \text{where} \\
+        \⇥{2}   Χ = σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n \\
+        \\
+        \mrefine(Σ; Γ; T; Χ; k) = \displaystyle{%
+          \bigcup_{\begin{array}{c}\scriptstyle k_1, …, k_m\;\text{for} \\ \scriptstyle1 + k_1 + … + k_m = k\end{array}}} \\
+        \⇥{1} \{ C(I_1, …, I_m) \bnfalt \\
+        \⇥{2}   Χ_1, …, Χ_m = \mfun{proj}(X), \\
+        \⇥{2}   \many{I_i ∈ \mrefine(Σ; Γ; τ_i; Χ_i; k_i)}{i < m} \\
+        \⇥{1} \} ∪ \mguess(Σ; Γ; τ; Χ; k) ∪ \mfmatch(Σ; Γ; τ; Χ; k) \\
+        \⇥{1} \text{where} \\
+        \⇥{2}   Χ = \many{σ_i ↦ C(I_{i1}, …, C_{im})}{i < n} \\
+        \⇥{2}   C : τ_1 * … * τ_m ∈ Σ
+      \end{array}
+    \]
+  \end{center}
+
+\hrule
+\caption{\mlsyn{} collection semantics}
+\label{fig:mlsyn-collection-semantics}
+\end{figure}

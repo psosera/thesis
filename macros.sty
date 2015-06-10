@@ -49,12 +49,14 @@
 }
 \newcommand{\concat}{\mathbin{+\!\!+}}
 \newcommand{\semisep}{\mathrel{;}}
-\newcommand{\synE}{\overset{⇝}{E}}
-\newcommand{\synI}{\overset{⇝}{I}}
+\newcommand{\syn}[1]{\overset{#1}{⇝}}
+\newcommand{\synE}{\syn{E}}
+\newcommand{\synI}{\syn{I}}
 \newcommand{\appprod}{\underset{app}{⊗}}
 
 \def\⇥#1{\foreach \index in {1, ..., #1} {\quad}}
 
+\newcommand{\alot}[1]{\overline{#1}}
 \newcommand{\many}[2]{\overline{#1}^{#2}}
 
 \newcommand{\mpf}{p\!f}
@@ -87,6 +89,9 @@
 \newcommand{\mdec}[1]{\mkwd{dec}\,#1}
 \newcommand{\mNoMatch}{\mkwd{NoMatch}}
 \newcommand{\mgen}{\mfun{gen}}
+\newcommand{\mrefine}{\mfun{refine}}
+\newcommand{\mguess}{\mfun{guess}}
+\newcommand{\mfmatch}{\mfun{match}}
 \newcommand{\mfold}[1]{\mkwd{fold}\,#1}
 \newcommand{\munfold}[1]{\mkwd{unfold}\,#1}
 \newcommand{\mdata}{\mkwd{data}}
