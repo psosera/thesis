@@ -3,10 +3,10 @@
     \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$}}
       τ  & \bnfdef & T \bnfalt τ_1 → τ_2 \\
       p  & \bnfdef & C(x_1, …, x_k) \\
-      pf & \bnfdef & \many{v_i ⇒ χ_i}{i < m} \\
-      e  & \bnfdef & x \bnfalt e_1\;e_2 \bnfalt pf \bnfalt \mkwd{fix}\;f\;(x{:}τ_1) : τ_2 = e \bnfalt C\;(e_1, …, e_k) \\
+      \mpf & \bnfdef & \many{v_i ⇒ χ_i}{i < m} \\
+      e  & \bnfdef & x \bnfalt e_1\;e_2 \bnfalt \mpf \bnfalt \mkwd{fix}\;f\;(x{:}τ_1) : τ_2 = e \bnfalt C\;(e_1, …, e_k) \\
          & \bnfalt & \mmatch\;e\;\mwith\;\many{p_i → e_i}{i < m} \bnfalt \mNoMatch \\
-      v  & \bnfdef & pf \bnfalt \mfix\;f\;(x{:}τ_1) : τ_2 = e \bnfalt C\;(v_1, …, v_k) \bnfalt \mNoMatch \\
+      v  & \bnfdef & \mpf \bnfalt \mfix\;f\;(x{:}τ_1) : τ_2 = e \bnfalt C\;(v_1, …, v_k) \bnfalt \mNoMatch \\
       ℰ  & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ \bnfalt C\;(v_1, …, ℰ, …, e_k) \\
          & \bnfalt & \mmatch\;ℰ\;\mwith\;\many{p_i → e_i}{i < m} \\
       b  & \bnfdef & · \bnfalt \mrec \bnfalt \marg{f} \bnfalt \mdec{f} \\
@@ -17,7 +17,7 @@
       I  & \bnfdef & E \bnfalt \mkwd{fix}\;f\;(x{:}τ_1) : τ_2 = I \\
          & \bnfalt & C(I_1, …, I_k) \bnfalt \mmatch\;E\;\mwith\;\many{p_i → I_i}{i < m} \\
       σ  & \bnfdef & · \bnfalt [v/x]σ \\
-      χ  & \bnfdef & pf \bnfalt C(χ_1, …, χ_k) \\
+      χ  & \bnfdef & \mpf \bnfalt C(χ_1, …, χ_k) \\
       Χ  & \bnfdef & · \bnfalt σ ↦ χ, Χ \\
     \end{tabular}
   \end{center}

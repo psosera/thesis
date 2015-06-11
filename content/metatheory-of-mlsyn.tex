@@ -81,4 +81,7 @@ Then, we are unable to synthesize the candidate function:
 To see why, note that we must evaluate the body of the function, $f\,\mkwd{id}$, when applying \rulename{irefine-guess}.
 Evaluation results in $\mNoMatch$ because the functions $λx{:}\mnat.\,\mkwd{plus}\,x\,\mO$ and $λx{:}\mnat.\,x$ are not syntactically identical.
 
-\todo{Talk about consistency detection and how it is not possible in \mlsyn{} because we have lost completeness.}
+\todo{%
+  Also talk about consistency detection and how it is not possible in \mlsyn{} because we have lost completeness.
+  The discussion should complement the consistency discussion we eventually put in \autoref{ch:metatheory-of-lsyn}.
+}

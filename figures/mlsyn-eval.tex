@@ -37,7 +37,7 @@
           {∀i ∈ 1, …, m.\,∃j ∈ 1, …, n.\,v_i ≃ v_j ∧ χ_i ≃ χ_j \\\\
            ∀j ∈ 1, …, n.\,∃i ∈ 1, …, m.\,v_i ≃ v_j ∧ χ_i ≃ χ_j}
           {\many{v_i ⇒ χ_i}{i < m} ≃ \many{v_j ⇒ χ_j}{j < n}} \\
-        \inferrule[eq-fix-px]
+        \inferrule[eq-fix-pf]
           {∀i ∈ 1, …, m.\,(\mfix\;f\;(x{:}τ_1) : τ_2 = e)\;v_i ⟶^* v ∧ v ≃ χ_i}
           {\mfix\;f\;(x{:}τ_1) : τ_2 = e ≃ \many{v_i ⇒ χ_i}{i < m}} \\
         \inferrule[eq-ctor]
