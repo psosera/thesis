@@ -15,7 +15,7 @@
         \inferrule[t-record]
           {\many{Γ ⊢ e_i : τ_i}{i <m}}
           {Γ ⊢ \{\many{l_i = e_i}{i < m}\} : \{\many{l_i{:}τ_{i}}{i < m}\}} \qquad
-        \inferrule[t-proj]
+        \inferrule[t-rproj]
           {Γ ⊢ e : \{\many{l_i{:}τ_{i}}{i < m}\}}
           {Γ ⊢ e.l_i : τ_i} \\
       \fbox{$Γ ⊢ I ⇐ τ$} \qquad
@@ -27,15 +27,15 @@
           {\many{Γ ⊢ χ_i : τ_i}{i <m}}
           {Γ ⊢ \{\many{l_i = χ_i}{i < m}\} : \{\many{l_i{:}τ_{i}}{i < m}\}} \\
       \fbox{$Γ ⊢ E ⇒ τ$} \qquad
-        \inferrule[t-proj]
+        \inferrule[t-rproj]
           {Γ ⊢ e ⇒ \{\many{l_i{:}τ_{i}}{i < m}\}}
           {Γ ⊢ e.l_i ⇒ τ_i} \qquad
       \fbox{$e ⟶ e'$} \qquad
-        \inferrule[eval-proj]
+        \inferrule[eval-rproj]
           {}
           {\{\many{l_i = v_i}{i < m}\}.l_i ⟶ v_i} \\
       \fbox{$Γ ⊢ τ ⇝ E$} \qquad
-        \inferrule[eguess-proj]
+        \inferrule[eguess-rproj]
           {Γ ⊢ \{\many{l_i{:}τ_i}{i < m}\} ⇝ E}
           {Γ ⊢ τ_i ⇝ E.l_i} \qquad
       \fbox{$v ≃ χ$} \qquad

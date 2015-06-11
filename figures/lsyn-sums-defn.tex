@@ -1,13 +1,13 @@
 \begin{figure}
   \begin{center}
-    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$}}
-      τ  & \bnfdef & … \bnfalt τ_1 + τ_2 \\
-      e  & \bnfdef & … \bnfalt \mmatch\;e\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 \bnfalt \minl{e} \bnfalt \minr{e} \\
-      v  & \bnfdef & … \bnfalt \minl{v} \bnfalt \minr{v} \\
-      ℰ  & \bnfdef & … \bnfalt \mmatch\;ℰ\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 \\
-      E  & \bnfdef & … \\
-      I  & \bnfdef & … \bnfalt \mmatch\;E\;\mwith\;\minl{x_1} → I_1 \semisep \minr{x_2} → I_2 \bnfalt \minl{I} \bnfalt \minr{I} \\
-      χ  & \bnfdef & … \bnfalt \minl{χ} \bnfalt \minr{χ} \\
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      τ  & \bnfdef & … \bnfalt τ_1 + τ_2 & Types \\
+      e  & \bnfdef & … \bnfalt \mmatch\;e\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 \bnfalt \minl{e} \bnfalt \minr{e} & Terms \\
+      v  & \bnfdef & … \bnfalt \minl{v} \bnfalt \minr{v} & Values \\
+      ℰ  & \bnfdef & … \bnfalt \mmatch\;ℰ\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2 & Eval Ctx \\
+      E  & \bnfdef & … & Elim \\
+      I  & \bnfdef & … \bnfalt \mmatch\;E\;\mwith\;\minl{x_1} → I_1 \semisep \minr{x_2} → I_2 \bnfalt \minl{I} \bnfalt \minr{I} & Intros \\
+      χ  & \bnfdef & … \bnfalt \minl{χ} \bnfalt \minr{χ} & Ex. Values \\
     \end{tabular} \\[12pt]
     \hrule
     \begin{gather*}

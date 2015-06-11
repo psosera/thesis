@@ -1,12 +1,12 @@
 \lsyn{} is a core calculus for program synthesis with types.
 As such, it only contains the bare essence of a typed, functional programming language, namely lambdas and function application.
-However, one of the appeals of the type-directed synthesis approach is that we derive the synthesis judgment directly from the type checking judgment; we merely flip its inputs and outputs.
+However, one of the appeals of the type-directed synthesis approach is that we derive the synthesis judgment directly from the type checking judgment.
 In other words, type checking immediately gives us insight into program synthesis for new types!
 
 In this chapter, we explore the process of integrating new types into \lsyn{} by considering a number of additional basic types: units, products, sums, and records.
 By playing this game with the type system of flipping inputs and outputs, we learn how to generate terms and refine examples of these types.
 In some cases, this is sufficient to synthesize this type within \lsyn{}.
-However in other cases, especially with more complex types that we consider in future chapters, we must do additional work to properly synthesize programs of those types.
+However in other cases, in particular, the more complex types that we consider in future chapters, we must do additional work to properly synthesize programs of those types.
 
 \todo{Add note about Jonathan's and Rohan's contributions to products and records, respectively.}
 
@@ -19,14 +19,14 @@ The product type $τ_1 × τ_2$ has an introduction form, the pair $(e_1, e_2)$,
 We add both forms to the external langauge $e$ of expressions, and we add the pair introduction form $(I_1, I_2)$ to the $I$ grammar and the projection eelimination forms $\mfst{E}$ and $\msnd{E}$ to the $E$ grammar.
 This introduction form also serves as the value of the pair type $(v_1, v_2)$ as well as its example value $(χ_1, χ_2)$.
 
-Type checking of products is standard where type checking a pair amounts to type checking its components.
-Type checking a projection results in the left- or right-hand side of the product type.
+Type checking a pair amounts to type checking its components (\rulename{t-pair} and \rulename{t-Ipair}).
+Type checking a projection results in the left- or right-hand side of the product type (\rulename{t-fst} and \rulename{t-Efst}, \rulename{t-snd} and \rulename{tEsnd}).
 We enforce a left-to-right ordering of evaluation with our evaluation contexts and rules consistent with our choice of call-by-value evaluation order.
-Finally, checking that two pairs are compatible (the $≃$ relation) decomposes to checking that their components are compatible.
+Finally, checking that two pairs are compatible decomposes to checking that their components are compatible (\rulename{eq-pair}.
 
 We derive the synthesis rules for projections (\rulename{eguess-fst} and \rulename{eguess-snd}) and pairs (\rulename{irefine-prod}) directly from their typing rules.
 To synthesize a left-projection, $\mfst{E}$, or a right-projection, $\msnd{E}$, it is sufficient to synthesize a pair $E$ of the appropriate product type.
-To refine a pair, we note that if our examples are well-typed at a product type, then they must be all be pairs (\rulename{t-ex-pair}).
+To refine a pair (\rulename{t-ex-pair}), we note that if our examples are well-typed at a product type, then they must be all be pairs.
 We extract the left-hand components of the example pairs and their corresponding environments.
 These form the example worlds that we use to synthesize the left-hand component of the pair $I_1$.
 The right-hand components and their corresponding environments become the example worlds that we use to synthesize the right-hand component, $I_2$.
@@ -51,7 +51,7 @@ We can easily prove the necessary lemma here:
   \rulename{t-exw-cons} says that each $σ_i$ is well-typed and \rulename{t-ex-pair} says that the example pairs are well-typed and their components are well-typed at $τ_1$ and $τ_2$.
 \end{proof}
 
-Completeness requires that we show that \rulename{irefine-prod} preserves satisifaction of examples.
+Completeness requires that we show that \rulename{irefine-prod} preserves satisfaction of examples.
 The version of the lemma for $\mfun{proj}$ is also straightforward to prove:
 \begin{lemma}[Satisfaction Preservation of $\mfun{proj}$]
 \label{lem:satisfaction-preservation-of-proj}
@@ -63,7 +63,51 @@ The version of the lemma for $\mfun{proj}$ is also straightforward to prove:
   By unfolding $\mfun{proj}$, we know that this covers each of the example worlds in $Χ_1$ and $Χ_2$, so this is sufficient to conclude that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$.
 \end{proof}
 
-\todo{Small discussion about efficiency and focusing.}
+To show how we apply these lemmas, let's walk through the additional cases for proving example soundness and completeness in \lsyn{} extended with products.
+\begin{lemma}[Example Soundness of \lsyn{} with Products]
+  If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $I ⊨ Χ$.
+\end{lemma}
+\begin{proof}
+  \begin{description}
+    \item[Case \normalfont{\rulename{irefine-prod}}:]
+      $I = (I_1, I_2)$, $τ = τ_1 × τ_2$, with $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
+      By \autoref{lem:example-type-preservation-of-proj}, $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$.
+      Therefore, by our inductive hypothesis, we can conclude that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$.
+
+      Now, unfold the definition of \rulename{satisfies} for $I$.
+      Consider a single example world $σ ↦ (χ_1, χ_2)$:
+      \[
+        σ(I) = σ(I_1, I_2) ⟶^* (σ(I_1), σ(I_2))
+      \]
+      It suffices to show that $(σ(I_1), σ(I_2)) ≃ (χ_1, χ_2)$.
+      By \rulename{eq-pair}, we must show that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
+      By the definition of $\mkwd{proj}$, $σ ↦ χ_1 ∈ Χ_1$ and $σ ↦ χ_2 ∈ Χ_2$, so we know that by the definition of \rulename{satisfies} and the fact that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
+  \end{description}
+\end{proof}
+\begin{lemma}[Completeness of \lsyn{} with Products]
+  If $Γ ⊢ I ⇐ τ$, $Γ ⊢ Χ : τ$, and $I ⊨ Χ$, then $Γ ⊢ τ ▷ Χ ⇝ I$.
+\end{lemma}
+\begin{proof}
+  \begin{description}
+  \item[Case \normalfont{\rulename{t-prod}}:]
+    $I = (I_1, I_2)$ and $τ = τ_1 × τ_2$.
+    Because $Χ$ is well-typed at $τ_1 × τ_2$, we know by \autoref{lem:example-value-canonicity} that $Χ = \many{σ_i ↦ (Χ_{1i}, Χ_{2i})}{i < n}$.
+    Let $(Χ_1, Χ_2) = \mfun{proj}(Χ)$.
+    To invoke our inductive hypothesis to conclude that we can synthesize $(I_1, I_2)$, we must show that:
+    \begin{itemize}
+      \item $Γ ⊢ I_1 ⇐ τ_1$ and $Γ ⊢ I_2 ⇐ τ_2$ which follows by the premise of \rulename{t-Ipair}.
+      \item $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$ which follows by \autoref{lem:type-preservation-of-proj}.
+      \item $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ which follows by \autoref{lem:satisfaction-preservation-of-proj}.
+    \end{itemize}
+    Therefore, we can invoke our inductive hypothesis to conclude that $Γ ⊢ τ_1 ▷ Χ_1 ⇝ I_1$ and $Γ ⊢ τ_2 ▷ Χ_2 ⇝ I_2$.
+    By \rulename{irefine-prod}, we can therefore conclude that $Γ ⊢ τ_1 × τ_2 ▷ Χ ⇝ (I_1, I_2)$.
+  \end{description}
+\end{proof}
+For the rest of the language extensions in this chapter, we merely provide the critical lemmas for proving soundness and completeness as the actual cases proceed in an identical fashion to the cases for products.
+
+\subsection{Efficiency}
+
+\todo{Fill me in with a brief description of focusing.}
 
 \section{Records}
 
@@ -71,13 +115,13 @@ The version of the lemma for $\mfun{proj}$ is also straightforward to prove:
 
 We can easily take the machinery that we derived for products and lift it into records.
 \autoref{fig:lsyn-records-defn} gives the syntax and semantics of records in \lsyn{}.
-The record literal $\{\many{l_i = I_i}{i < m}\}$ introduces values of the record type $\{\many{l_i{:}τ_i}{i < m}\}$ and record projection $l.E$ eliminates those values according to \rulename{eval-proj}.
+The record literal $\{\many{l_i = I_i}{i < m}\}$ introduces values of the record type $\{\many{l_i{:}τ_i}{i < m}\}$ and record projection $l.E$ eliminates those values according to \rulename{eval-rproj}.
 
 Naturally, the example value of a record type is the record value $\{\many{l_i = χ_i}{i < m}\}$.
-Generating a projection is straight forward (\rulename{eguess-proj}): guess a record expression that has a field of the goal type that you are after and project out that field.
-We synthesize record values nearly identically to pairs save for the presence of labels (\rulename{irefine-record}).
+Generating a projection is straightforward: guess a record expression that has a field of the goal type that you are after and project out that field (\rulename{eguess-rproj}).
+Record $I$-refinement (\rulename{irefine-record}) is identical to product $I$-refinement save for the presence of labels which are handled easily because they are recorded in the goal type.
 We know that the example values are record examples assuming that the examples are well-typed.
-Therefore, when synthesizing a field of a record, we can use the collected examples values for that field during synthesis.
+Therefore, when synthesizing a field of a record, we use the collected examples values for that field during synthesis.
 The $\mfun{rproj}$ meta-function performs this collection, generalizing the behavior of $\mfun{proj}$ for pairs to $m$-ary records.
 
 Consequently, the necessary lemmas to verify soundness and completeness are similar to the product case.
@@ -101,7 +145,9 @@ Consequently, the necessary lemmas to verify soundness and completeness are simi
   By unfolding $\mfun{proj}$, we know that this covers each of the example worlds among the $Χ_1, …, Χ_m$, so this is sufficient to conclude that $I_1 ⊨ Χ_1, …, I_m ⊨ Χ_m$.
 \end{proof}
 
-Note that these rules do not introduce subtyping and the usual record rules for subtypes---exchange, record width, and record depth subtyping.
+\subsection{Subtyping and Synthesis}
+
+These rules do not introduce subtyping and the usual record rules for subtypes---exchange, record width, and record depth subtyping.
 While we do not give a full treatment of subtyping, it is worthwhile to briefly consider how we would add it to \lsyn{}.
 We can certainly play the types-to-synthesis game with the usual subsumption rule,
 \[
@@ -122,25 +168,29 @@ In our non-deterministic system, both rules are perfectly admissible.
 Intuitively, they state that rather than synthesizing at a particular goal type, we can synthesize at any subtype of that goal type which only increases the size of our search space.
 This justifies having a subsumption rule for both $E$ and $I$ terms; would like to apply this logic to any goal type that admits subtyping.
 
-Algorithmically this poses a difficulty in that we now need to efficiently and completely search this dimension of types in addition to the dimension of terms.
-However, one can imagine using a similar iterative deepening approach on the number subtype derivations similar to how we enumerate terms in order of increasing size
+Algorithmically this poses a difficulty in that we now need to efficiently and completely search the dimension of subtypes in addition to the dimension of terms.
+However, one can imagine using an iterative deepening approach on the number subtype derivations similar to how we can enumerate terms in order of increasing size.
 Further implementation techniques might exploit the behavior of particular subtyping rules that we introduce into the system or heuristics to either prioritize likely subtypes or prune away unlikely or undesirable subtypes, sacrificing some completeness for tractability.
 
 \section{Sums}
 
 \input{figures/lsyn-sums-defn}
 
-Before adding algebraic data types (which we consider in \autoref{ch:recursion}), let's consider how we might add sums to \lsyn{}.
-Figure \autoref{fig:lsyn-sums-defn} gives the syntax, type checking, and evaluation rules for sums.
+Before adding full-blown algebraic data types (which we consider in \autoref{ch:recursion}), let's consider how we might add sums to \lsyn{}.
+\autoref{fig:lsyn-sums-defn} gives the syntax, type checking, and evaluation rules for sums.
 We introduce the sum type $τ_1 + τ_2$ with the constructors $\minl{e}$ and $\minr{e}$ which injects a value of type $τ_1$ and $τ_2$, respectively, into the sum.
-Note that the fact that $\minl$ and $\minr$ are $I$-forms makes it evident that we do not need to provide a type annotation stating the sum types they belong to.
-Because they are $I$-forms, they are always checked against a sum type which renders the annotation unnecessary.
+Note the fact that $\minl{\!}$ and $\minr{\!}$ are $I$-forms makes it evident that we do not need to provide a type annotation stating the sum types they belong to.
+Because they are $I$-forms, they are always checked against a sum type which renders the annotation unnecessary.%
+\footnote{%
+  We also elide the type annotations from the external language to unify the syntax of $\minl{\!}$ and $\minr{\!}$ although now their typing rules (\rulename{t-inl} and \rulename{t-inr}) must now guess the appropriate sum type.
+  In an actual implementation, we would be type checking these terms in a bidirectional style where the sum type is given as input, so this is not a problem.
+}
 
 Sum types are eliminated via pattern matching, written:
 \[
   \mmatch\;e\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2
 \]
-which does case analysis on a particular sum value to see which constructor created it.
+which performs case analysis on a particular sum value to see which constructor created it.
 \rulename{eval-match-inl} and \rulename{eval-match-inr} describes what happens when we have either an $\minl{\!}$ or $\minr{\!}$ in the \emph{scrutinee position} of the sum.
 In either situation, we choose the appropriate branch of the pattern match, bind the value injected by the sum to a variable, and produce the corresponding expression of that branch.
 
@@ -148,7 +198,7 @@ Perhaps surprisingly, pattern matching is an $I$ form rather than an $E$ form ev
 This is because the branches of the pattern match act as binders, similarly to the body of a lambda.
 They do not directly participate in the reduction of the $\mmatch$ and thus can be any (normal-form) expression.
 The result of the pattern match is the (shared) type of these branches---note that \rulename{t-Imatch} says that the result type is some $τ$ which has no relation to the sum type that we pattern match over.
-Therefore, when we type check the pattern match we need some type to check these $I$-terms against rather than generating a type and proceeding from there as we do with function application.
+Therefore, when we type check the pattern match we need some type to check these $I$-terms against (like \rulename{t-Ilam}) rather than generating a type (like \rulename{t-app}).
 
 \input{figures/lsyn-sums-synthesis}
 
@@ -156,9 +206,9 @@ Therefore, when we type check the pattern match we need some type to check these
 Synthesizing injections proceeds similarly to synthesizing constants in \lsyn{}.
 By assuming that the examples are well-typed, we know that they are some collection of $\minl{\!}$ or $\minr{\!}$ values.
 We are able to synthesize a $\minl{\!}$ value (\rulename{irefine-sum-inl}) or $\minr{\!}$ value (\rulename{irefine-sum-inr}) only when all of the values agree on their head constructor.
-In other words, it is safe to synthesize a constructor whenever the examples state that we can peel away the top-most constructor because the example values share that constructor.
+In other words, it is safe to synthesize a constructor whenever the examples show that we can safely peel away the top-most constructor.
 
-Synthesizing pattern matches, \rulename{irefine-match}, proves to be a more complicated affair.
+Synthesizing pattern matches (\rulename{irefine-match}) proves to be a more complicated affair.
 We proceed in three steps:
 \begin{enumerate}
   \item Guess a value of sum type to pattern match against.
@@ -168,7 +218,7 @@ We proceed in three steps:
 
 The $\mfun{distribute}$ function accomplishes the second step.
 To distribute the examples, we evaluate the scrutinee expression discovered in step (1) under each of the example worlds.
-Because the examples are well-typed, we know that each such evaluation results in either an $\minl{\!}$ or $\minr{\!}$.
+Because the examples are well-typed, we know that each such evaluation results in either an $\minl{\!}$ or $\minr{\!}$ value.
 We then distribute all of the example worlds that produce an $\minl{\!}$ value to the $\minl{\!}$ branch and all the example worlds that produce a $\minr{\!}$ value to the $\minr{\!}$ branch.
 We update each of these example worlds with a binding for the value contained in the constructor, but otherwise leave the goal example value untouched.
 
@@ -179,18 +229,58 @@ To make this process concrete, consider the following set of example worlds:
 If we guess the $E$-term $x$ to pattern match against, then the examples are distributed as follows
 \begin{align*}
   Χ_1 &= [c_1/x_1][\minl{c_1}/x] ↦ c_2, [c_5/x_1][\minl{c_5}/x] ↦ c_6 \\
-  X_2 &= [c_3/x_2][\minl{c_3}/x] ↦ c_4.
+  Χ_2 &= [c_3/x_2][\minl{c_3}/x] ↦ c_4.
 \end{align*}
 We synthesize the $\minl{\!}$ branch expression using $Χ_1$ and the $\minr{\!}$ branch expression using $Χ_2$.
 Again, note that the example goal value has not changed during this process.
 
-\todo{Whoops, forgot about soundness/completeness lemmas for sums.}
+Finally, to prove soundness and completeness in the presence of sums, we require the following lemmas:
+\begin{lemma}[Example-Type Preservation of $\mfun{distribute}$]
+  \label{lem:example-type-preservation-of-distribute}
+  If $Γ ⊢ Χ : τ$ and $Γ ⊢ E ⇐ τ_1 + τ_2$ then $x_1{:}τ_1, Γ ⊢ Χ_l : τ$ and $x_2{:}τ_2, Γ ⊢ Χ_r : τ$ where $\mfun{distribute}(E, Χ) = (Χ_l, Χ_r)$.
+\end{lemma}
+\begin{proof}
+  By \rulename{t-exw-cons}, we know that each example world $σ ↦ χ ∈ Χ$ has type $τ$.
+  By the definition of \rulename{distribute}, we know that each such example world is sent to either $Χ_l$ or $Χ_r$ with an additional binding, so it suffices to show that this additional binding is well-typed.
+  Consider a single example world $σ ↦ χ ∈ Χ$.
+  Unfolding the definition of $\mfun{distribute}$ we see that we obtain the binding for this example world from:
+  \[
+    σ(E) →^* \mkwd{inx}\;v
+  \]
+  where $\mkwd{inx}\;v$ is either $\minl{v}$ or $\minr{v}$.
+  We know this evaluation is possible because of type safety, canonical forms, and strong normalization.
+
+  Consider the case where $E$ evaluates to $\minl{v}$; the $\minr{\!}$ case proceeds identically.
+  We know that $v$ must have type $τ_1$ because $E$ and $\minl{v}$, by preservation, have type $τ_1 + τ_2$.
+  Therefore, by \rulename{t-env-cons}, we know the binding is well-typed.
+\end{proof}
+
+\begin{lemma}[Satisfaction Preservation of $\mfun{distribute}$]
+\label{lem:satisfaction-preservation-of-distribute}
+  Let $I$ be the expression
+  \[
+    \begin{array}{l}
+      \mmatch\;E\;\mwith \\
+      \⇥{1}\minl{x_1} → I_1 \\
+      \⇥{1}\minr{x_2} → I_2.
+    \end{array}
+  \]
+  If $I ⊨ Χ$ and $Γ ⊢ E ⇐ τ_1 + τ_2$ then $I_1 ⊨ Χ_l$ and $I_2 ⊨ Χ_r$ where $\mfun{distribute}(E, Χ) = (Χ_l, Χ_r)$.
+\end{lemma}
+\begin{proof}
+  Consider a single example world $σ ↦ χ ∈ Χ$.
+  Because $E$ is well-typed, we know by type safety, strong normalization, and canonical forms that $σ(E)$ reduces to either $\minl{v}$ or $\minr{v}$.
+  Consider the $\minl{\!}$ case; the $\minr{\!}$ case proceeds identically.
+  If $σ(E) ⟶^* \minl{v}$, then by \rulename{eval-match-inl} and the fact that $I ⊨ Χ$, $σ(I) ⟶ [v/x_1]σ(I_1) ⟶* v'$ and $v' ≃ χ$.
+  Note that every such $[v/x_1]σ ↦ χ ∈ Χ_l$ by the definition of $\mfun{distribute}$.
+  Therefore, we can conclude that $I_1 ⊨ Χ_l$.
+\end{proof}
 
 \subsection{Example: Boolean Operators}
 \label{subsec:example-boolean-operators}
 
-With sums, we can now synthesize much more interesting programs.
-For example, let's write encode booleans using sums with
+With sums, we can now synthesize much more realistic programs.
+For example, let's encode booleans in a more standard style using sums with
 \begin{align*}
   \mBool  &≝ T + T \\
   \mtrue  &≝ \minl{c} \\
@@ -216,41 +306,41 @@ where
      ,\,& [\mtrue/x][\mfalse/y]  ↦ \mfalse \\
      ,\,& [\mfalse/x][\mfalse/y] ↦ \mfalse.
 \end{align*}
-We now apply \rulename{irefine-match}, guessing $x$ to pattern on which results in the following distribution of examples:
+We now apply \rulename{irefine-match}, guessing $x$ to pattern match on which results in the following distribution of examples:
 \begin{align*}
-  Χ_1 =\,& [c/x_1][\mtrue/x][\mtrue/y]   ↦ \mtrue \\
+  Χ_l =\,& [c/x_1][\mtrue/x][\mtrue/y]   ↦ \mtrue \\
       ,\,& [c/x_1][\mtrue/x][\mfalse/y]  ↦ \mfalse \\
-  Χ_2 =\,& [c/x_2][\mfalse/x][\mtrue/y]  ↦ \mfalse \\
+  Χ_r =\,& [c/x_2][\mfalse/x][\mtrue/y]  ↦ \mfalse \\
       ,\,& [c/x_2][\mfalse/x][\mfalse/y] ↦ \mfalse
 \end{align*}
 and the hole filled in with the following program fragment:
 \[
-  \mmatch\;x\;\mwith\;\minl{x_1} → ◼ ▷ Χ_1 \semisep \minr{x_2} → \semisep ◼ ▷ Χ_2
+  \mmatch\;x\;\mwith\;\minl{x_1} → ◼ \semisep \minr{x_2} → ◼
 \]
 
 Synthesizing the $\minr{\!}$ branch is straightforward.
 We synthesize $\mfalse$ for this branch because all the examples agree that the synthesized program should be $\mfalse$, \ie, all the example values are $\mfalse$.
 Note that this proceeds in two derivation steps.
 In the first step, we apply \rulename{irefine-sum-inr} because all of the goal example values are of the form of $\minr{χ}$.
-In the second step, we apply \rulename{irefine-unit} because all of the goal example values left are $\mUnit$ values.
+In the second step, we apply \rulename{irefine-base} because all of the goal example values left are $c$.
 
 Synthesizing the $\minl{\!}$ branch is slightly trickier.
 We note that we cannot \rulename{eguess} an $E$-term that satisfies $Χ_1$.
 Furthermore, we cannot apply \rulename{irefine-sum-inl} because the head constructors of the examples do not match.
 Therefore, we must apply \rulename{irefine-match} one more time, pattern matching on $y$, to distribute the examples further
 \begin{align*}
-  Χ_{11} =\,& [c/x'_1][c/x_1][\mtrue/x][\mtrue/y] ↦ \mtrue \\
-  Χ_{12} =\,& [c/x_1][\mtrue/x][\mfalse/y]        ↦ \mfalse
+  Χ_{ll} =\,& [c/x'_1][c/x_1][\mtrue/x][\mtrue/y] ↦ \mtrue \\
+  Χ_{lr} =\,& [c/x_1][\mtrue/x][\mfalse/y]        ↦ \mfalse
 \end{align*}
 where our program now looks like
 \[
   \begin{array}{l}
     λx{:}\mBool.\,λy{:}\mBool.\,\mmatch\;x\;\mwith \\
-    \quad \minl{x_1} →                    \\
-    \qquad \mmatch\;y\;\mwith             \\
-    \qquad\quad \minl{x'_1} → ◼ ▷ X_{11}  \\
-    \qquad\quad \minr{x'_2} → ◼ ▷ X_{12}  \\
-    \quad \minr{x_2} → \mfalse.
+    \⇥{1} \minl{x_1} →         \\
+    \⇥{2}   \mmatch\;y\;\mwith   \\
+    \⇥{3}     \minl{x'_1} → ◼ \\
+    \⇥{3}     \minr{x'_2} → ◼ \\
+    \⇥{1} \minr{x_2} → \mfalse.
   \end{array}
 \]
 In each of these branches, we can either guess the satisfying $E$-terms $x$ and $y$ with \rulename{irefine-eguess} or because there is only a single example in each branch, we can apply \rulename{irefine-sum-inl} and \rulename{irefine-sum-inr} to synthesize $\mtrue$ and $\mfalse$ directly.
@@ -270,7 +360,7 @@ We can synthesize the other $2^3=8$ possible boolean operators using appropriate
 \subsection{Efficiency of Sums}
 \label{subsec:efficiency-of-sums}
 
-In \autoref{subsec:example-boolean-operators}, note the \rulename{irefine-match} rule was highly non-deterministic under two dimensions:
+In \autoref{subsec:example-boolean-operators}, note the \rulename{irefine-match} rule was highly non-deterministic in two dimensions:
 \begin{enumerate}
   \item We guessed an arbitrary $E$-term to pattern match against.
   \item We could pattern match at any time because \rulename{irefine-match} applies at any type $τ$.
@@ -281,14 +371,14 @@ Building on the first point, not only can we pattern match against any $E$ term,
 \[
   \begin{array}{l}
     \mmatch\;x\;\mwith \\
-    \quad \minl{x_1} →                 \\
-    \qquad \mmatch\;x\;\mwith          \\
-    \qquad\quad \minl{x'_1} → \mtrue   \\
-    \qquad\quad \ldots
+    \⇥{1} \minl{x_1} →              \\
+    \⇥{2}   \mmatch\;x\;\mwith      \\
+    \⇥{3}     \minl{x'_1} → \mtrue  \\
+    \⇥{3}     \ldots
   \end{array}
 \]
 is perfectly sound, it results in unnecessary work because the inner pattern match duplicates the efforts of the outer pattern match.
-Such redundant pattern matches are obvious, but with a richer language to draw from, the problems become less obvious.
+Such redundant pattern matches are obvious, but with a richer language to draw from, the problem becomes more subtle.
 For example, consider synthesizing programs over lists defined in the standard recursive style along with an $\mkwd{append}$ function that appends lists.
 The following pattern matches are semantically redundant:
 \begin{align*}
@@ -296,20 +386,20 @@ The following pattern matches are semantically redundant:
   \mmatch\;\mkwd{append}\;l\;[]\;\mwith\;… \\
   \mmatch\;\mkwd{append}\;[]\;l\;\mwith\;…
 \end{align*}
-but are not obviously redundant unless you crack open the definition of append.
+but are not obviously redundant unless you crack open the definition of $\mkwd{append}$.
 
 Building on the second point, because we can invoke \rulename{irefine-match} at any point in an $I$-refinement, we can now get into situations such as this:
 \[
   \begin{array}{l}
     \mmatch\;x\;\mwith \\
-    \qquad …                          \\
-    \qquad \mmatch\;y\;\mwith         \\
-    \qquad\quad \ldots \\
+    \⇥{1}  …                  \\
+    \⇥{1} \mmatch\;y\;\mwith  \\
+    \⇥{2}   \ldots            \\
     \\
     \mmatch\;y\;\mwith \\
-    \qquad …                          \\
-    \qquad \mmatch\;x\;\mwith         \\
-    \qquad\quad \ldots
+    \⇥{1} …                   \\
+    \⇥{1} \mmatch\;x\;\mwith  \\
+    \⇥{2}   \ldots
   \end{array}
 \]
 Here, we fall in the trap of synthesizing pattern matches over $x$ and $y$, but we may do them in any order.
@@ -341,10 +431,10 @@ To get around this, we might introduce $\mkwd{let}$ as a standard syntactic form
 Transforming this into a synthesis rule, we obtain:
 \[
 \inferrule[irefine-let]
-  {Γ ⊢ τ_1 ▷ · ⇝ I_1 \\ X' = … \\\\ x{:}τ_1, Γ ⊢ τ_2 ▷ X' ⇝ I_2}
+  {Γ ⊢ τ_1 ▷ · ⇝ I_1 \\ Χ' = … \\\\ x{:}τ_1, Γ ⊢ τ_2 ▷ Χ' ⇝ I_2}
   {Γ ⊢ τ_2 ▷ Χ ⇝ \mkwd{let}\;x{:}τ_1 = I_1\;\mkwd{in}\;I_2}
 \]
-On top of the fact that $\mkwd{let}$ is not type-directed---\rulename{irefine-let}---applies at any type, similarly to \rulename{irefine-match}, we must guess the ``helper'' type and term $τ_1$ and $I_1$ out of thin air!
+On top of the fact that $\mkwd{let}$ is not type-directed---\rulename{irefine-let} applies at any type, similarly to \rulename{irefine-match}---we must guess the ``helper'' type and term $τ_1$ and $I_1$ out of thin air!
 
 Appealing to the Curry-Howard Isomorphism, synthesizing a let-binding is tantamount to guessing and deriving a lemma and then using that lemma in your proof.
 In the programming world, this is like guessing and deriving a helper function to use in the solution of a problem.
