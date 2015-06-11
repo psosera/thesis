@@ -15,22 +15,6 @@
 
 %%%%%%%%%%%%%%%%%%%% Packages {{{ %%%%%%%%%%%%%%%%%%%%
 
-%%%%% PDF output %%%%%
-\usepackage[pdftex]{hyperref}
-\hypersetup{%
-  pdftitle={\Title},
-  pdfauthor={Peter-Michael Osera},
-  bookmarksnumbered=true,
-  bookmarksopen=true,
-  bookmarksopenlevel=1,
-  hidelinks,
-  naturalnames=true,
-  pdfstartview=Fit,
-  pdfpagemode=UseOutlines,
-  pdfpagelayout=TwoPageRight,
-  unicode=true
-}
-
 %%%%% Unicode + Language %%%%%
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -104,6 +88,22 @@
   commentstyle=\itshape\rmfamily,
   columns=flexible,
   stringstyle=\ttfamily
+}
+
+%%%%% PDF output %%%%%
+\usepackage[pdftex]{hyperref}
+\hypersetup{%
+  pdftitle={\Title},
+  pdfauthor={Peter-Michael Osera},
+  bookmarksnumbered=true,
+  bookmarksopen=true,
+  bookmarksopenlevel=1,
+  hidelinks,
+  naturalnames=true,
+  pdfstartview=Fit,
+  pdfpagemode=UseOutlines,
+  pdfpagelayout=TwoPageRight,
+  unicode=true
 }
 
 %%%%% Custom Macros %%%%%

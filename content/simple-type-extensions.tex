@@ -96,7 +96,7 @@ To show how we apply these lemmas, let's walk through the additional cases for p
     To invoke our inductive hypothesis to conclude that we can synthesize $(I_1, I_2)$, we must show that:
     \begin{itemize}
       \item $Γ ⊢ I_1 ⇐ τ_1$ and $Γ ⊢ I_2 ⇐ τ_2$ which follows by the premise of \rulename{t-Ipair}.
-      \item $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$ which follows by \autoref{lem:type-preservation-of-proj}.
+      \item $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$ which follows by \autoref{lem:example-type-preservation-of-proj}.
       \item $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ which follows by \autoref{lem:satisfaction-preservation-of-proj}.
     \end{itemize}
     Therefore, we can invoke our inductive hypothesis to conclude that $Γ ⊢ τ_1 ▷ Χ_1 ⇝ I_1$ and $Γ ⊢ τ_2 ▷ Χ_2 ⇝ I_2$.
