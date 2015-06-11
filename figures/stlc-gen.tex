@@ -7,10 +7,10 @@
           {Γ ⊢ τ ⇝ x} \qquad
         \inferrule[gen-app]
           {Γ ⊢ τ_1 → τ_2 ⇝ e_1 \\ Γ ⊢ τ_1 ⇝ e_2}
-          {Γ ⊢ τ_2 ⇝ e_1\;e_2} \\
+          {Γ ⊢ τ_2 ⇝ e_1\,e_2} \\
         \inferrule[gen-lam]
-          {x:τ_1, Γ ⊢ τ_2 ⇝ e}
-          {Γ ⊢ τ_1 → τ_2 ⇝ λx:τ_1.\;e} \qquad
+          {x{:}τ_1, Γ ⊢ τ_2 ⇝ e}
+          {Γ ⊢ τ_1 → τ_2 ⇝ λx{:}τ_1.\,e} \qquad
         \inferrule[gen-base]
           { }
           {Γ ⊢ T ⇝ c}

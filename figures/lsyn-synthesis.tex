@@ -6,21 +6,21 @@
           {x{:}τ ∈ Γ}
           {Γ ⊢ τ ⇝ x} \qquad
         \inferrule[eguess-app]
-          {Γ ⊢ E ⇝ τ_1 → τ_2 \\ Γ ⊢ τ_1 ▷ · ⇝ I}
-          {Γ ⊢ τ_2 ⇝ E\;I} \\
+          {Γ ⊢ τ_1 → τ_2 ⇝ E \\ Γ ⊢ τ_1 ▷ · ⇝ I}
+          {Γ ⊢ τ_2 ⇝ E\,I} \\
       \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
         \inferrule[irefine-arr]
-          {X = σ_1 ↦ pf_1, …, σ_n ↦ pf_n \\\\
-            Χ' = \mfun{apply}(x, σ_1, pf_1) \concat … \concat \mfun{apply}(x, σ_n, pf_n) \\\\
+          {Χ = σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n \\\\
+            Χ' = \mfun{apply}(x, σ_1, \mpf_1) \concat … \concat \mfun{apply}(x, σ_n, \mpf_n) \\\\
             x{:}τ_1, Γ ⊢ τ_2 ▷ Χ' ⇝ I}
           {Γ ⊢ τ_1 → τ_2 ▷ Χ ⇝ λx{:}τ_1.\,I} \\
         \inferrule[irefine-base]
           {Χ = σ_1 ↦ c_k, …, σ_n ↦ c_k}
           {Γ ⊢ T ▷ Χ ⇝ c_k} \qquad
         \inferrule[irefine-guess]
-          {Γ ⊢ τ ⇝ E \\ E ⊢ Χ}
+          {Γ ⊢ τ ⇝ E \\ E ⊨ Χ}
           {Γ ⊢ τ ▷ Χ ⇝ E} \\
-      \fbox{$I ⊢ Χ$} \qquad
+      \fbox{$I ⊨ Χ$} \qquad
         \inferrule[satisfies]
           {∀σ ↦ χ ∈ Χ.\;σ(I) ⟶^* v ∧ v ≃ χ}
           {I ⊢ Χ} \\

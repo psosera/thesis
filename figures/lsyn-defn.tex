@@ -2,16 +2,16 @@
   \begin{center}
     \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
       τ  & \bnfdef & τ_1 → τ_2 \bnfalt T & Types\\
-      e  & \bnfdef & x \bnfalt e_1\;e_2 \bnfalt λx{:}τ.\,e \bnfalt c & Terms \\
+      e  & \bnfdef & x \bnfalt e_1\,e_2 \bnfalt λx{:}τ.\,e \bnfalt c & Terms \\
       v  & \bnfdef & λx{:}τ.\,e \bnfalt c & Values \\
-      ℰ  & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ & Evaluation Contexts \\
+      ℰ  & \bnfdef & ◻ \bnfalt ℰ\,e \bnfalt v\,ℰ & Evaluation Contexts \\
       Γ  & \bnfdef & · \bnfalt x{:}τ, Γ & Typing Contexts \\
       \\
-      E  & \bnfdef & x \bnfalt E\;I & Elimination Terms \\
+      E  & \bnfdef & x \bnfalt E\,I & Elimination Terms \\
       I  & \bnfdef & E \bnfalt λx{:}τ.\,I \bnfalt c & Introduction Terms \\
       σ  & \bnfdef & · \bnfalt [v/x]σ & Evaluation Environments \\
-      χ  & \bnfdef & () \bnfalt pf & Example Values \\
-      pf & \bnfdef & \many{v_i ⇒ χ_i}{i < m} & Partial Functions \\
+      χ  & \bnfdef & () \bnfalt \mpf & Example Values \\
+      \mpf & \bnfdef & \many{v_i ⇒ χ_i}{i < m} & Partial Functions \\
       Χ  & \bnfdef & · \bnfalt σ ↦ χ, Χ &  Example Worlds
     \end{tabular} \\[12pt]
     \hrule
@@ -31,7 +31,7 @@
           {Γ ⊢ λx{:}τ_1.\;I ⇐ τ_1 → τ_2} \qquad
         \inferrule[t-Ibase]
           { }
-          {Γ ⊢ T ⇐ c} \qquad
+          {Γ ⊢ c ⇐ T} \qquad
         \inferrule[t-Ielim]
           {Γ ⊢ E ⇒ τ}
           {Γ ⊢ E ⇐ τ} \\
@@ -41,7 +41,7 @@
           {Γ ⊢ c : T} \qquad
         \inferrule[t-ex-pf]
           {\many{Γ ⊢ v_i : τ_1}{i < m} \\ \many{Γ ⊢ χ_i : τ_2}{i < m}}
-          {Γ ⊢ \many{v_i ⇒ χ_i}{i < m} : τ_1 ⇒ τ_2} \\
+          {Γ ⊢ \many{v_i ⇒ χ_i}{i < m} : τ_1 → τ_2} \\
       \fbox{$Γ ⊢ σ$} \qquad
         \inferrule[t-env-empty]
           { }

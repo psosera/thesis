@@ -2,9 +2,9 @@
   \begin{center}
     \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
       τ & \bnfdef & τ_1 → τ_2 \bnfalt T & Types\\
-      e & \bnfdef & x \bnfalt e_1\;e_2 \bnfalt λx{:}τ.\,e \bnfalt c & Terms \\
+      e & \bnfdef & x \bnfalt e_1\,e_2 \bnfalt λx{:}τ.\,e \bnfalt c & Terms \\
       v & \bnfdef & λx{:}τ.\,e \bnfalt c & Values \\
-      ℰ & \bnfdef & ◻ \bnfalt ℰ\;e \bnfalt v\;ℰ & Evaluation Contexts \\
+      ℰ & \bnfdef & ◻ \bnfalt ℰ\,e \bnfalt v\,ℰ & Evaluation Contexts \\
       Γ & \bnfdef & · \bnfalt x{:}τ, Γ & Typing Contexts \\
     \end{tabular} \\[12pt]
     \hrule
@@ -14,8 +14,8 @@
           {x ∈ Γ}
           {Γ ⊢ x : τ} \qquad
         \inferrule[t-app]
-          {Γ ⊢ e_1{:}τ_1 → τ_2 \\ Γ ⊢ e_2 : τ_1}
-          {Γ ⊢ e_1\;e_2 : τ_2} \\
+          {Γ ⊢ e_1 : τ_1 → τ_2 \\ Γ ⊢ e_2 : τ_1}
+          {Γ ⊢ e_1\,e_2 : τ_2} \\
         \inferrule[t-lam]
           {x{:}τ_1, Γ ⊢ e : τ_2}
           {Γ ⊢ λx{:}τ_1.\,e : τ_1 → τ_2} \qquad
@@ -25,7 +25,7 @@
       \fbox{\mbox{$e ⟶ e'$}} \qquad
         \inferrule[eval-ctx]
           {e ⟶ e'}
-          {ℰ[e] ⟶ e'} \qquad
+          {ℰ[e] ⟶ ℰ[e']} \qquad
         \inferrule[eval-app]
           {}
           {(λx{:}τ.\,e)\;v ⟶ [v/x]e}
