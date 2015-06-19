@@ -297,22 +297,48 @@ This results in slightly more verbose programs but prunes the search space signi
 \subsection{Reigning in Matches}
 \label{subsec:reigning-in-matches}
 
-In all program synthesis systems, the conditional proves to be tricky to generate efficiently.
+In all program synthesis systems, the conditional proves to be most tricky to generate efficiently.
 This is because conditionals only \emph{add} information to our synthesis problem.
-In the case of pattern matching, we clearly add additional variables into the context, but with plain old $\mfun{if}$-expressions,
+In the case of pattern matching, it is clear that this information comes in the form of additional variables into the context.
+However, with plain old $\mfun{if}$-expressions,
 \[
   \mfun{if}\;e_1\;\mfun{then}\;e_2\;\mfun{else},
 \]
-we get to assume that $e_1$ is $\mtrue$ in the first branch and $\mfalse$ in the second branch.
-In either case, the difficulty is choosing an appropriate pattern match or conditional scrutinee which amounts to guessing what additional information we need to make progress during synthesis.
+the information is implicit; we get to assume that $e_1$ is $\mtrue$ in the first branch and $\mfalse$ in the second branch.
+In either case, the difficulty is choosing an appropriate match or conditional scrutinee to make progress.
+The problem is that there is no indication that our choice will ultimately help us satisfy our goal!
+As a result, we need to explore each such scrutinee to completion because we don't know if it will result in a satisfying program.
 
-We see these problems clearly manifest themselves in our synthesis procedure.
-While we invoke $\mfmatch$ only at base types thanks to our invertibility optimization from \autoref{subsec:invertible-rules}, note that $\mfmatch$ still chooses arbitrary scrutinees generated via $\mgen$.
+These problems clearly manifest themselves in our synthesis procedure.
+While we invoke $\mfmatch$ only at base types thanks to our invertibility optimization from \autoref{subsec:invertible-rules}, $\mfmatch$ still chooses arbitrary scrutinees generated via $\mgen$.
 For a given target program size $k$, there are, thankfully, a finite number of scrutinees so a call to $\mfmatch$ terminates.
-However, in the presence of a large context, there are a large amount of scrutinees that we would need to consider.
-We need some heuristics in order to decrease number.
+However, the number of scrutinees scales exponentially with the $k$ as well as the size of the context.
+Therefore, to remain tractable, we need some additional heuristics to keep the number of scrutinees manageable.
 
-\todo{Informativeness}
+\paragraph{Informativeness}
+In general, we cannot tell upfront if a particular match scrutinee will allow us to create a satisfying program.
+However, we can apply heuristics to prune out scrutinees that are unlikely to help us to make progress.
+These heuristics compromise completeness further; we will be unable to synthesis some programs given example sets that the programs otherwise satisfy.
+However, in return we can make synthesis with match expressions much more efficient.
+
+Recall that when we synthesize a match expression, we distribute the example world to the branches of the match according to how the match scrutinee evaluates in each world.
+For example, when we synthesized $\mkwd{stutter}$, we had the three input/output examples:
+\begin{align*}
+  & [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [0, 0] \\
+  \bnfalt & [1, 0] ⇒ [1, 1, 0, 0].
+\end{align*}
+When we synthesized a match expression of the form:
+\[
+  \begin{array}{l}
+    \mmatch\;l\;\mwith \\
+    \bnfalt \mkwd{Nil} → ◼ \\
+    \bnfalt \mkwd{Cons}(x, l') → ◼
+  \end{array}
+\]
+We sent the first example world to the $\mkwd{Nil}$ branch (because $l = []$ in that world) and the remaining two example worlds to the $\mkwd{Cons}$ branch (because $l = \mkwd{Cons}(…)$ in those worlds).
+Because at least one example went into each branch, we were able to synthesize all of the branch expressions using some additional type-directed guidance.
+However, in general, this may not be the case.
 
 \todo{Restrictions without examples}
 
