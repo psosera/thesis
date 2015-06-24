@@ -1,0 +1,29 @@
+\begin{figure}
+  \begin{center}
+    \fbox{$\mgen_E(Σ; Γ; τ; k) = \mathcal{E}$}
+    \[
+      \begin{array}{l}
+        \mgen_E(Σ; Γ; τ; 0) = \{ \} \\
+        \mgen_E(Σ; Γ; τ; 1) = \{ x \bnfalt x{:}τ ∈ Γ \} \\
+        \mgen_E(Σ; Γ; τ; k) = \displaystyle{%
+          \bigcup_{\scriptstyle x{:}τ_1 → τ ∈ Γ}
+          \bigcup_{\begin{array}{c}\scriptstyle k_1, k_2\;\text{for} \\\scriptstyle 1 + k_1 + k_2 = k\end{array}}} \\
+          \⇥{1} \{ E\,I \bnfalt E ∈ \mgen_E(Σ; Γ; τ_1 → τ; k_1), I ∈ \mgen_I(Σ; Γ; τ_1; k_2), \mfun{struct}(Γ, E, I) \} \\
+      \end{array}
+    \]
+    \fbox{$\mgen_I(Σ; Γ; τ; k) = \mathcal{I}$}
+    \[
+      \begin{array}{l}
+        \mgen_I(Σ; Γ; τ; 0) = \{ \} \\
+        \mgen_I(Σ; Γ; τ_1 → τ_2; k) = \{ λx{:}τ_1.\,I \bnfalt I ∈ \mgen_I(Σ; x{:}τ_1, Γ; τ_2; k-1) \} \\
+        \mgen_I(Σ; Γ; T; k) = \mgen_{E}(Σ; Γ; T; k) ∪ \\
+        \⇥{1} \{ C(I_1, …, I_m) \bnfalt C : τ_1 * … * t_m → T ∈ Σ, \\
+        \⇥{2}   1 + k_1 + … + k_m = k, \many{I_j ∈ \mgen_I(Σ; Γ; τ_j; k_j)}{j < m} \}
+      \end{array}
+    \]
+  \end{center}
+
+\hrule
+\caption{\mlsyn{} raw-term collection semantics}
+\label{fig:mlsyn-raw-term-collection-semantics}
+\end{figure}

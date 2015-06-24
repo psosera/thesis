@@ -21,7 +21,7 @@ the right-select function,
 \[
   λb_1{:}\mBool.\,λb_2{:}\mBool.\,b_2,
 \]
-or the $\mkwd{and}$ operator,
+and the $\mkwd{and}$ operator,
 \[
   \begin{array}{l}
     λb_1{:}\mBool.\,λb_2{:}\mBool.\,\mmatch\,b_1\,\mwith \\
@@ -40,7 +40,7 @@ In other cases, multiple sub-goals are left behind, for example, when applying \
 When this happens, we annotate the corresponding child nodes so it is clear which sub-goal they are meant fulfill.
 
 When we have talked about synthesizing a program in earlier chapters, we have chosen a particular derivation out of this tree.
-For example, the derivation corresponding to the $\mkwd{and}$ function that we syntheiszed in \autoref{ch:simple-type-extensions} is
+For example, the derivation corresponding to the $\mkwd{and}$ function that we synthesized in \autoref{ch:simple-type-extensions} is
 \begin{center}
   \begin{forest}
     [$◼:\mBool → \mBool → \mBool$
@@ -49,7 +49,7 @@ For example, the derivation corresponding to the $\mkwd{and}$ function that we s
           [\rulename{irefine-match}\\$\mmatch\,b_1\,\mwith$\\$\bnfalt \mtrue → ◼_1:\mBool$\\$\bnfalt \mfalse → ◼_2:\mBool$, align=left, base=bottom
             [(1)\\\rulename{irefine-base}\\$\mtrue$, align=center]
             [(2)\\\rulename{irefine-guess}, align=center
-              [\rulename{eguess-var}\\$b_2$, align=center]
+              [\rulename{eguess-var}\\$b_2$., align=center]
             ]
           ]
         ]
@@ -57,17 +57,16 @@ For example, the derivation corresponding to the $\mkwd{and}$ function that we s
     ]
   \end{forest}
 \end{center}
-which corresponds to a path through the synthesis tree.
-When we arrive at the $\mmatch$ (and in general, any expression that produces multiple synthesis sub-goals), we choose one path for each branch of the $\mmatch$.
 
 \section{Collection Semantics}
 \label{sec:collection-semantics}
 
-Now that we are concerned with implementation, it is no longer sufficient to merely assert that a single derivation path exists.
+Now that we are concerned with implementation, it is no longer sufficient to merely assert that a single derivation or path exists in this synthesis tree.
 We must, instead, derive a synthesis procedure that constructs a refinement tree and extracts a derivation from that tree which corresponds to a satisfying program.
 Note that it may be useful to construct more of a refinement tree than a single derivation.
-For example, it may be more efficient derive parts of the refinement tree as we explore in \autoref{subsec:refinement-trees}.
-We may also want to be able to choose from among multiple satisfying programs using additional heuristics, \eg, number of variables or external functions used, or display the programs to the user and let them choose.
+For example, it may be more efficient to derive parts of the refinement tree first, leaving more time-consuming portions of the tree for later as we explore in \autoref{subsec:refinement-trees}.
+We may also want to be able to choose from among multiple satisfying programs using additional heuristics, for example, the number of variables or external functions used.
+Or, we may want to display the list of potential programs to the user and let them choose.
 
 For the purposes of our work, we'll restrict ourselves to generating a single satisfying program.
 To build a synthesis procedure, we observe that we can classify the synthesis rules of \mlsyn{} into three sorts:
@@ -84,9 +83,9 @@ Likewise, \rulename{irefine-match} also applies whenever we can generate an $E$-
 
 \input{figures/mlsyn-term-generation}
 
-We can explore these possibilities by using an iterative deepening approach \todo{cite} by the size of the derivation.
+We can explore these possibilities by using an iterative deepening approach by the size of the derivation.
 First let's define a \emph{collection semantics} derived from our synthesis rules.
-Let the function $\mrefine(Σ; Γ; τ; Χ; k)$ produce the set of all programs of goal type $τ$ that satisfy the examples $Χ$ that are exactly of AST size $k$.
+Let the function $\mrefine(Σ; Γ; τ; Χ; k)$ produce the set of all programs of goal type $τ$ that satisfy the examples $Χ$ that are exactly of size $k$ (as determined by the number of nodes in their abstract syntax trees).
 With this function, we can define a simple synthesis procedure over an initial synthesis state $(Σ, Γ, τ, Χ)$ as follows:
 \begin{enumerate}
   \item Let $k = 1$ initially.
@@ -115,7 +114,7 @@ The satisfaction check, reproduced below from \autoref{ch:recursion}
   ∀σ ↦ χ ∈ Χ.\, σ(E) ⟶^* v ∧ v ≃ χ.
 \]
 requires that, within each example world, the synthesized program evaluates to a value that is compatible the goal value for that world.
-$\mguess$ generates candidate $E$-terms through the $\mgen_E$ helper function which performs simple raw-term enumeration over a particular type.
+$\mguess$ generates candidate $E$-terms through the $\mgen$ helper function which performs simple raw-term enumeration over a particular type.
 When enumerating applications, the argument may be an $I$-term according to the grammar of \mlsyn{}.
 To generate $I$-terms, we appeal back to $\mrefine$ but pass in the empty set of examples.
 Like the synthesis judgments from which it is derived, $\mrefine$ degenerates into raw-term enumeration when given no examples.
@@ -123,7 +122,7 @@ Like the synthesis judgments from which it is derived, $\mrefine$ degenerates in
 $\mfmatch$ corresponds to invocations of \rulename{irefine-match} that generate matches for all possible scrutinee base types at a particular goal type.
 For a particular base type, we generate sets of expressions for all of the components of the match---the scrutinee and each of the branches---and form matches by taking the cartesian product of these sets.
 To create match expressions of size $k$, we also consider all the ways that we can distribute the size among these match components.
-Note that if any of the sets of expressions are empty, \eg, we were not able to generate any scrutinees of the given base type or a satisfying expression for a particular branch, then we do not produce a match expression for the base type that we are pattern matching over.
+Note that if any of the sets of expressions are empty---\ie, we were not able to generate any scrutinees of the given base type or a satisfying expression for a particular branch---we do not produce a match expression for the base type that we are pattern matching over.
 
 Finally, $\mrefine$ performs type-directed program and example refinement.
 At arrow type, we perform refinement according to \rulename{irefine-arr}, and at base type when the examples share the same head constructor, we perform refinement according to \rulename{irefine-base}.
@@ -132,15 +131,15 @@ In either case, we also invoke $\mguess$ and $\mfmatch$ as discussed earlier to 
 \subsection{The Minimum Program Principle}
 \label{subsec:the-minimum-program-principle}
 
-The $\mrefine$ is goverened by the size of the derivation $k$.
-Because each rule application adds one abstract syntax tree (AST) node to the size of the synthesized programs, $k$ also corresponds to program size (in terms of AST nodes).
+The $\mrefine$ function is governed by the size of the derivation $k$.
+Because each rule application adds one abstract syntax tree (AST) node to the size of the synthesized programs, $k$ also corresponds to program size.
 Therefore, the above procedure produces the smallest program possible that satisfies the input examples.
 However, is this a desirable property of a program synthesizer?
 The following principle answers this question in the affirmative:
 \begin{definition}[The Minimum Program Principle]
   In program synthesis, smaller satisfying program (in terms of program size) are more likely to generalize to the desired behavior intended by the user.
 \end{definition}
-The Minimum Program Principle is not a provable theorem, but a search heuristic exploited by many program synthesis tools (\todo{cite}) to refine the space of programs even further.
+The Minimum Program Principle is not a provable theorem, but a search heuristic exploited by many program synthesis tools (\todo{cite: all the example-based synthesis systems that employ this principle.}) to refine the space of programs even further.
 
 Intuitively, the Minimum Program Principle observes that a smaller program is less likely to over-specialize on the examples given to the synthesizer.
 To see this, consider the specification we gave for $\mkwd{stutter}$ in \autoref{ch:recursion}:
@@ -179,7 +178,7 @@ This second program is less desirable than the first because it overspecializes 
 While it satisfies those particular examples, it does not generalize appropriately to other cases.
 Note that the overspecializing program is necessarily large because it must use repeated pattern matches and literal values to reproduce the behavior of the partial function.
 By our size metric of counting AST nodes, this overspecialized program has size 25 whereas the desired program only has size 11.
-In contrast, a smaller program is likely to use more $E$-forms---variables and applications---to satisify the examples because they require less size to accomplish more varied behavior.
+In contrast, a smaller program is likely to use more $E$-terms---variables and applications---to satisfy the examples because they require less size to accomplish more varied behavior.
 
 \subsection{Restricting the Search Space with Examples}
 
@@ -194,7 +193,7 @@ Certainly, we can synthesize both the implementation of $\mkwd{stutter}$ and the
 However, this simple partial function example admits many more programs, for example, the constant $[]$ function $λl{:}\mlist.\,[]$ and the identity function $λl{:}\mlist.\,l$.
 Because our synthesis procedure favors smaller programs, we will either produce the constant or identity functions from this example.
 
-From this, we can see that the effect of adding examples is to rule out these simpler programs from consideration.  In the case where we have all three examples for $\mkwd{sutter}$, the constant and identity functions are no longer satisfying programs.  Suppose that we instead provide only two input/output examples for $\mkwd{sutter}$:
+From this, we can see that the effect of adding examples is to rule out these simpler programs from consideration.  In the case where we have all three examples for $\mkwd{stutter}$, the constant and identity functions are no longer satisfying programs.  Suppose that we instead provide only two input/output examples for $\mkwd{stutter}$:
 \begin{align*}
   & [] ⇒ [] \\
   \bnfalt & [0] ⇒ [0, 0].
@@ -212,7 +211,7 @@ It turns out the answer is no as the procedure produces the following program:
 This program is smaller than the desired $\mkwd{stutter}$---size 7 versus size 11---so our synthesis procedure would choose it first.
 Thus it turns out that all three examples are necessary for our procedure to rule out enough smaller programs to produce $\mkwd{stutter}$.
 
-What happens if we include more input/output examples than these three with the caveat that these new examples still imply the stutter function and preserve trace completeness?
+What happens if we include more input/output examples with the caveat that these new examples still imply the $\mkwd{stutter}$ function and preserve trace completeness?
 For example, consider the partial function
 \begin{align*}
   & [] ⇒ [] \\
@@ -221,7 +220,7 @@ For example, consider the partial function
   \bnfalt & [2, 1, 0] ⇒ [2, 2, 1, 1, 0, 0] \\
   \bnfalt & [3, 2, 1, 0] ⇒ [3, 3, 2, 2, 1, 1, 0, 0]
 \end{align*}
-with two additional input/output examples.
+which contains two additional input/output examples over the previous case.
 The program corresponding to the overspecialization of the examples is substantially larger at 76 AST nodes.
 \[
   \begin{array}{l}
@@ -244,10 +243,10 @@ Furthermore, we know the original examples rule out all programs smaller than th
 So these additional examples neither change the output of our synthesis procedure nor rule out additional programs that we would have considered during the synthesis process.
 In fact, these additional examples only add additional overhead (a slight amount, as we discuss in \autoref{ch:evaluating-myth}) to the synthesis procedure as we must refine and check for satisfaction against more example worlds.
 
-Thus, there is a balance to providing examples to our synthesis procedure.
+Therefore, there is a balance to providing examples to our synthesis procedure.
 We must provide enough examples to rule out smaller, trivial programs while satisfying trace completeness.
 But we should avoid providing too many examples as extra examples do not contribute to the synthesis process.
-In \autoref{ch:evaluating-myth}, we discuss our experience developing examples sets for this synthesis procedure with these desiderata in mind.
+In \autoref{ch:evaluating-myth}, we discuss our experience developing examples sets for this synthesis procedure with these considerations in mind.
 
 \section{Optimizing The Synthesis Procedure}
 \label{sec:optimizing-the-synthesis-procedure}
@@ -259,9 +258,14 @@ Now, we introduce additional techniques inspired from logic and the proof search
 \subsection{Invertible Rules}
 \label{subsec:invertible-rules}
 
-We have already removed the set of programs from the search space that are $β$-equivalent to the normal forms that our syntax forces us to synthesize.
-Can we consider other equivalence classes and perform similar sorts of pruning?
-For now, we consider an optimization concerning \emph{invertible} rules in logic.
+One trouble we have with our synthesis judgment and consequently our synthesis procedure is the order in which we invoke particular rules.
+For example, suppose that we are synthesizing at base type and we have the opportunity to either synthesize a constructor value or a pattern match.
+Does the order in which we invoke the rules matter?
+Certainly it seems undesirable to have pattern matches as the arguments to the constructor value, but you can imagine scenarios in which this might occur in the desired program.
+We reflect this possibility by always invoking the various synthesis functions at every step when possible.
+But we can clearly save ourselves some work if we can rule out some of these possibilities, preferably without losing completeness.
+
+One such optimization along these lines concerns \emph{invertible} rules in logic.
 An invertible rule is one where the premises of the rule are derivable whenever the conclusion is.
 For example, consider \rulename{irefine-arr}, reproduced below:
 \[
@@ -300,9 +304,9 @@ This results in slightly more verbose programs but prunes the search space signi
 In all program synthesis systems, the conditional proves to be most tricky to generate efficiently.
 This is because conditionals only \emph{add} information to our synthesis problem.
 In the case of pattern matching, it is clear that this information comes in the form of additional variables into the context.
-However, with plain old $\mfun{if}$-expressions,
+However, with plain old $\mkwd{if}$-expressions,
 \[
-  \mfun{if}\;e_1\;\mfun{then}\;e_2\;\mfun{else},
+  \mkwd{if}\;e_1\;\mkwd{then}\;e_2\;\mkwd{else},
 \]
 the information is implicit; we get to assume that $e_1$ is $\mtrue$ in the first branch and $\mfalse$ in the second branch.
 In either case, the difficulty is choosing an appropriate match or conditional scrutinee to make progress.
@@ -312,16 +316,16 @@ As a result, we need to explore each such scrutinee to completion because we don
 These problems clearly manifest themselves in our synthesis procedure.
 While we invoke $\mfmatch$ only at base types thanks to our invertibility optimization from \autoref{subsec:invertible-rules}, $\mfmatch$ still chooses arbitrary scrutinees generated via $\mgen$.
 For a given target program size $k$, there are, thankfully, a finite number of scrutinees so a call to $\mfmatch$ terminates.
-However, the number of scrutinees scales exponentially with the $k$ as well as the size of the context.
+However, the number of scrutinees scales exponentially with $k$ as well as the size of the context.
 Therefore, to remain tractable, we need some additional heuristics to keep the number of scrutinees manageable.
 
 \paragraph{Informativeness}
 In general, we cannot tell upfront if a particular match scrutinee will allow us to create a satisfying program.
 However, we can apply heuristics to prune out scrutinees that are unlikely to help us to make progress.
-These heuristics compromise completeness further; we will be unable to synthesis some programs given example sets that the programs otherwise satisfy.
+These heuristics weaken completeness further; we will be unable to synthesis some programs given example sets that the programs otherwise satisfy.
 However, in return we can make synthesis with match expressions much more efficient.
 
-Recall that when we synthesize a match expression, we distribute the example world to the branches of the match according to how the match scrutinee evaluates in each world.
+Recall that when we synthesize a match, we distribute the example worlds to the branches of the match according to how the match scrutinee evaluates in each world.
 For example, when we synthesized $\mkwd{stutter}$, we had the three input/output examples:
 \begin{align*}
   & [] ⇒ [] \\
@@ -337,23 +341,365 @@ When we synthesized a match expression of the form:
   \end{array}
 \]
 We sent the first example world to the $\mkwd{Nil}$ branch (because $l = []$ in that world) and the remaining two example worlds to the $\mkwd{Cons}$ branch (because $l = \mkwd{Cons}(…)$ in those worlds).
-Because at least one example went into each branch, we were able to synthesize all of the branch expressions using some additional type-directed guidance.
+Because at least one example was sent into each branch, we were able to employ type-and-example-directed guidance to complete the program.
+
 However, in general, this may not be the case.
+We may end up in situations, for example, where we synthesize a $m$-way pattern match:
+\[
+  \begin{array}{l}
+    \mmatch\;e\;\mwith \\
+    \bnfalt C_1\,p_1 → ◼ \\
+    \ldots \\
+    \bnfalt C_m\,p_m → ◼
+  \end{array}
+\]
+and the examples are distributed in such a way that some branches do not receive any examples.
+This is not a problem theoretically as our collection semantics degenerates to raw term enumeration in the absence of examples.
+However, because any well-typed expression is a valid completion for these branches with no examples (the satisfaction condition is trivially satisfied), we will likely choose a small expression such as a single variable or a constant that will not generalize to the behavior that the user intends with the examples they provide.
 
-\todo{Restrictions without examples}
+Worst yet, imagine if all of the examples were sent to a single branch.\footnote{%
+  Throughout this discussion, we assume that the data types in question have more than one constructor.
+  A data type with a single non-inductive constructor of arity $k$ is equivalent to a $k$-tuple.
+  Pattern matching here amounts to extracting its components which has the same efficiency problems as tuples, namely the trade-off of lazily or eagerly decomposing such data types.
+  See \autoref{subsec:tuple-efficiency} for ways of dealing with these problems.
+}
+An expression for that branch would need to satisfy all of the original examples with only the additional information provided by the binders introduced by the pattern of the match for support.
+All of the remaining branches would need to be generated using raw-term enumeration.
+In this situation, we have done little to refine the synthesis state as we have not taken advantage of the case analysis that the pattern match provides.
+As a result, it is unlikely that this pattern match will actually help us in generating a final, satisfying program.
 
-\subsection{Efficient Raw-term Enumeration}
-\label{subsec:efficient-raw-term-enumeration}
+We call the likelihood that a pattern match contributes to a satisfying program its \emph{informativeness}.
+The shape of a particular pattern match alone does not tell us much about its informativeness, but our examples gives us the additional insight we need.
+Intuitively, an informative pattern match is one that distributes the examples evenly among the branches of the pattern match.
+In contrast, an uninformative pattern match distributes most of the examples to a minority of the branches.
+In the worst case, a pattern match distributes all of the examples to a single branch which signifies that we did not ``learn'' anything about the examples by pattern matching on the given scrutinee.
 
-\input{figures/mlsyn-gen}
+Elaborate heuristics are possible where we prioritize the exploration particular pattern matches based on their informativeness.
+For our purposes, we implement a simple heuristic to rule out this worst case scenario for informativeness.
+\begin{definition}[Informativeness Restriction (A)]
+  A pattern match is valid if whenever the pattern match is over a data type with more than one constructor that $\mkwd{distribute}$ sends examples to at least two distinct branches.
+\end{definition}
+This restriction, applied to the $\mkwd{match}$ function from \autoref{fig:mlsyn-collection-semantics} is sufficient to rule out the worst case pattern matches described above.
+However, it still allows for branches to be synthesized in the absence of examples.
+The following version of the informativeness restriction fixes this problem.
+\begin{definition}[Informativeness Restriction (B)]
+  A pattern match is valid if whenever the pattern match is over a data type with more than one constructor that $\mkwd{distribute}$ sends at least one example to each branch of the match.
+\end{definition}
 
-\todo{Fill in.}
+The two restrictions represent a trade-off between performance and completeness.
+Restriction (A) allows for strictly more valid pattern matches than (B) at the cost of potentially dealing with synthesizing branches without examples.
+However, the performance gains with using restriction (B) over (A) are smaller than might be expected for a pair of reasons:
+\begin{enumerate}
+  \item For many simple synthesis problems of the sort that we explore in \autoref{ch:evaluating-myth}, we deal with algebraic data types that only have two constructors---a base and inductive constructor.
+    In this setting, restrictions (A) and (B) are isomorphic.
+  \item More generally, it turns out that almost all scrutinees fall into the extreme categories---completely uninformative or very informative, according to the definition of informativeness given above.
+    That is, if a pattern match is actually informative, it will send examples to all of its branches as long as there is an appropriate number of examples to begin with.
+\end{enumerate}
+Because of this, either restriction is suitable for recovering performance in the presence of matches.
+When referring to these restrictions in future discussion, we'll refer to a single ``Informativeness Restriction'' but really mean either Informativeness Restriction (A) or (B).
+
+\paragraph{Repetitive Matches}
+
+The informativeness restriction takes care of situations where pattern matches do not help us make progress.
+However, there are other problems with matches that we must consider.
+For example, our collection semantics does not keep us from pattern matching on the same expression more than once.
+We could solve this by tracking the expressions that we pattern match over, but then we are still susceptible to chains of \emph{equivalent yet redundant scrutinees} such as
+\[
+  \begin{array}{l}
+  \mmatch\;l\;\mwith \\
+  \ldots \\
+  \⇥{1} \mmatch\;\mkwd{append}\;l\;[]\;\mwith \\
+  \⇥{1} \ldots \\
+  \⇥{2} \mmatch\;\mkwd{append}\;[]\;l\;\mwith \\
+  \⇥{2} \ldots \\
+  \⇥{3} \mmatch\;\mkwd{append}\;(\mkwd{append}\;[]\;l)\;[]\;\mwith \\
+  \⇥{3} \ldots .
+  \end{array}
+\]
+This means that the problem of repetitive matches is really a problem of \emph{program equivalence} where we want to avoid generating semantically equivalent terms as scrutinees.
+
+Thankfully in this situation, our informative restriction are sufficient to rule out redundant matches as \autoref{lem:informativeness-rules-out-repetition} shows:
+\begin{lemma}[Informativeness Rules Out Repetition]
+  Consider a pattern match over some scrutinee $e$ of some data type with constructors $C_1, …, C_m$ and an expression $e'$ such that $e$ is equivalent to $e'$.
+  Then any inner pattern match whose scrutinee is $e'$ in any of these branches is invalid with respect to our informativeness restriction.
+  \label{lem:informativeness-rules-out-repetition}
+\end{lemma}
+\begin{proof}
+  $\mkwd{distribute}$ creates example worlds $Χ_1, …, Χ_m$ for each branch of the pattern match by evaluating $e$.
+  Consider a single such branch $k ∈ 1, …, m$ and pattern matching on a scrutinee $e'$ that is equivalent to $e$ in that branch.
+  (It could be $e$ itself).
+  By definition $Χ_k$ contains only the example worlds under which $e$ evaluated to a constructor value with head $C_k$.
+  Therefore, all of the example worlds in $Χ_k$ will evaluate to the same constructor value with head $C_k$.
+  This means that the inner pattern match will send all of its examples to branch $C_k$ which by definition of both Informativeness Restrictions is invalid.
+\end{proof}
+Thus, we do not need to do anything special to handle repetitive pattern matches as long as we employ the informativeness restriction to prune down the space of possible match expressions.
+
+\paragraph{Restricting Generation of Matches}
+
+The informativeness restriction that we have developed in this section are designed to limit pattern matches that don't make progress towards the synthesis goal or otherwise cause us to degenerate to raw-term enumeration.
+With either restriction in effect, it is clear that we can no longer generate match expressions in the absence of examples.
+Therefore, it no longer makes sense to try to generate pattern matches during $E$-term generation where we explicitly enumerate terms in the absence of examples.
+
+In \autoref{fig:mlsyn-collection-semantics}, we took advantage of the fact that the $\mfun{refine}$ function degenerated to raw term enumeration when given no examples.
+This occurs in one place where we need to generate an $I$-form in the absence of examples: generating a function argument in the $\mfun{gen}$ function.
+However, if we avoid pattern match generation in this situation altogether, we require a separate generation function for introduction forms rather than relying on the degenerate behavior of $\mfun{refine}$.
+
+\input{figures/mlsyn-raw-term-collection-semantics}
+
+\autoref{fig:mlsyn-raw-term-collection-semantics} splits up raw-term enumeration into two functions, $\mgen_E$ and $\mgen_I$, which enumerates $E$- and $I$-forms respectively.
+The refinement portion of our collection semantics in \autoref{fig:mlsyn-collection-semantics} are modified to call either generation function when an $E$- or $I$-form must be generated without examples.
+Notably, we never generate match expressions in either raw-term generation function because of our informativeness restrictions.
+This implies that we will never have a match expression appear as an argument to a function or constructor.
+However, this does not change the expressiveness of our synthesis procedure as any pattern match that occurred within the arguments of an application or constructor can be hoisted outside of it instead.
+In our collection semantics, this implies that we must first generate such a match via $\mfmatch$ and than generate the application through $\mgen$ or constructor through $\mrefine$ rather than the other way around.
 
 \subsection{Refinement Trees}
 \label{subsec:refinement-trees}
 
-\todo{Fill in.}
+The synthesis procedure we described in \autoref{sec:collection-semantics} performs a ton of redundant work.
+A na\"{i}ve implementation of our iterative deepening search strategy coupled with the decomposition of types and examples means that we end up solving many identical synthesis subproblems throughout the synthesis process.
+To mitigate this cost we pre-compute and cache the results of our various collection semantics functions whenever possible.
 
-\paragraph{Short-circuiting Synthesis}
+First, let's reexamine the synthesis tree structure we discussed in \autoref{sec:synthesis-trees}.
+As discussed in \autoref{sec:collection-semantics}, we can divide up the rules of our synthesis judgment into refinement, guessing, and matching rules.
+Note that the refinement rules are dictated entirely by the goal type and examples.
+In particular, \rulename{irefine-arr} applies at arrow type at any time and \rulename{irefine-base} applies at base type whenever the examples agree on their head constructor.
+Both rules always decomposes both the goal type and the examples on every invocation.
+Because our goal type and examples are necessarily finite structures, this leads to an important property of $I$-refinements with respect to the synthesis tree structure.
+\begin{lemma}[Finiteness of Refinement Derivations]
+  \label{lem:finiteness-of-refinement-derivations}
+  In any branch of a synthesis tree, the number of \rulename{irefine-arr} and \rulename{irefine-base} applications is finite.
+\end{lemma}
+\begin{proof}
+  We make the stronger claim that the number of such applications is bounded by the sum of the goal type and the size of the example values.
+  Consider the effects of each \rulename{irefine} rule on the synthesis state.
+  \begin{itemize}
+    \item \rulename{irefine-guess} ends the branch with a series of \rulename{eguess} derivations.
+      If a \rulename{eguess} derivation calls back into the \rulename{irefine} judgment, it is without any examples.
+    \item \rulename{irefine-arr} decomposes the goal type and example values while growing number of example worlds.
+    \item \rulename{irefine-base} decomposes the example values, keeps the number of example worlds, and may grow the goal type, \eg, moving from a base type to an arrow type if one of the constructor arguments is higher order.
+    \item \rulename{irefine-guess} distributes the examples, keeping the size of the examples and the goal type the size, but decreasing the number of example worlds.
+  \end{itemize}
+  From this, it is clear that the number of possible \rulename{irefine-arr} and \rulename{irefine-base} applications in a single branch is finite because the example values are necessarily finite and no \rulename{irefine} rule grows those example values.
+\end{proof}
 
-\todo{Fill in.}
+Now, let's consider applications of \rulename{irefine-match}.
+There are two dimensions of match applications to consider:
+\begin{description}
+  \item[Width:] At any given point in the synthesis tree, if we have a way of generating an infinite number of expressions of base type, \eg, lists and the $\mkwd{append}$ function, then we can use those expressions as scrutinees of an infinite number of match expressions.
+  \item[Depth:] In any given branch of a synthesis tree, we may be able to generate an infinite chain of nested matches.
+\end{description}
+Our informativeness restriction from \autoref{subsec:reigning-in-matches} ensure that match depth is finite.
+In contrast, we must add additional restrictions to ensure that the number of possible scrutinees at any given point in a synthesis tree is finite.
+
+With these considerations, we can formulate a lemma about the finiteness of \rulename{irefine-match} applications in any synthesis tree:
+
+\begin{lemma}[Finiteness of Match Derivations]
+  Suppose that we fix the maximum size of any match scrutinee expression to some constant $k$.  Then, in any synthesis tree, the number of possible \rulename{irefine-match} applications is finite (assuming that we apply an informativeness restriction on match expressions).
+  \label{lem:finiteness-of-match-derivations}
+\end{lemma}
+\begin{proof}
+  Our bound $k$ on the size of match scrutinees artificially limits match width.
+  As mentioned above, match depth is limited by our informativeness restriction.
+  To see why, note that match expressions distribute the example worlds among the branches of the match.
+  The number of example worlds does not grow.\footnote{%
+    From the proof of \ref{lem:finiteness-of-refinement-derivations}, we see that the number of example worlds increases when applying \rulename{irefine-arr}.
+    However, these additional example worlds are drawn from the structure of the goal example values, so it is really the size of the example values that is decreasing here.
+  }
+  Furthermore, our informativeness restriction ensures that once we reach branches with one or no examples, we will not be able to pattern match further as we will not be able to fulfill the requirement that at least two branches of the inner pattern match have examples.\footnote{%
+    This requires that we handle pattern matches over data types with single constructors differently, \eg, greedily expanding them with focusing as described in \autoref{subsec:tuple-efficiency}, as the informativeness restriction does not apply to them.
+  }
+\end{proof}
+
+\autoref{lem:finiteness-of-refinement-derivations} and \autoref{lem:finiteness-of-match-derivations} assert that type-directed refinement---application of the \rulename{irefine} rules---is finite given a particular synthesis problem.
+In contrast, it is clear that $E$-guessing or raw-term generation is potentially limitless depending on the input context $Γ$.
+In light of this revelation, we can separate $I$-refinement from $E$-guessing completely.
+Rather than searching the space of derivations given by a synthesis tree all at once, we can break up our synthesis procedure into two phases.
+Given a synthesis problem (a context $Γ$, a goal type $τ$, and examples $Χ$):
+\begin{enumerate}
+  \item Compute the portion of the synthesis tree corresponding to the set of possible $I$-refinements for the synthesis problem.
+  \item Search the space of possible $E$-guesses that correspond to the remainder of the synthesis tree.
+\end{enumerate}
+
+\input{figures/refinement-tree}
+
+We call the portion of the synthesis tree pre-calculated in step (1) a \emph{refinement tree} which describes the possible shapes of satisfying programs as dictated by the synthesis specification---the goal type and examples.
+For example, \autoref{fig:synthesis-tree} gives the synthesis tree corresponding to the synthesis problem we explored in \autoref{sec:examples-in-mlsyn} where our goal type was $\mlist → \mlist$ and our examples were
+\begin{align*}
+  & [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [0, 0] \\
+  \bnfalt & [1, 0] ⇒ [1, 1, 0, 0]
+\end{align*}
+which correspond to the $\mkwd{stutter}$ function.
+
+\input{figures/mlsyn-refinement-tree-creation}
+
+We can construct a refinement tree by slightly modifying our collection semantics from \autoref{sec:collection-semantics}.
+\autoref{fig:mlsyn-refinement-tree-creation} gives the definition of $\mrtree$ which creates a refinement tree given a signature $Σ$, context $Γ$, goal type $τ$, examples $Χ$, maximum number of matches $k$, and maximum scrutinee size $s$.
+$\mrtree$ behaves similarly to $\mrefine$ except that rather than constructing complete programs of a certain size, $\mrtree$ derives the set of possible $I$-refinements for a given synthesis problem without performing any $E$-guessing.
+To ensure finiteness (as per our discussion in \autoref{subsec:reigning-in-matches}), we must fix the scrutinee size of all matches to some fixed value, $s$.
+We also parameterize the number of matches that appear in any branch of the refinement tree by $k$.
+(Note that $k$ no longer dictates overall program size.)
+This is unnecessary to ensure that the refinement tree is finite (\ie, that $\mrtree$ terminates), but is useful in a practical implementation as the branching induced by match expressions is still problematic for scaling.
+The $\mrtree$ function produces a set of refinement tree nodes which carry the synthesis state as well as a possible $I$-term at that point in a synthesis derivation.
+We denote these with an underline to remind us that these are tree nodes rather than expressions, for example, $\underline{\mfix\;f\;(x{:}τ_1) : τ_2 = ◼}$ for a refinement tree node denoting a $\mfix$.
+
+After using $\mrtree$ to construct the refinement tree, we can now $E$-guess up to some fixed term size with the $\mguess$ function defined in our original collection semantics (but calling into the raw-term enumeration functions we developed in \autoref{subsec:reigning-in-matches} instead).
+We $E$-guess at every node in the refinement tree where the goal is a base type; these points are indicated by boxes in our example synthesis tree found in \autoref{fig:synthesis-tree}.
+This coincides exactly with when we would have invoked the $\mguess$ function in our original collection semantics.
+
+Finally, if we are able synthesize a solution in some branch of the refinement tree either through refinement or guessing, we propagate the result up the tree to try to synthesize a solution to the original synthesis problem.
+For example, if we are able to $E$-guess a satisfying program $E$ to the synthesis problem at a function node $\underline{\mfix\;f\;(x{:}τ_1) : τ_2 = ◼}$, then we are able to synthesize the satisfying program $\mfix\;f\;(x{:}τ_1) : τ_2 = E$ at that point in the refinement tree.
+We can then continue to propagate this function upwards in the refinement tree or return it as the result of the overall synthesis process if this node is the root of the tree.
+
+\paragraph{Synthesis with Refinement Trees}
+
+With refinement trees, we arrive at a much more efficient synthesis procedure observing that $I$-refinement and $E$-guessing are separable.
+$I$-refinements are dictated by the goal type and examples and so they can be computed first.
+From there, we can use raw-term enumeration to perform $E$-guessing as before.
+In summary, our new synthesis procedure with refinement trees operates as follows:
+
+Given a signature $Σ$, context $Γ$, goal type $τ$, and examples $Χ$:
+\begin{enumerate}
+  \item Let our \emph{search metrics} be $s$, the maximum match scrutinee size, $m$, the maximum match depth, and $k$, the maximum $E$-term size.
+  \item Generate a refinement tree, $\mrefine^s(Σ; Γ; τ; m)$.
+  \item Perform $E$-guessing (using $\mguess$) at each node of the refinement tree whose goal is a base type.
+  \item Propagate successfully synthesized problems upwards in the refinement tree to try to synthesize a solution to the overall synthesis problem.
+  \item If we are unable to create such a solution, increment our search metrics and repeat starting at step (2).
+\end{enumerate}
+
+With this algorithm, we may not synthesize smallest program possible as we are no longer exploring the synthesis tree in an breadth-first manner.
+We can think of synthesis with refinement trees as performing some partial depth-first search to explore the set of refinements before proceeding in a breadth first manner with matches and $E$-guessing.
+The precise description of the programs generated by this algorithm is dependent on our choice of how we explore the search metrics on each iteration of the search.
+We discuss our particular choice of search metric exploration in \autoref{ch:evaluating-myth}.
+Suffice to say, in practice, the programs that this approach generates are usually identical to the smallest programs guaranteed by straightforward breadth-first search.
+If not, then they are either equivalent but larger or require an extra example or two to produce the desired program.
+
+As an example, consider applying this procedure towards synthesizing the $\mkwd{stutter}$ function of type $\mlist → \mlist$ using the examples:
+\begin{align*}
+  & [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [0, 0] \\
+  \bnfalt & [1, 0] ⇒ [1, 1, 0, 0]
+\end{align*}
+from before.
+Let's suppose that we start with the following search metrics:
+\begin{itemize}
+  \item Maximum match scrutinee size: $s = 1$.
+  \item Maximum match depth: $m = 0$.
+  \item Maximum $E$-term size: $k = 5$.
+\end{itemize}
+Then, the resulting refinement tree tree looks like this:
+\begin{center}
+  \begin{forest}
+    [$◼:\mlist → \mlist$
+      [\rulename{irefine-arr}\\$\mfix\;f\;(l{:}\mlist) : \mlist \meq\,\fbox{$◼:\mlist$}$., align=center]
+    ]
+  \end{forest}
+\end{center}
+We can make no further progress because the examples at the \rulename{irefine-arr} node do not share head constructor, and we are not allowed to introduce matches as the match depth is zero.
+
+While we can $E$-guess terms up to size $5$, the only term we can generate (in the empty context) is $l$ which does not satisfy the body of the $\mfix$.
+We therefore need to iterate by incrementing our search metrics and repeating the process.
+Let's increase the match depth by one.
+The resulting refinement tree is:
+\begin{center}
+  \begin{forest}
+    [$◼:\mlist → \mlist$
+      [\rulename{irefine-arr}\\$\mfix\;f\;(l{:}\mlist) : \mlist \meq\,◼:\mlist$, align=center, base=bottom
+        [\rulename{irefine-match}\\$\mmatch\,l\,\mwith$\\$\bnfalt \mNil → ◼_1:\mlist$\\$\bnfalt \mCons(x \comma l') → ◼_2:\mlist$, align=left, base=bottom
+          [(1)\\\rulename{irefine-base}\\$\mtrue$, align=center]
+          [(2)\\\rulename{irefine-base}\\$\mCons(◼_1:\mnat \comma ◼_2:\mlist)$, align=center, base=bottom
+            [(2)\\\rulename{irefine-base}\\$\mCons(◼_1:\mnat \comma ◼_2:\mlist)$, align=center]
+          ]
+        ]
+      ]
+    ]
+  \end{forest}
+\end{center}
+which is precisely the refinement tree we presented in \autoref{fig:refinement-tree}.
+When performing $E$-guessing on this tree, we synthesize the following satisfying sub-expressions:
+\begin{itemize}
+  \item $x$ as the first argument to the first $\mCons$ constructor in the $\mCons$ branch of the pattern match,
+  \item $x$ as the first argument to the second $\mCons$ constructor in the $\mCons$ branch of the pattern match, and
+  \item $f\,l'$ as the second argument to the second $\mCons$ constructor in the $\mCons$ branch of the pattern match.
+\end{itemize}
+Propagating these results upwards in the tree allows us to synthesize the final, expected $\mkwd{stutter}$ program:
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → \mNil \\
+    \⇥{1}   \bnfalt \mCons(x, l') → \mCons(x, \mCons(x, f\,l')).
+  \end{array}
+\]
+
+The biggest win we receive in factoring out $E$-guessing from $I$-refinement is that we have to enumerate far smaller terms.
+Rather than enumerating all terms of up to size 11 to derive $\mkwd{stutter}$, we only need to enumerate terms up to size three to obtain the $E$-guessed expressions above.
+This is a dramatic savings in term enumeration which turns out to be the bottleneck in our type-directed synthesis style.
+
+Furthermore, this factoring allows us to take advantage of the fact that we decompose our synthesis problems into smaller, independent synthesis sub-problems.
+For example, in the second iteration of our search, we do not need to $E$-guess terms in the $\mNil$ branch of the pattern match because we already have a completed expression for that branch, $\mNil$, which we obtained in the refinement tree portion of the synthesis process.
+After discovering that $x$ is a valid completion as the first arguments of the $\mCons$ constructors, we do not need to enumerate larger terms at those points in the refinement tree because any valid solution there is equivalent to $x$ with respect to satisfying the examples.
+This ability to \emph{short-circuit} synthesis once we find local solutions to synthesis problems is instrumental to scaling up our synthesis procedure.
+This means that if one branch of a pattern match requires a large expression, but the remaining branches require small expressions, we only pay the (exponential) cost of searching for the large expression in that one branch, rather than among all of the branches by performing unnecessary search.
+
+\subsection{Efficient Raw-term Enumeration}
+\label{subsec:efficient-raw-term-enumeration}
+
+Our refinement tree structure allows us to cache $I$-refinements, allowing us to optimize the synthesis procedure greatly.
+Can we perform similar caching for $E$-guessing as well?
+We observe that the inefficiency here lies in repetitive calls to our term-generation functions $\mgen_E$ and $\mgen_I$.
+For example, we may need to repeatedly call $\mgen_E(Σ; Γ; \mlist; k)$ to synthesize expressions of type $\mlist$ as the potential body of our function, the leaf expression of a pattern match branch, as an argument to a function application, or otherwise part of some complex expression we are building up.
+Ideally, we should cache the results of $\mgen_E$ and $\mgen_I$ for particular combinations of arguments to ensure that we only ever generate a particular term once during the enumeration process.
+
+If we examine the arguments to $\mgen$ we see that the signature $Σ$ remains constant and the goal type $τ$ and term size $k$ are natural ``keys'' by which we can cache results to $\mgen$.
+However, our context $Γ$ does not remain constant throughout the synthesis process.
+For example, in our refinement tree example above, we generate terms of type $\mlist$ in several contexts:
+\begin{itemize}
+  \item $Γ_1 = f{:}\mlist → \mlist, l{:}\mlist$ just inside the body of the $\mfix$ and in the $\mNil$ branch of the match.
+  \item $Γ_2 = x{:}\mnat, l'{:}\mlist, f{:}\mlist → \mlist, l{:}\mlist$ in the $\mCons$ branch of the match.
+\end{itemize}
+Clearly, we cannot interchange the results of $\mgen_E(Σ; Γ_1; \mlist; k)$ and $\mgen_E(Σ; Γ_2; \mlist; k)$ because they contain different sets of expressions.
+But the two calls to $\mgen$ also clearly share some expressions in common.
+We would like to be be able to realize this sharing in our term caches as well to avoid redundant work.
+
+\input{figures/mlsyn-gen}
+
+To do this, we a technique for efficiently performing term enumeration in the presence of contexts called \emph{relevant term generation}.
+Critically, we note that our contexts during the synthesis process only grow; they never shrink or shuffle their contents.
+As a result, we can factor the term generation function as follows:
+\begin{align*}
+  \mgen_E(Σ; x{:}τ_1, Γ; τ; n) =\;& \mgen_E^{x{:}τ_1}(Σ; Γ; τ; n) \\
+                               ∪\;& \mgen_E(Σ; Γ; τ; n) \\
+  \mgen_I(Σ; x{:}τ_1, Γ; τ; n) =\;& \mgen_I^{x{:}τ_1}(Σ; Γ; τ; n) \\
+                               ∪\;& \mgen_I(Σ; Γ; τ; n) \\
+\end{align*}
+This factorization ensures that for a given goal type $τ$ and size $n$, two calls to $\mgen$ in different contexts $Γ$ and $x{:}τ_1, Γ$ share the same set terms under the shared context $Γ$.
+
+Here, $\mgen_E^{x{:}τ_1}$ and $\mgen_I^{x{:}τ_1}$ are \emph{relevant term generation functions}.
+Inspired by relevance logic \todo{cite: Anderson, Belnap, and Dunn}, these functions are variants of our standard term-enumeration functions except that they require that all expressions they generate must contain the relevant variable $x$.
+\autoref{fig:mlsyn-relevant-gen-elim} and \autoref{fig:mlsyn-relevant-gen-intro} gives the definition of relevant $E$- and $I$-term generation.
+The functions operate similarly to the $\mgen$ functions we developed in \autoref{fig:mlsyn-raw-term-collection-semantics}.
+The critical difference is that when our relevant $E$-term generation functions bottoms out at size one, rather than generating all terms of goal type $τ$, we only a single term, the relevant variable $x$, when the goal type is the relevant variable's type.
+
+The relevant term-generation functions ensure that the relevant variable $x$ appears in every term generated by the function.
+When we generate terms that contain multiple sub-expressions in a relevant context, we must be careful to ensure that this property holds.
+For example, we can break up generation of a function application $E\,I$ with a relevant variable $x$ into three cases:
+\begin{enumerate}
+  \item $x$ must appear in $E$ and must not appear in $I$.
+  \item $x$ must not appear in $E$ and must appear in $I$.
+  \item $x$ must appear in both $E$ and $I$.
+\end{enumerate}
+These cases are reflected in the definition of relevant term generation for function applications in \autoref{fig:mlsyn-relevant-gen-elim}.
+To ensure that $x$ appears in a particular sub-term, we invoke the relevant term generation function with $x$, $\mgen_E^{x{:}τ}$ or $\mgen_I^{x{:}τ}$.
+To ensure that $x$ does not appear in a particular sub-term, we invoke the non-relevant term generation function in a context not containing $x$.
+
+For constructors (\autoref{fig:mlsyn-relevant-gen-intro}), we must generalize this factorization to $k$ subexpressions rather than just two.
+To do this, employ a ``sliding window'' factorization (realized by the \mkwd{parts} helper function) where we walk the list of sub-expressions, distinguishing the current expression $I_m$ as the one that \emph{must} contain the relevant variable $x$.
+Throughout this process, we note that $x$ has been required to appear in all of the expressions before $I_m$.
+Therefore, we require that $x$ \emph{must not appear} in the expressions before $I_m$.
+In contrast, $x$ \emph{may} appear in the expressions after $I_m$ as we have not placed any restrictions on them yet.
+
+Now we have three cases of sub-term generation that we handle with the \mkwd{genp} helper function.
+The cases where $x$ must and must not appear in the sub-term are handled similarly to the function application case.
+To generate terms that may contain $x$, we appeal to the non-relevant term generation function, adding $x$ into the context.

@@ -1,0 +1,35 @@
+\begin{figure}
+  \begin{center}
+    \[
+      \begin{array}{l}
+        \mfun{types}(Σ) = \{ T \bnfalt C : τ_1 * … * τ_m → T ∈ Σ \} \\
+        \mrmatch^s(Σ; Γ; τ; Χ; 0) = \{ \} \\
+        \mrmatch^s(Σ; Γ; τ; Χ; k) = \displaystyle{\bigcup_{\scriptstyle T ∈ \mfun{types}(Σ)}}
+        \⇥{1} \{ \underline{\mmatch\;E\;\mwith\;\many{p_i → ◼_i}{i < m}} \bnfalt \\
+        \⇥{2}   E ∈ \mgen_E(Σ; Γ; T; s), \\
+        \⇥{2}   \many{(p_i, Χ_i)}{i < m} = \mfun{distribute}(Σ, T, Χ, E), \\
+        \⇥{2}   \many{Γ_i}{i < m} = \mfun{binders}(Γ, E, p_i), \\
+        \⇥{2}   \many{◼_i = \mrtree^s(Σ; Γ_i, Γ; τ; Χ_i; k-1)}{i < m} \} \\
+        \\
+        \mrtree^s(Σ; Γ; τ_1 → τ_2; Χ; k) = \{ \underline{\mfix\;f\;(x{:}τ_1) : τ_2 = ◼} \bnfalt \\
+        \⇥{1} Χ' = \mfun{apply}(f, x, σ_1 ↦ \mpf_1) \concat … \concat \mfun{apply}(f, x, σ_n ↦ \mpf_n), \\
+        \⇥{1} ◼ = \mrtree^s(Σ; f{:}τ_1 → τ_2 \{\mrec\}, x{:}τ_1 \{\marg{f}\}; Γ; Χ'; k) \\
+        \} \\
+        \⇥{1} \text{where} \\
+        \⇥{2}   Χ = σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n \\
+        \\
+        \mrtree^s(Σ; Γ; T; Χ; k) = \{ \underline{C(◼_1, …, ◼_m)} \bnfalt \\
+        \⇥{1}   Χ_1, …, Χ_m = \mfun{proj}(X), \\
+        \⇥{1}   \many{◼_i ∈ \mrtree^s(Σ; Γ; τ_i; Χ_i; k)}{i < m} \\
+        \} ∪ \mrmatch^s(Σ; Γ; τ; Χ; k) \\
+        \text{where} \\
+        \⇥{1}   Χ = \many{σ_i ↦ C(I_{i1}, …, C_{im})}{i < n} \\
+        \⇥{1}   C : τ_1 * … * τ_m ∈ Σ
+      \end{array}
+    \]
+  \end{center}
+
+\hrule
+\caption{\mlsyn{} refinement tree creation}
+\label{fig:mlsyn-refinement-tree-creation}
+\end{figure}

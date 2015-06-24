@@ -1,0 +1,20 @@
+\begin{figure}
+  \begin{center}
+    \begin{forest}
+      [$◼:\mlist → \mlist$
+        [\rulename{irefine-arr}\\$\mfix\;f\;(l{:}\mlist) : \mlist \meq\,\fbox{$◼:\mlist$}$, align=center, base=bottom
+          [\rulename{irefine-match}\\$\mmatch\,l\,\mwith$\\$\bnfalt \mNil → \fbox{$◼_1:\mlist$}$\\$\bnfalt \mCons(x \comma l') → \fbox{$◼_2:\mlist$}$, align=left, base=bottom
+            [(1)\\\rulename{irefine-base}\\$\mtrue$, align=center]
+            [(2)\\\rulename{irefine-base}\\$\mCons(\fbox{$◼_1:\mnat$} \comma \fbox{$◼_2:\mlist$})$, align=center, base=bottom
+              [(2)\\\rulename{irefine-base}\\$\mCons(\fbox{$◼_1:\mnat$} \comma \fbox{$◼_2:\mlist$})$, align=center]
+            ]
+          ]
+        ]
+      ]
+    \end{forest}
+  \end{center}
+
+\hrule
+\caption[Example refinement tree]{Example refinement tree.}
+\label{fig:refinement-tree}
+\end{figure}

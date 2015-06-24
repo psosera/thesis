@@ -21,8 +21,8 @@
   \end{array}
   \]
 \hrule
-\caption{$E$-term generation}
-\label{fig:mlsyn-gen-elim}
+\caption{Relevant $E$-term generation}
+\label{fig:mlsyn-relevant-gen-elim}
 \end{figure}
 
 \begin{figure}[!t]
@@ -33,11 +33,10 @@
       \mgen_I(Σ; Γ; τ; 0)       &= \{ \} \\
       \mgen_I(Σ; x:τ_1,Γ; τ; n) &= \mgen_I^{x:τ_1}(Σ; Γ; τ; n) ∪ \mgen_I(Σ; Γ; τ; n) \\
     \end{split} \\
-    \begin{split}
-      \mgen_I(Σ; ·; τ_1 → τ_2; n) &= \\
-        & \{ \mfix{fix}\;f\;(x{:}τ_1) : τ_2 = I \\
-        & \bnfalt I ∈ \mgen_I(Σ; f:τ_1 → τ_2, x:τ_1; τ_2; n-1) \} \\
-    \end{split} \\
+    \begin{array}{l}
+      \mgen_I(Σ; ·; τ_1 → τ_2; n) = \\
+        \⇥{1}\{ \mfix\;f\;(x{:}τ_1) : τ_2 = I \bnfalt I ∈ \mgen_I(Σ; f:τ_1 → τ_2, x:τ_1; τ_2; n-1) \} \\
+    \end{array} \\
     \begin{split}
       \mgen_I^{x:τ}(Σ; Γ; T; n) &= \mgen_E^{x:τ}(Σ; Γ; T; n) \\
         & \bigcup_{\scriptstyle C:τ_1 * … * τ_k → T ∈ Σ}
@@ -46,7 +45,7 @@
     \end{split}
   \end{gather*}
 
-  \centering \framebox{\mbox{$\mgen_I^{x:τ_1}{Σ}{Γ}{τ}{n}$}}
+  \centering \framebox{\mbox{$\mgen_I^{x:τ_1}(Σ; Γ; τ; n)$}}
   \begin{multline*}
     \mgen_I^{x:τ}(Σ; Γ; τ_1 → τ_2; n) = \mgen_E^{x:τ}(Σ; Γ; τ_1 → τ_2; n)\;∪ \\
     \{ \mfix\;f\;(y{:}τ_1) : τ_2 = I \bnfalt I ∈ \mgen_I^{x:τ}(Σ; f:τ_1 → τ_2, y:τ_1, Γ; τ_2; n-1) \}
@@ -70,6 +69,6 @@
     \end{cases}
   \end{gather*}
   \hrule
-\caption{$I$-term generation}
-\label{fig:mlsyn-gen-intro}
+\caption{Relevant $I$-term generation}
+\label{fig:mlsyn-relevant-gen-intro}
 \end{figure}
