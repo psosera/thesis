@@ -139,7 +139,7 @@ The following principle answers this question in the affirmative:
 \begin{definition}[The Minimum Program Principle]
   In program synthesis, smaller satisfying program (in terms of program size) are more likely to generalize to the desired behavior intended by the user.
 \end{definition}
-The Minimum Program Principle is not a provable theorem, but a search heuristic exploited by many program synthesis tools (\todo{cite: all the example-based synthesis systems that employ this principle.}) to refine the space of programs even further.
+The Minimum Program Principle is not a provable theorem, but a search heuristic exploited by many program synthesis tools (\todo{cite---all the example-based synthesis systems that employ this principle.}) to refine the space of programs even further.
 
 Intuitively, the Minimum Program Principle observes that a smaller program is less likely to over-specialize on the examples given to the synthesizer.
 To see this, consider the specification we gave for $\mkwd{stutter}$ in \autoref{ch:recursion}:
@@ -677,7 +677,7 @@ As a result, we can factor the term generation function as follows:
 This factorization ensures that for a given goal type $τ$ and size $n$, two calls to $\mgen$ in different contexts $Γ$ and $x{:}τ_1, Γ$ share the same set terms under the shared context $Γ$.
 
 Here, $\mgen_E^{x{:}τ_1}$ and $\mgen_I^{x{:}τ_1}$ are \emph{relevant term generation functions}.
-Inspired by relevance logic \todo{cite: Anderson, Belnap, and Dunn}, these functions are variants of our standard term-enumeration functions except that they require that all expressions they generate must contain the relevant variable $x$.
+Inspired by relevance logic \todo{cite---Anderson, Belnap, and Dunn}, these functions are variants of our standard term-enumeration functions except that they require that all expressions they generate must contain the relevant variable $x$.
 \autoref{fig:mlsyn-relevant-gen-elim} and \autoref{fig:mlsyn-relevant-gen-intro} gives the definition of relevant $E$- and $I$-term generation.
 The functions operate similarly to the $\mgen$ functions we developed in \autoref{fig:mlsyn-raw-term-collection-semantics}.
 The critical difference is that when our relevant $E$-term generation functions bottoms out at size one, rather than generating all terms of goal type $τ$, we only a single term, the relevant variable $x$, when the goal type is the relevant variable's type.
@@ -695,11 +695,11 @@ To ensure that $x$ appears in a particular sub-term, we invoke the relevant term
 To ensure that $x$ does not appear in a particular sub-term, we invoke the non-relevant term generation function in a context not containing $x$.
 
 For constructors (\autoref{fig:mlsyn-relevant-gen-intro}), we must generalize this factorization to $k$ subexpressions rather than just two.
-To do this, employ a ``sliding window'' factorization (realized by the \mkwd{parts} helper function) where we walk the list of sub-expressions, distinguishing the current expression $I_m$ as the one that \emph{must} contain the relevant variable $x$.
+To do this, employ a ``sliding window'' factorization (realized by the $\mkwd{parts}$ helper function) where we walk the list of sub-expressions, distinguishing the current expression $I_m$ as the one that \emph{must} contain the relevant variable $x$.
 Throughout this process, we note that $x$ has been required to appear in all of the expressions before $I_m$.
 Therefore, we require that $x$ \emph{must not appear} in the expressions before $I_m$.
 In contrast, $x$ \emph{may} appear in the expressions after $I_m$ as we have not placed any restrictions on them yet.
 
-Now we have three cases of sub-term generation that we handle with the \mkwd{genp} helper function.
+Now we have three cases of sub-term generation that we handle with the $\mkwd{genp}$ helper function.
 The cases where $x$ must and must not appear in the sub-term are handled similarly to the function application case.
 To generate terms that may contain $x$, we appeal to the non-relevant term generation function, adding $x$ into the context.

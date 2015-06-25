@@ -17,20 +17,17 @@
       \fbox{$Σ;Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
         \inferrule[irefine-guess]
           {Σ;Γ ⊢ τ ⇝ E \\ E ⊨ Χ}
-          {Σ;Γ ⊢ τ ▷ Χ ⇝ E} \qquad
-        \inferrule[irefine-unit]
-          {Χ = \many{σ_i ↦ ()}{i < n}}
-          {Σ;Γ ⊢ \munit ▷ Χ ⇝ ()} \\
+          {Σ;Γ ⊢ τ ▷ Χ ⇝ E} \\
         \inferrule[irefine-base]
         {C : τ_1, …, τ_k → T ∈ Σ \\ X = \many{σ_i ↦ C(I_{i1}, …, I_{ik})}{i < n} \\\\
-         \mfun{proj}(X) = C_1, …, C_k \\ \many{Σ;Γ ⊢ I_i ⇐ τ_i}{i < k}}
+         \mfun{proj}(X) = Χ_1, …, Χ_k \\ \many{Σ;Γ ⊢ τ_j ▷ Χ_j ⇝ I_j}{j < k}}
           {Σ;Γ ⊢ T ▷ Χ ⇝ C\;(I_1, …, I_k) ⇐ T} \\
         \inferrule[irefine-arr]
-          {X = σ_1 ↦ pf_1, …, σ_n ↦ pf_n \\\\
-           X' = \mfun{apply}(f, x, σ_1 ↦ pf_1) \concat … \concat \mfun{apply}(f, x, σ_n ↦ pf_n) \\\\
+          {X = σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n \\\\
+           X' = \mfun{apply}(f, x, σ_1 ↦ \mpf_1) \concat … \concat \mfun{apply}(f, x, σ_n ↦ \mpf_n) \\\\
            Σ;f{:}τ_1 → τ_2 \{\mrec\}, x{:}τ_1 \{\marg{f}\}, Γ ⊢ I ▷ X' ⇝ τ_2}
           {Σ;Γ ⊢ τ_1 → τ_2 ▷ Χ ⇝ \mfix\;f\;(x{:}τ_1) : τ_2 = I} \\
-        \inferrule[t-match]
+        \inferrule[irefine-match]
           {Σ;Γ ⊢ T ⇝ E \\ \mfun{distribute}(Σ, T, X, E) = \many{(p_i, X'_i)}{i < m} \\\\
           \many{\mfun{binders}(Γ, E, p_i) = Γ_i}{i < m} \\ \many{Σ; Γ_i, Γ ⊢ τ ▷ Χ ⇝ I_i}{i < m}}
           {Σ;Γ ⊢ τ ▷ Χ ⇝ \mmatch\;E\;\mwith\;\many{p_i → e_i}{i < m}}

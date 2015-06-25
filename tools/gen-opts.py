@@ -20,6 +20,7 @@ options = \
     , 'syntaxonly' : 'Enables syntax-only checking'
     , 'comments' : 'Enables comments (\\todo and \\comment)'
     , 'draft' : 'Enables draft mode (\\toggletrue{draft})'
+    , 'contentonly' : 'Enables content only mode (\\toggletrue{contentonly})'
     }
 
 def print_options():

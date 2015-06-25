@@ -124,6 +124,13 @@
 \newcommand{\doublespaced}{\renewcommand{\baselinestretch}{2}\normalfont}
 \newcommand{\singlespaced}{\renewcommand{\baselinestretch}{1}\normalfont}
 
+\iftoggle{contentonly}{%
+  \setcounter{page}{1}
+  \pagenumbering{arabic}
+  \hypersetup{pageanchor=true}
+  \input{content}
+}{%
+
 %%%%%%%%%%%%%%%%%%%% Title page {{{ %%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\signature}{%
@@ -274,12 +281,6 @@ Preface
 
 %%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%% Appendices {{{ %%%%%%%%%%%%%%%%%%%%
-
-\appendix
-
-%%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%%%%%%%%%%%%% Bibliography {{{ %%%%%%%%%%%%%%%%%%%%
 
 
@@ -292,4 +293,5 @@ Preface
 
 %%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
 
+}
 \end{document}

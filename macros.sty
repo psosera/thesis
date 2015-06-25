@@ -5,6 +5,7 @@
 \newcommand{\stlc}{$λ^{→}$}
 \newcommand{\lsyn}{$λ_{syn}^{→}$}
 \newcommand{\mlsyn}{$\textsc{ML}_{syn}$}
+\newcommand{\myth}{$\textsc{Myth}$}
 
 %%%%% }}}
 
@@ -15,9 +16,12 @@
 \def\etc{\emph{etc.\@\xspace}}
 \def\etal{\emph{et\ al.\@\xspace}}
 
-% NOTE: so \autoref does the right thing for Section capitalization
-\renewcommand{\sectionautorefname}{Section}
-\renewcommand{\subsectionautorefname}{Section}
+% NOTE: so \autoref does the right thing for Chapter/Section capitalization
+\addto\extrasenglish{%
+  \renewcommand{\chapterautorefname}{Chapter}
+  \renewcommand{\sectionautorefname}{Section}
+  \renewcommand{\subsectionautorefname}{Section}
+}
 
 \newcommand{\rulename}[1]{\textsc{#1}}
 

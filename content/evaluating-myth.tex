@@ -1,4 +1,104 @@
-\todo{%
-  An expanded results section from the PLDI paper.
-  In addition to the table, graphs showing trends, descriptions of the examples and development process, and analysis of the results
+In \autoref{ch:implementation}, we developed an efficient synthesis procedure from our core synthesis calculus \mlsyn{}.
+In this chapter, we explore our implementation of this synthesis procedure, a prototype program synthesizer called \myth{}.\footnote{%
+  We provide a summary of the final synthesis procedure as a reference in \autoref{app:the-implementation-of-myth}.
 }
+
+Our goal with \myth{} is to further explore the type-theoretic foundations for program synthesis that we have developed so far.
+We started our exploration by carefully analyzing the metatheory of type-directed program synthesis, in particular the soundness and completeness of \lsyn{} and \mlsyn{}.
+However, this is insufficient for getting a complete sense of how program synthesis systems built up top of these foundations will perform in practice.
+By exploring the behavior of an actual implementation, we can better understand the capabilities and limitations of our approach and identify areas for future improvement.
+
+Note that an explicit non-goal of this exploration is to justify \myth{}-the-artifact as a practical tool for program synthesis.
+While we explore some aspects of the viability of \myth{} as an end-user tool, \eg, performance, we intentionally do not explore the usability of the tool.
+We do this primarily as a matter of pragmatics.
+There are plenty of emperical questions to investigate about \myth{}---How many examples do we need to synthesize a particular program?  How long does it take to synthesize a particular program?---without delving into the usability side of the project.
+However, we also want to stress that, throughout this work, we have been less concerned with building a practical tool and more interested in answering foundational questions about the integration of types into program synthesis.
+We do not want to overshadow these important results with claims about usability that we do not have the time to develop thoroughly.
+We leave such investigation to future work.
+
+\section{Search Parameter Tuning}
+\label{sec:search-parameter-tuning}
+
+Originally we started with a simple synthesis procedure that searched the space of programs according to program size in a breadth-first manner.
+When we introduced refinement trees, we also introduced a number of search parameters into the procedure:
+\begin{itemize}
+  \item $s$, the maximum scrutinee size of any match expression,
+  \item $m$, the maximum match depth, \ie, the maximum number of matches that can appear in any branch of a refinement tree, and
+  \item $k$, the maximum size of $E$-terms that we generate during the $E$-guess phase of the procedure.
+\end{itemize}
+Rather than performing a breadth-first search by program size alone, we now perform a breadth-first search according to these three parameters.
+Thus, choosing appropriate \emph{initial values} along with a \emph{strategy} for traversing through successive iterations of the algorithm is imperative towards obtaining good synthesis results.
+
+\paragraph{Scrutinee Size}
+Let's consider the effects of each of these parameters on the programs that the synthesis algorithm produces.
+First, the scrutinee size affects the complexity of the pattern matches that we can synthesize.
+At $s = 1$, we can only synthesize variables as scrutinees.
+This has been sufficient for the examples we have used so far, but in general we need the ability to synthesize richer scrutinees.
+As an example, suppose in OCaml that we have the standard $\mkwd{lookup}$ function of type $'a → ('a, 'b)\;\mlist → 'b\;\mkwd{option}$ in our context.
+Then we need richer scrutinees to synthesize programs that use association lists such as:
+
+\begin{center}
+  \begin{minipage}{0.75\textwidth}
+    \begin{lstlisting}
+      match l with
+      | Some r -> (* Process the result *)
+      | None   -> (* Return some default value *)
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+However, we want to avoid opening the door to complex scrutinees too quickly.
+This is because the number of possible scrutinees (and consequently, the number of possible matches) grows exponentially with the scrutinee size and very often, we only need to pattern match over a single variable.
+Our informativeness restriction rules out some of these scrutinees, but in practice, many scrutinees make it through the restriction, requiring us to add these branches to our refinement tree.
+These additional branches become more points where we have to $E$-guess, making synthesis more costly.
+Furthermore, on top of these scrutinees, as we increase the scrutinee size $s$, we also increase the liklihood of generating scrutinees that are equivalent to previously generated scrutinees.
+
+\paragraph{Match Depth}
+Related to the scrutinee size, the match depth $m$ controls the number of match expressions that can appear in any branch of the refinement tree.
+Whereas the scrutinee size controls the \emph{width} of matches, \ie, the amount of possible match expressions at any point in a refinement tree, the match depth controls the \emph{depth} of matches, \ie, how deeply we can nest pattern matches in a candidate program.
+In many cases, a single match expression is sufficient to satisfy a given synthesis problem.
+However, sometimes we may also need to resort to nested matching to access successive elements of a structure or to make decisions based off of case analysis of multiple pieces of data.
+The danger is that unnecessary nested matches greatly impact performance because in addition to the branching factor, each branch introduces additional binders which accelerates the exponential blow-up associated with raw-term enumeration.
+Thankfully, we rule out equivalent, nested matches thanks to our informativeness restriction (see \autoref{subsec:reigning-in-matches}), although the cost of stacking up binders due to nested matches is very significant.
+
+An additional problem with setting the match depth too high is overspecialization.
+For example, consider the overspecializing function for $\mkwd{stutter}$ from \autoref{subsec:the-minimum-program-principle}.
+\[
+  \begin{array}{l}
+    \mfix\;f\;(l{:}\mlist) : \mlist = \\
+    \⇥{1} \mmatch\;l\;\mwith \\
+    \⇥{1}   \bnfalt \mNil → [] \\
+    \⇥{1}   \bnfalt \mCons(x, l') → \mmatch\;l'\;\mwith \\
+    \⇥{2}   \bnfalt \mNil → [0, 0] \\
+    \⇥{2}   \bnfalt \mCons(y, l'') → \mmatch\;l''\;\mwith \\
+    \⇥{3}   \bnfalt \mNil → [1, 1, 0, 0] \\
+    \⇥{3}   \bnfalt \mCons(z, l''') → [].
+  \end{array}
+\]
+By synthesizing programs in order of increasing size, we guaranteed that our original synthesis procedure would not synthesize this program before synthesizing the desired recursive function.
+However, imagine in our new synthesis procedure that we started with the match depth $m = 3$.
+Notice that because overspecialization contains no $E$-guessed terms, our initial refinement tree would contain this program immediately and we would be done!
+Because of this, we have to start with a small match depth and be careful about increasing it too quickly.
+
+\paragraph{$E$-term Size}
+Finally, $k$ controls the maximum size of $E$-terms that the algorithm is allowed to guess at any node in the refinement tree.
+The primary benefit of our refinement tree structure, is that we have localized the expensive procedure of $E$-term enumeration to the leaves of the refinement tree.
+For example, rather than having to synthesize $E$-terms up to size 11 to find $\mkwd{stutter}$, we only need to synthesize $E$-terms up to size 3 to find the recursive function call $f\,l'$.
+
+\section{Example Development}
+\label{sec:example-development}
+
+\section{Benchmark Suite}
+\label{sec:benchmark-suite}
+
+\subsection{The Sample Programs}
+\label{subsec:the-sample-programs}
+
+\subsection{Analysis}
+\label{subsec:analysis}
+
+\subsection{Context Size and Performance}
+\label{subsec:context-size-and-performance}
+
+\section{Extended Examples}
+\label{sec:extended-examples}

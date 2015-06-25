@@ -8,8 +8,6 @@ By playing this game with the type system of flipping inputs and outputs, we lea
 In some cases, this is sufficient to synthesize this type within \lsyn{}.
 However in other cases, in particular, the more complex types that we consider in future chapters, we must do additional work to properly synthesize programs of those types.
 
-\todo{Add note about Jonathan's and Rohan's contributions to products and records, respectively.}
-
 \section{Products}
 
 \input{figures/lsyn-products}
@@ -108,7 +106,29 @@ For the rest of the language extensions in this chapter, we merely provide the c
 \subsection{Efficiency}
 \label{subsec:tuple-efficiency}
 
-\todo{Fill me in with a brief description of focusing.}
+Tuples bring up an interesting matter of efficiency.
+In order to use a tuple, we must project out either its left or right component.
+From the perspective of an implementation, this is undesirable because we must speculatively explore the derivations where we project out either component with $\mfst$ and $\msnd$.
+These derivations may not be fruitful and become wasted work.
+Furthermore, if we require both components, then the order in which we apply $\mfst$ and $\msnd$ matters insofar as they represent two distinct-yet-equivalent derivations.
+
+To alleviate these problems we import the technique of \emph{focusing} from the proof search literature~\todo{cite---McLaughlin and Pfenning 2009} into program synthesis.  For a full treatment of focusing in program synthesis to efficiently handle tuples, see Frankle's Masters thesis~\todo{cite---Frankle 2015}.
+Here, we briefly describe the focusing procedure.
+Intutively, whenever we introduce a value of tuple type into the context, we greedily decompose the tuple down to base or arrow types.
+For example, suppose we have a variable $x$ of type $T_1 × ((T_2 × T_3) × T_4)$.
+Then by focusing on $x$, we obtain the following expressions of base type:
+\begin{gather*}
+  \mfst x : T_1 \\
+  \mfst \mfst \msnd x : T_2 \\
+  \msnd \mfst \msnd x : T_3 \\
+  \msnd \msnd x : T_4
+\end{gather*}
+We extend our context $Γ$ to not contain just free variables, but arbitrary $E$-terms.
+After focusing, we add these expressions to our context, making them available for use later in the synthesis derivation.
+
+Essentially, focusing allows us to rip out all of the components of a product, avoiding the cost of speculatively exploring derivations involving individual projections.
+This has the cost of increasing the size of our context which in turn affects the cost of raw $E$-term generation.
+But we are able to greatly reduce the space of derivations involving pairs which results in a net win for performance.
 
 \section{Records}
 
@@ -406,7 +426,7 @@ Building on the second point, because we can invoke \rulename{irefine-match} at 
 Here, we fall in the trap of synthesizing pattern matches over $x$ and $y$, but we may do them in any order.
 And furthermore, those pattern matches may appear far apart in any branch of the program.
 
-Historically, conditionals such as $\mkwd{if}$ statements and pattern matches have proven to be the most difficult to reason about during synthesis~\todo{cite}.
+Historically, conditionals such as $\mkwd{if}$ statements and pattern matches have proven to be the most difficult to reason about during synthesis~\todo{cite---Escher and others that synthesize conditionals}.
 They not only represent points of non-determinism, they also greatly expand the branching factor of the program.
 Furthermore many conditionals are syntactically distinct but semantically equivalent, making search difficult to optimize.
 In \autoref{ch:implementation}, we go through significant lengths to minimize these points of inefficiencies.

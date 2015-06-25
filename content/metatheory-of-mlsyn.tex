@@ -2,6 +2,60 @@ The simple type extensions to \lsyn{} that we explored in \autoref{ch:simple-typ
 In particular, soundness and completeness followed from straightforward lemmas about the behavior of the new language features.
 However, the introduction of recursion in \mlsyn{} is significant enough to reexamine whether the key properties we established in \autoref{ch:metatheory-of-lsyn} hold and if not, why we lost them.
 
+\section{Auxiliary Lemmas}
+
+When proving soundness and completeness for \lsyn{} and its extensions, we required a number of auxiliary facts for each example-refinement function we introduced:
+\begin{itemize}
+  \item Type preservation lemmas stating that the example-refinement function produced well-typed examples.
+  \item Satisfaction preservation lemmas stating that if an expression satisfied some examples, then its sub-expressions satisfied the examples produced by the example-refinement function.
+\end{itemize}
+We state these lemmas here for \mlsyn{}.
+Their proofs follow analogously from similar language features we explored in \autoref{ch:metatheory-of-lsyn} and \autoref{ch:simple-type-extensions}.
+
+\begin{lemma}[Type Preservation of $\mfun{apply}$ (\mlsyn{})]
+\label{lem:type-preservation-of-apply-mlsyn}
+  If $Σ; Γ ⊢ σ ↦ \many{v_i ⇒ χ_i}{i < m} : τ_1 → τ_2$ then $Σ; x{:}τ_1, Γ ⊢ \mfun{apply}(x, σ, \many{v_i ⇒ χ_i}{i < m}) : τ_2$.
+\end{lemma}
+
+\begin{lemma}[Type Preservation of Example World Concatenation (\mlsyn{})]
+\label{lem:type-preservation-of-example-world-concatenation-mlsyn}
+  If $Σ; Γ ⊢ Χ : τ$ and $Σ; Γ ⊢ Χ' : τ$ then $Σ; Γ ⊢ Χ \concat Χ' : τ$.
+\end{lemma}
+
+\begin{lemma}[Satisfaction Preservation of $\mfun{apply}$ (\mlsyn{})]
+\label{lem:satisfaction-preservation-of-apply-mlsyn}
+  If $\mfix\;f\;(x{:}τ_1) : τ_2 = I ⊨ Χ$ then $I ⊨ \mfun{apply}(f, x, σ_1 ↦ \mpf_1) \concat … \concat \mfun{apply}(f, x, σ_1 ↦ \mpf_n)$.
+\end{lemma}
+
+\begin{lemma}[Example-Type Preservation of $\mfun{proj}$ (\mlsyn{})]
+\label{lem:type-preservation-of-proj-mlsyn}
+  If $Χ = \many{σ_i ↦ C(I_{1i}, …, {ki})}{i < n}$, $C : τ_1 * … * τ_k → T$, $Σ; Γ ⊢ Χ : T$ then $\many{Σ; Γ ⊢ Χ_j : τ_j}{j < k}$ where $\mfun{proj}(Χ) = Χ_1, … Χ_k$.
+\end{lemma}
+
+\begin{lemma}[Satisfaction Preservation of $\mfun{proj}$ (\mlsyn{})]
+\label{lem:satisfaction-preservation-of-proj-mlsyn}
+  If $C(I_1, …, I_k) ⊨ Χ$ then $\many{I_j ⊨ Χ_j}{j < k}$ where $\mfun{proj}(Χ) = Χ_1, …, Χ_k$.
+\end{lemma}
+
+\begin{lemma}[Example-Type Preservation of $\mfun{distribute}$ (\mlsyn{})]
+\label{lem:type-preservation-of-distribute-mlsyn}
+  If $Σ; Γ ⊢ Χ : τ$ and $Σ; Γ ⊢ E ⇒ T$, then $\many{Σ; Γ_i, Γ ⊢ Χ_i : τ}{i < m}$ where $\mfun{distribute}(Σ, T, Χ, E) = \many{(p_i, Χ_i)}{i < m}$ and $\many{\mfun{binders}(Γ, E, p_i) = Γ_i}{i < m}$.
+\end{lemma}
+
+\begin{lemma}[Satisfaction Preservation of $\mfun{distribute}$ (\mlsyn{})]
+\label{lem:satisfaction-preservation-of-distribute-mlsyn}
+  Let $I$ be the expression
+  \[
+    \begin{array}{l}
+      \mmatch\;E\;\mwith\; \\
+      \bnfalt p_1 → I_1 \\
+      … \\
+      \bnfalt p_m → I_m.
+    \end{array}
+  \]
+  If $I ⊨ Χ$ then $\many{I_i ⊨ Χ_i}{i < m}$ where $\mfun{distribute}(Σ, T, Χ, E) = \many{(p_i, Χ_i)}{i < m}$.
+\end{lemma}
+
 \section{Soundness}
 
 Recall that soundness of type-directed program synthesis can be broken up into two components:
@@ -19,7 +73,31 @@ Unsurprisingly, both properties hold in \mlsyn{}.
 \end{lemma}
 \begin{proof}
   By mutual induction on the synthesis derivations for $E$- and $I$-terms.
-  \todo{Fill this in.}
+  Consider the final rule used in the derivation:
+  \begin{description}
+    \item[Case \normalfont{\rulename{eguess-var}}]
+      $E = x$.
+      By the premise of \rulename{eguess-var}, $x : τ$ which is sufficient to conclude by \rulename{t-Evar} that $x$ is well-typed.
+    \item[Case \normalfont{\rulename{eguess-app}}]
+      $E = E_1\,I$.
+      By the premises of \rulename{eguess-app} and our inductive hypotheses, we know that $E_1$ and $I$ are well-typed at $τ1 → τ$ and $τ1$, respectively.
+      With this, we can conclude via \rulename{t-Eapp} that $E1\,I$ is well-typed at type $τ$.
+    \item[Case \normalfont{\rulename{irefine-guess}}]
+      $I = E$.
+      By the premises of \rulename{irefine-guess} and our inductive hypothesis, we know that $E$ is well-typed as an $E$-form and from \rulename{t-Ielim} $E$ is well-typed as an $I$-form.
+    \item[Case \normalfont{\rulename{irefine-arr}}]
+      $I = \mfix\;f\;(x{:}τ_1) : τ_2 = I_1$.
+      By the premises of \rulename{irefine-arr} and our inductive hypothesis, we know that $I_1$ is well-typed.
+      Therefore, by \rulename{t-Iarr}, we know that $I$ is well-typed.
+    \item[Case \normalfont{\rulename{irefine-base}}]
+      $I = C(I_1, …, I_k)$.
+      By the premises of \rulename{irefine-base} and our inductive hypothesis, we know that each $I_k$ is well-typed.
+      Therefore, by \rulename{t-Ictor}, we know that $I$ is well-typed.
+    \item[Case \normalfont{\rulename{irefine-match}}]
+      $I = \mmatch\;E\;\mwith\;\many{p_i → I_i}{i < m}$.
+      By the premises of \rulename{irefine-match} and our inductive hypotheses, we know that each sub-component of the match expression is well-typed.
+      Therefore, by \rulename{t-Imatch}, we know that $I$ is well-typed.
+  \end{description}
 \end{proof}
 
 \begin{lemma}[Example Soundness of \mlsyn{}]\ %
@@ -27,7 +105,58 @@ Unsurprisingly, both properties hold in \mlsyn{}.
 \end{lemma}
 \begin{proof}
   By induction on the synthesis derivation of $I$.
-  \todo{Fill this in.}
+  Consider the final rule used in the derivation:
+  \begin{description}
+    \item[Case \normalfont{\rulename{irefine-guess}}]
+      $I = E$.
+      By the premises of \rulename{irefine-guess} and our inductive hypothesis, we know that $E$ is well-typed as an $E$-form and from \rulename{t-Ielim} $E$ is well-typed as an $I$-form.
+    \item[Case \normalfont{\rulename{irefine-arr}}]
+      $I = \mfix\;f\;(x{:}τ_1) : τ_2 = I_1$.
+      By the premises of \rulename{irefine-arr} we know that $Χ = σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n$ and $Χ' = \mkwd{apply}(σ_1 ↦ \mpf_1) \concat … \concat \mkwd{apply}(σ_1 ↦ \mpf_n)$.
+      By \autoref{lem:type-preservation-of-apply-mlsyn} and \autoref{lem:type-preservation-of-example-world-concatenation-mlsyn}, we know that $Χ'$ is well-typed.
+      This allows us to use our inductive hypothesis to conclude that $I_1 ⊨ Χ'$.
+
+      Now, consider a single example world $\many{σ ↦ v_i ⇒ χ_i}{i < m} ∈ Χ$.
+      Unfolding the definition of the satisfaction judgment for $I$ and that particular example world shows that
+      \[
+        σ(I) = σ(\mfix\;f\;(x{:}τ_1) : τ_2 = I_1) ⟶^* \mfix\;f\;(x{:}τ_1) : τ_2 = σ(I_1)
+      \]
+      and we must show that $\mfix\;f\;(x{:}τ_1) : τ_2 = σ(I_1) ≃ {v_i ⇒ χ_i}{i < m} ∈ Χ$.
+      By \rulename{eq-lam-pf}, we must show that for all $i ∈ 1, …, m$ that $v ≃ χ_i$ where
+      \[
+        (\mfix\;f\;(x{:}τ_1) : τ_2 = σ(I_1))\,v_i ⟶ [\mfix\;f\;(x{:}τ_1) : τ_2 = σ(I_1)/f][v_i/x]σ(I_1) ⟶^* v.
+      \]
+      However, we know that $\mfix\;f\;(x{:}τ_1) : τ_2 = I_1$ agrees on all of the inputs expressed by the partial function, so from $I_1 ⊨ Χ'$, we can conclude that the compatibility relation holds.
+
+    \item[Case \normalfont{\rulename{irefine-base}}]
+      $I = C(I_1, …, I_k)$.
+      By the premises of \rulename{irefine-base} we know that $Χ = \many{σ_i ↦ C(χ_{i1}, …, χ_{ik})}{i < n}$ and $\mkwd{proj}(Χ) = Χ_1, …, Χ_k$.
+      By \autoref{lem:type-preservation-of-proj-mlsyn}, we know that the $Χ_1, …, Χ_k$ are well-typed.
+      This allows us to use our inductive hypothesis to conclude that $\many{I_i ⊨ Χ_i}{i < k}$.
+
+      Now, consider a single example world $σ ↦ C(χ_1, …, χ_k) ∈ Χ$.
+      Unfolding the definition of the satisfaction judgment for $I$ and that particular example world shows that
+      \[
+        σ(I) = σ(C(I_1, …, I_k)) ⟶^* C(σ(I_1), …, σ(I_k))
+      \]
+      and we must show that for each $i ∈ 1, …, k$ that $σ(I_i) ≃ χ_i$.
+      However, we know this directly from each $I_i ⊨ Χ_i$, $i ∈ 1, …, k$.
+
+    \item[Case \normalfont{\rulename{irefine-match}}]
+      $I = \mmatch\;E\;\mwith\;\many{p_i → I_i}{i < m}$.
+      By the premises of \rulename{irefine-match} we know that we have generated an arbitrary $E$ of type $T$ and $\mkwd{distribute}(Σ, T, Χ, E) = \many{(p_i, Χ_i)}{i < m}$.
+      By \autoref{lem:type-preservation-of-distribute-mlsyn}, we know that the $Χ_1, …, Χ_m$ are well-typed.
+      This allows us to use our inductive hypothesis to conclude that $\many{I_i ⊨ Χ_i}{i < m}$.
+
+      Now, consider a single example world $σ ↦ χ ∈ Χ$.
+      Unfolding the definition of the satisfaction judgment for $I$ and that particular example world shows that
+      \[
+        σ(I) = \mmatch\;σ(E)\;\mwith\;\many{C_i(\overline{x}) → σ(I_i)}{i < m}
+      \]
+      Because $E$ is well-typed, $σ(E) ⟶^* C_i(v_1, …, v_k)$ for one of $T$'s $m$ constructors, and therefore, the above expression evaluates to $σ'σ(I_i)$ where $σ' = [v_1/x_1] … [v_k/x_k]$.
+      We must show that this expression is compatible with $χ$.
+      However, we know this is true from $I_i ⊨ Χ_i$ and the definition of $\mkwd{distribute}$.
+  \end{description}
 \end{proof}
 
 \section{Completeness}
@@ -37,16 +166,12 @@ Completeness ensures that we can synthesize any program expressible in the langu
 \mlsyn{} poses two difficulties for completeness.
 The first is the presence of recursion.
 Because the synthesis judgment relies heavily on evaluation---in \rulename{irefine-match} when evaluating a scrutinee and in \rulename{irefine-guess} when normalizing an $E$-term to perform a compatibility check---synthesis may not terminate on certain inputs if evaluation goes into an infinite loop.
-Luckily, the \mlsyn{} type system ensures that any well-typed term terminates as the follow theorem claims:
-
+Luckily, the \mlsyn{} type system employs the same checks as other languages believed to be total to ensure termination.\footnote{%
+  We do not prove termination of \mlsyn{} as it is not the true reason why synthesis completeness does not hold in the language!
+}
 \begin{theorem}[Termination of \mlsyn{}]
   If $⊢ Σ$ and $Σ; Γ ⊢ e : τ$, then either $e$ is some $v$ or $e ⟶^* v$ and $Σ; Γ ⊢ v : τ$.
 \end{theorem}
-\begin{proof}
-  We prove this fact via a standard logical relation.
-  \todo{Do this.}
-\end{proof}
-So recursion does not pose a problem for completeness as the language only considers terminating terms as well-typed.
 
 However, in addition to recursion, we also changed our grammar of example values to accommodate partial functions serving as a value for recursive functions.
 Specifically, we added partial functions to the grammar of plain values.
@@ -59,8 +184,8 @@ Because the compatibility relation now compares values, we must contend with com
 This arises when evaluating higher-order partial functions.
 For example, if we evaluate $(v_1 ⇒ χ)\,v_2$, then we may compare two function values for equality if $v_1$ and $v_2$ are $\mfix$es.
 In \lsyn{}, function equality, namely $βη$-equivalence over functions, is decidable.
-However, a normalization-based strategy does not work in \mlsyn{} because of recursion, even well-founded recursion as found in \mlsyn{}.
-\todo{Urk, what is true here; need to give this more thought.}
+However, in the presence of recursion, equivalence of functions is no longer decidable.
+To see this, note that \mlsyn{} is at least as expressive as the primitive recursive functions whose equality is known to be undecidable~\todo{cite---Kahrs}.
 
 Therefore, we must resort to \rulename{eq-refl} that only equates two function values if they are syntactically identical (up to $α$-equivalence by the Barendregt Convention).
 However, this approximation means that we cannot synthesizing some particular programs higher-order synthesis problems.
@@ -80,8 +205,3 @@ Then, we are unable to synthesize the candidate function:
 \]
 To see why, note that we must evaluate the body of the function, $f\,\mkwd{id}$, when applying \rulename{irefine-guess}.
 Evaluation results in $\mNoMatch$ because the functions $λx{:}\mnat.\,\mkwd{plus}\,x\,\mO$ and $λx{:}\mnat.\,x$ are not syntactically identical.
-
-\todo{%
-  Also talk about consistency detection and how it is not possible in \mlsyn{} because we have lost completeness.
-  The discussion should complement the consistency discussion we eventually put in \autoref{ch:metatheory-of-lsyn}.
-}

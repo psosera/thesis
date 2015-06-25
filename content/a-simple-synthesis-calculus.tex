@@ -95,18 +95,13 @@ This observation leads to two natural properties of our term enumeration judgmen
 \label{thm:soundness-stlc-term-enumeration}
 If $Γ ⊢ τ ⇝ e$ then $Γ ⊢ e : τ$.
 \end{theorem}
-\begin{proof}
-Proof by induction on the derivation $Γ ⊢ τ ⇝ e$.
-\todo{Fill this out?}
-\end{proof}
-
 \begin{theorem}[Completeness of \stlc{} term enumeration]
 \label{thm:completeness-stlc-term-enumeration}
 If $Γ ⊢ e : τ$ then $Γ ⊢ τ ⇝ e$.
 \end{theorem}
 \begin{proof}
-Proof by induction on the derivation $Γ ⊢ e : τ$.
-\todo{Fill this out?}
+  Both theorems follow from straightforward inductions on the given term-enumeration or type-checking derivations, respectively.
+  However, both theorems also follow the fact that the type-checking and term-enumeration judgments are actually equivalent!
 \end{proof}
 
 \autoref{thm:soundness-stlc-term-enumeration} states that enumerated terms are well-typed, and \autoref{thm:completeness-stlc-term-enumeration} states that we are able to enumerate the well-typed terms.
@@ -128,10 +123,6 @@ We say that the two terms are \emph{$β$-equivalent}, taking the standard defini
   This is true of \stlc{} because it is strongly normalizing.
   In the presence of non-termination, this does not hold because infinite loops do not have a corresponding normal form.
 }
-\todo{%
-  Not quite true.
-  Our formulation gives $β$-equivalent normal forms wrt full reduction semantics, not the call-by-value semantics that we've prescribed.
-}
 
 By restricting our search to these normal forms, we narrow the search space of programs even further!
 Returning to \autoref{fig:lambda-terms-counts}, we see that the number of closed normal forms of size 15 and type $T → T$ is another order of magnitude smaller than the number of terms of type $T → T$ (1,489 versus 6,205 such terms).
@@ -150,16 +141,10 @@ With this syntax, $I$ and $E$ terms are in normal form by construction!
 To see this, note that function application requires that the head of a function application is an $E$, and the syntax of $E$s bottom outs at variables.
 Therefore, all applications will be of the form $x\,I_1 … I_m$ where a variable is always at the head of the application.
 Arguments, in contrast, are allowed to be any $I$-term which includes $E$s because $E$s are included in the definition of $I$.
-\todo{%
-  Technically, $I$ terms are in full $β$-normal form where reductions are allowed under lambdas.
-  In contrast, $e$ normal forms may contain reductions under binders.
-  Since terms always terminate, this is not an issue as the only $e$s that do not have a corresponding $I$s are those that contain infinite loops under lambdas, \eg, $λx{:}τ.\,f\;x$ where $f\;x$ loops.
-  However, to show that $I$s fully represent the set of $e$s, we need a result showing that for each $e$, we can produce a contextually equivalence $I$.%
-}
 
 This technique of splitting the syntax of expressions into introduction and elimination forms has several useful effects.
-In proof search, this syntax is useful for generating normal form proofs which, by the Curry-Howard Isomorphism~\todo{cite}, is equivalent to generating normal form programs in our setting~\todo{cite}.
-Dividing the syntax in this manner also facilities a description \emph{bidirectional type checking}~\todo{cite} where we explicitly state when a type is an input or output in the type checking judgment.
+In proof search, this syntax is useful for generating normal form proofs which, by the Curry-Howard Isomorphism~\todo{cite---Howard's ``The Formulae-as-types Notion of Construction''}, is equivalent to generating normal form programs in our setting.
+Dividing the syntax in this manner also facilities a description \emph{bidirectional type checking}~\todo{cite---Pierce and Turner 2000} where we explicitly state when a type is an input or output in the type checking judgment.
 This distinction becomes very useful when we talk about refining specification in the context of full program synthesis in \autoref{sec:lsyn-a-program-synthesis-calculus}.
 
 \input{figures/stlc-gen-normal.tex}
@@ -176,7 +161,7 @@ Otherwise, the rules are identical to the $e$-term generation judgment given in 
 
 With well-typed term enumeration, we can efficiently search the space of \stlc{} programs.
 In addition to this search method, we also require some way of \emph{specifying} which particular programs we would like to find during the synthesis process.
-Specification can take many forms, for example, logical properties~\todo{cite} or execution traces~\todo{cite}.
+Specification can take many forms, for example, logical properties~\todo{cite---Sketch and Others} or execution traces~\todo{cite---Programming by Demonstration work}.
 Here, we will consider specifying programs with a combination of \emph{types} and \emph{examples}, in particular, input/output pairs of the form $(v ⇒ v')$ that say a synthesized function should produce the value $v'$ when given the value $v$.
 
 \subsection{Examples as Specification}
@@ -199,8 +184,8 @@ or the program that always returns $c_1$,
 \]
 or some more elaborate function.
 To solve this problem, the user must specify more examples which is burdensome, or the synthesizer must resort to heuristics to choose a final program, \eg, choosing the smallest program with the least amount of variables.
-Thankfully, heuristics like this tend to work well in practice~\todo{cite}.
-Furthermore, this ambiguity can be mitigated by smart interface design decisions, \eg, displaying the top five synthesis results rather than a singular result and allowing the user to choose~\todo{cite}.
+Thankfully, heuristics like this tend to work well in practice.
+Furthermore, this ambiguity can be mitigated by smart interface design decisions, \eg, displaying the top five synthesis results rather than a singular result and allowing the user to choose.
 
 On the other hand, examples are typically more natural to write down than complete logical statements.
 In some cases these logical statements are as complex---or even more complex---then the programs we intend to synthesize!
@@ -326,7 +311,7 @@ As described in \autoref{subsec:enumerating-normal-forms}, it is precisely the n
 
 Type checking and evaluation in the external language is the same as \stlc{}.
 We provide additional rules for type checking the additional constructs introduced in \lsyn{}.
-In particular, $E$ and $I$ terms are checked in a bidirectional type checking style~\todo{cite---benjamin}.
+In particular, $E$ and $I$ terms are checked in a bidirectional type checking style~\todo{cite---Pierce and Turner 2000}.
 We note that during regular type checking, $E$ terms \emph{generate} types (as an output), and $I$ terms \emph{check} against types (as an input).
 To make this explicit, we separate $E$ and $I$ type checking into two separate judgments where we generate types $(E ⇒ τ)$ in the former case and check against types in $(I ⇐ τ)$ in the latter case.
 For example when type checking a variable (\rulename{t-Evar}), we can extract the type of that variable from the context.
@@ -563,18 +548,12 @@ To better understand how \lsyn{} operates, let's work through a number of exampl
   To see this within \lsyn{}, note that \rulename{irefine-ctor} will never apply because the goal example values are different, and \rulename{irefine-guess} will never succeed because we will never be able to generate an $E$ that satisfies both $c_1$ and $c_2$ given that the argument to the function is bound to $c_1$.
   Consequently there are no valid synthesis derivations in \lsyn{} for contradictory examples.
 
-  Detecting such contradictory examples turns out to be tricky.
+  Detecting such contradictory examples turns out to be tricky and undecidable given a sufficiently rich language.
   At first glance, it seems like a simple syntactic check is sufficient: check to see that the partial functions involved map similar inputs to similar outputs.
   However, because we allow lambdas as inputs to partial functions, this problem reduces to deciding function equivalence.
   Furthermore, even this check is insufficient.
   For example, consider the worlds $[c_1/x] ↦ c_1 ⇒ c_1, [c_2/x] c_1 ⇒ c_2$.
   While the partial functions map $c_1$ to distinct outputs, they still do not contradict each other because we fulfill the eventual goal example value with the variable $x$.
   Thus, we must decide not only equivalence between example values but also environments.
-
-  \todo{%
-    How do we want to conclude this part?
-    I believe that $βη$-equivalence is decidable in \stlc{}, so we could perform the required equivalence checks in this simple setting.
-    However, this doesn't scale up appropriately to more complicated type systems.
-    We should write up the contradictory examples check, …, probably just introduce it earlier and reference it here again.
-  }
+  Throughout this work, we assume that examples given by the user are non-contradictory, leaving detection to future work.
 \end{example}

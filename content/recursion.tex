@@ -68,7 +68,7 @@ It turns out that the necessary completeness lemma also holds rather trivially:
   By \rulename{satisfies} and \rulename{eq-fold}, we know that $σ(I) ≃ χ$.
   We know from the definition of $\mfun{unfold}$ that $∀σ ↦ \mfold{χ}.\,σ ↦ χ ∈ \mfun{unfold}(Χ)$ which is sufficient to conclude that $I ⊨ \mfun{unfold}(Χ)$.
 \end{proof}
-The problem is that we know that the addition of $μ$-types into the \stlc{} introduces non-termination~\todo{cite}!
+The problem is that we know that the addition of $μ$-types into the \stlc{} introduces non-termination~\todo{cite---TAPL}!
 In particular, let $ω$ be diverging term.
 Then the expression $λx:τ.\,ω$ cannot be synthesized in \lsyn{} extended with $μ$-types.
 Because $\rulename{irefine-guess}$ relies on evaluation, we will never be able to use it to synthesize $ω$ (which is an $E$-term).
@@ -94,7 +94,7 @@ Because we can easily enumerate infinite loops that ruin our generate-and-test $
 Rather than trying to solve this problem within \lsyn{} where we do not have many hooks for limiting recursive definitions, we graduate to \mlsyn{}, a core ML-like calculus for program synthesis and adopt standard techniques to remove non-termination from the system.
 \autoref{fig:mlsyn-defn} defines the syntax of \mlsyn{} which is divided into an external language of expressions $e$ and an internal language of introduction terms $I$ and elimination terms $E$ that constitute the $β$-normal forms of $e$.
 
-\mlsyn{} more closely approximates a real-world functional programming language like OCaml, F\#, or Haskell.~\todo{Cite all three.}
+\mlsyn{} more closely approximates a real-world functional programming language like OCaml, F\#, or Haskell.~\todo{cite----all three language manuals}
 On top of the lambdas and application introduced in \lsyn{}, \mlsyn{} introduces two major features:
 \begin{enumerate}
   \item Algebraic data types and
@@ -166,7 +166,7 @@ In addition to these standard rules, we enforce three additional properties to e
     If the function $e_1$ is a recursive function (currently being defined), \ie, is a variable $f$ annotated with $\mrec$, then the argument $e_2$ must be a variable annotated with $\mdec{f}$.
     We require that any recursive function application consists of a variable $f$ annotated with $\mrec$ and a variable $x$ annotated with $\mdec{f}$.
     In particular, a recursive function application involving an argument that is not a variable is always invalid.
-    This is strictly more constraining than Coq which performs some $β$-reductions to admit more programs~\todo{cite}, but is much easier to formalize and implement in practice.
+    This is strictly more constraining than Coq which performs some $β$-reductions to admit more programs~\todo{cite---Coq language manual}, but is much easier to formalize and implement in practice.
 
     \rulename{t-app} ensures that every application is structurally recursive (or non-recursive) with $\mfun{struct}$.
     When type checking a function with \rulename{t-fix}, we record bindings for both the argument $x$ and the function itself $f$.
@@ -180,7 +180,7 @@ In addition to these standard rules, we enforce three additional properties to e
     Because we require patterns to be of the form $C(x_1, …, x_k)$, this restriction amounts to having exactly one branch for each constructor of type $T$.
     This constraint is enforced by the judgment $\mfun{complete}(Σ, \many{p_i}{i < m}, T)$ which ensures there is a one-to-one correspondence between a set of patterns and constructors at type $T$.
   \item[Positivity restriction:]
-    Finally, we enforce a positivity restriction on data types similar to Coq and Agda~\todo{cite} that ensures that a recursive occurrence of a data type does not occur to the left of an arrow in the type of a constructor.
+    Finally, we enforce a positivity restriction on data types similar to Coq and Agda~\todo{cite---language manuals again} that ensures that a recursive occurrence of a data type does not occur to the left of an arrow in the type of a constructor.
     To see why this restriction is necessary, consider the data type:
     \[
       \mdata\;d = D\;\mof\; d → τ
@@ -217,9 +217,9 @@ We can now also compare two partial functions for compatibility.
 \rulename{eq-pf-pf} says that two partial functions are compatible if and only if we can draw a one-to-one correspondence between their alternatives where compatible inputs produce compatible outputs.
 Finally, because we are comparing two values, we may end up comparing two functions for compatibility.
 In \lsyn{} such a comparison is possible because functions are non-recursive so we can resort to a strategy based off of $βη$-equivalence.
-However, in \mlsyn{} this is not the case as our functions are recursive by default; in general, determining compatibility in this case is undecidable!~\todo{cite}.
-To remedy this, we add a reflexivity rule (\rulename{eq-refl}) that equates two syntactically identical terms.
-This is only an approximation, as we only consider a function equivalent to itself, but this works well in \mlsyn{} because comparing syntactically distinct, yet equivalent functions is uncommon.~\todo{Probably should expand on this}.
+However, in \mlsyn{} this is not the case as our functions are recursive by default; in general, determining compatibility in this case is undecidable (a point we discuss in \autoref{ch:metatheory-of-mlsyn}).
+To remedy this, we add a reflexivity rule (\rulename{eq-refl}) that equates two syntactically identical terms (as long as they are not the exception value $\mNoMatch$).
+This is only an approximation, as we only consider a function equivalent to itself, but this works well in \mlsyn{} because comparing syntactically distinct, yet equivalent functions only occurs at higher type and is, therefore, uncommon in practice.
 
 \subsection{Synthesis in \texorpdfstring{\mlsyn{}}{MLsyn}}
 \label{subsec:synthesis-in-mlsyn}
@@ -336,28 +336,53 @@ And the positivity restriction on data types is irrelevant because synthesis tak
 
 Let's explore the expressive power of \mlsyn{} with a number of examples.
 To begin with, data types allow us to directly synthesize programs that we had to encode in \lsyn{} and its extensions.
+
+\subsection{Specification for Multi-argument Functions}
+
 First, consider synthesizing the boolean $\mkwd{and}$ operator from \autoref{subsec:example-boolean-operators}.
 We require a signature corresponding to the boolean data type:
 \[
   Σ = \mtrue : \mBool, \mfalse : \mBool.
 \]
-Now, we can synthesize a program at goal type $\mBool → \mBool → \mBool$ and use the same set of examples from before:
+Now, we can synthesize a program at goal type $\mBool → \mBool → \mBool$.
+Originally, we presented the examples from before as
 \begin{align*}
-  \mtrue  ⇒ \mtrue  ⇒ \mtrue \\
-  \mfalse ⇒ \mtrue  ⇒ \mfalse \\
-  \mtrue  ⇒ \mfalse ⇒ \mfalse \\
-  \mfalse ⇒ \mfalse ⇒ \mfalse.
+  & \mtrue  ⇒ \mtrue  ⇒ \mtrue \\
+  \bnfalt & \mfalse ⇒ \mtrue  ⇒ \mfalse \\
+  \bnfalt & \mtrue  ⇒ \mfalse ⇒ \mfalse \\
+  \bnfalt & \mfalse ⇒ \mfalse ⇒ \mfalse,
 \end{align*}
-\todo{%
-  Probably should present the examples in this form:
-    \begin{align*}
-      \mtrue  ⇒ (\mtrue ⇒ \mtrue \bnfalt \mfalse ⇒ \mfalse) \\
-      \mfalse ⇒ (\mtrue ⇒ \mfalse \bnfalt \mfalse ⇒ \mfalse)
-    \end{align*}
-  consistent with how we handle binary function examples in \mlsyn{}.
-  Will require a bit of explaination, expanding on the discussion in the previous section, to justify why we do this.
-}
+a partial function with four input/output examples.
+An alternative specification groups together similar inputs
+\begin{align*}
+  \mtrue  ⇒ (\mtrue ⇒ \mtrue \bnfalt \mfalse ⇒ \mfalse) \\
+  \mfalse ⇒ (\mtrue ⇒ \mfalse \bnfalt \mfalse ⇒ \mfalse)
+\end{align*}
+so that we now have a partial function with two outer input/output examples that feature two nested input/output examples each.
+In \lsyn{}, there was no semantic distinction between these two presentations so we stuck with the former approach as it appears more natural-looking.
+However, in \mlsyn{}, the second approach is preferred for the reasons described in \autoref{subsec:synthesis-in-mlsyn}.
+More specifically, in either case, we will synthesize the following program skeleton:
+\[
+  \begin{array}{l}
+    \mfix\;f\;(b{:}\mBool) : \mBool → \mBool =
+    \⇥{1} \mfix\;g\;(b{:}\mBool) : \mBool = ◼.
+  \end{array}
+\]
+Using the second set of examples, we will have four example worlds when synthesizing the body of the inner function.
+In the first two, $g$ will be bound to the partial function $\mtrue ⇒ \mtrue \bnfalt \mfalse ⇒ \mfalse$, and in the second two, $g$ will be bound to the partial function $\mtrue ⇒ \mfalse \bnfalt \mfalse ⇒ \mfalse$.
+Iif we use the second set of examples, we will have also four example worlds.
+However, in one of them, $g$ will be bound to the partial function $\mtrue ⇒ \mtrue$, another $\mtrue ⇒ \mfalse$, and in the last two $\mfalse ⇒ \mfalse$.
+In this particular case, we do not need to synthesize a recursive call, so the value assigned to $g$ does not matter.
+But if it did, then evaluation of $g$ using the second set of examples will likely fail because none of the example worlds received a complete definition of $g$.
+Because of this, we always specify multi-argument function examples in a nested style \emph{a la} the second set of examples.
 
+\subsection{Example: the \texorpdfstring{$\mkwd{And}$}{And} Function}
+
+With that digression out of the way, let's continue synthesizing the $\mkwd{and}$ function using the examples
+\begin{align*}
+  \mpf =\;& \mtrue  ⇒ (\mtrue ⇒ \mtrue \bnfalt \mfalse ⇒ \mfalse) \\
+          & \mfalse ⇒ (\mtrue ⇒ \mfalse \bnfalt \mfalse ⇒ \mfalse).
+\end{align*}
 First, we apply \rulename{irefine-arr} twice to refine away the arrows.
 This produces the following synthesis state:
 \[
@@ -365,11 +390,14 @@ This produces the following synthesis state:
 \]
 where
 \begin{align*}
-  Γ =\;& f{:}\mBool → \mBool → \mBool \{\mrec\}, b_1{:}\mBool \{\marg{f}\}, g{:}\mBool → \mBool \{\mrec\}, b_2{:}\mBool ⊢ \mBool \\
-  Χ =\;& [\mtrue ⇒ \mtrue ⇒ \mtrue/f][\mtrue/b_1][\mtrue ⇒ \mtrue/g][\mtrue/b_1] ↦ \mtrue, \\
-       & [\mfalse ⇒ \mtrue ⇒ \mfalse/f][\mfalse/b_1][\mtrue ⇒ \mfalse/g][\mtrue/b_1] ↦ \mfalse, \\
-       & [\mtrue ⇒ \mfalse ⇒ \mfalse/f][\mtrue/b_1][\mfalse ⇒ \mfalse/g][\mfalse/b_1] ↦ \mfalse, \\
-       & [\mfalse ⇒ \mfalse ⇒ \mfalse/f][\mfalse/b_1][\mfalse ⇒ \mfalse/g][\mfalse/b_1] ↦ \mfalse,
+  \mpf_1 =\;& \mtrue ⇒ \mtrue \bnfalt \mfalse ⇒ \mfalse \\
+  \mpf_2 =\;& \mtrue ⇒ \mfalse \bnfalt \mfalse ⇒ \mfalse \\
+  Γ =\;& f{:}\mBool → \mBool → \mBool \{\mrec\}, b_1{:}\mBool \{\marg{f}\} \\
+    ,\;& g{:}\mBool → \mBool \{\mrec\}, b_2{:}\mBool ⊢ \mBool \\
+  Χ =\;& [\mpf/f][\mtrue/b_1][\mpf_1/g][\mtrue/b_1] ↦ \mtrue, \\
+       & [\mpf/f][\mfalse/b_1][\mpf_2/g][\mtrue/b_1] ↦ \mfalse, \\
+       & [\mpf/f][\mtrue/b_1][\mpf_1/g][\mfalse/b_1] ↦ \mfalse, \\
+       & [\mpf/f][\mfalse/b_1][\mpf_2/g][\mfalse/b_1] ↦ \mfalse.
 \end{align*}
 Even though we have recursive functions, we will never be able to use them in this synthesis derivation.
 This is because we will never be able to manufacture a binding that is structurally decreasing with respect to $f$ or $g$ as neither of the $\mBool$ constructors contain recursive instances of $\mBool$ in their types.
@@ -529,8 +557,7 @@ In this case, there is a single example world:
   Χ = [1/x][[0]/l'][\mpf'/f][[1, 0]/l] ↦ [0, 0].
 \]
 However, $\mpf'\,[0] ⟶ \mNoMatch$ because $\mpf'$ does not provide an input/output example for $[0]$.
-According to our compatibility rules, $\mNoMatch$ is not compatible with anything (other than itself), and so we cannot conclude that $f\,l'$ is a satisfying expression.
-\todo{Hrm, do we need an explicit rule stating that $\mNoMatch$ is compatible with nothing, not even itself?}
+According to our compatibility rules, $\mNoMatch$ is not compatible with anything (including itself), and so we cannot conclude that $f\,l'$ is a satisfying expression.
 
 In general, when we synthesize recursive function calls, for every input/output example we provide, we must provide a corresponding input/output example that describes that function's behavior on an input that is structurally smaller with respect to the original example's input.
 We call this property of our input/output examples \emph{trace completeness}.
@@ -552,7 +579,7 @@ For example, we may attempt to synthesize a function of the following form
     \⇥{1} \mmatch\;x\;\mwith \\
     \⇥{1}   \bnfalt \mCons(x, l') → \\
     \⇥{2}     \mmatch\;l'\;\mwith \\
-    \⇥{3}       \bnfalt \mCons(y, l'') → … f l'' … \\
+    \⇥{3}       \bnfalt \mCons(y, l'') → … f\,l'' … \\
     \⇥{1} …
   \end{array}
 \]
