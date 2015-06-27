@@ -11,7 +11,7 @@ By exploring the behavior of an actual implementation, we can better understand 
 Note that an explicit non-goal of this exploration is to justify \myth{}-the-artifact as a practical tool for program synthesis.
 While we explore some aspects of the viability of \myth{} as an end-user tool, \eg, performance, we intentionally do not explore the usability of the tool.
 We do this primarily as a matter of pragmatics.
-There are plenty of emperical questions to investigate about \myth{}---How many examples do we need to synthesize a particular program?  How long does it take to synthesize a particular program?---without delving into the usability side of the project.
+There are plenty of empirical questions to investigate about \myth{}---How many examples do we need to synthesize a particular program?  How long does it take to synthesize a particular program?---without delving into the usability side of the project.
 However, we also want to stress that, throughout this work, we have been less concerned with building a practical tool and more interested in answering foundational questions about the integration of types into program synthesis.
 We do not want to overshadow these important results with claims about usability that we do not have the time to develop thoroughly.
 We leave such investigation to future work.
@@ -83,10 +83,52 @@ Because of this, we have to start with a small match depth and be careful about 
 \paragraph{$E$-term Size}
 Finally, $k$ controls the maximum size of $E$-terms that the algorithm is allowed to guess at any node in the refinement tree.
 The primary benefit of our refinement tree structure, is that we have localized the expensive procedure of $E$-term enumeration to the leaves of the refinement tree.
-For example, rather than having to synthesize $E$-terms up to size 11 to find $\mkwd{stutter}$, we only need to synthesize $E$-terms up to size 3 to find the recursive function call $f\,l'$.
+This allows us to generate much smaller $E$-terms on average.
+For example, in our original algorithm, when we synthesized terms up to size 11, we would need to explore the space of $E$-terms of size 11 if our context allowed us to generate $E$-terms of that size.
+In our updated algorithm, rather than having to synthesize $E$-terms up to size 11 to find $\mkwd{stutter}$, we only need to synthesize $E$-terms up to size 3 to find the recursive function call $f\,l'$.
+This is a tremendous win in terms of efficiency because of the exponential cost of enumerating large $E$-terms.
+
+Unlike match depth, we do not run into issues of overspecialization if $k$ begins too large.
+In fact, by admitting larger $E$-terms, we use more variables and function applications which, by our Minimum Programming Principle (\autoref{minimum-program-principle}) makes it more likely our synthesized program generalizes to the behavior that the user intends.
+Furthermore, the cost of synthesizing $E$-terms of modest size is very small.
+It is not until we reach the critical point in the exponential cliff that generation time jumps from sub-seconds to minutes.
+So we are safe in starting with an $E$-term size of reasonable size.
+
+\subsection{Search Strategy}
+
+With these considerations in mind, we can now discuss the particular search strategy we implemented in \myth{}.
+With multiple search parameters, we could devise an \emph{adaptive} strategy that responds to the performance of the synthesizer for the particular synthesize problem at hand.
+For example, we may vary the initial $E$-term size $k$ or how much we increment the $k$ depending on the size of the context we synthesize under.
+Because our context grows as we move down in the refinement tree as we add binders with functions or matches, we would need to vary the search parameters at different points in the tree.
+
+For these experiments, we opted for a simpler \emph{static} strategy suitable for the domain of programs we intended to synthesize---simple functional programs over recursive data types such as lists and trees.  We begin with the following initial search parameter values:
+\begin{itemize}
+  \item The maximum scrutinee size, $s = 1$.
+  \item The maximum match depth, $m = 0$.
+  \item The maximum $E$-guess size, $k = 13$.
+\end{itemize}
+We then move through the following phases of $I$-refinement.
+In each phase of $I$-refinement, we increase one of our search parameters and then extend the refinement tree accordingly.
+In particular, when we increase the match depth or scrutinee size, we traverse the refinement tree, create new match expressions as necessary, and carry out further $I$-refinements (in particular, application of \rulename{irefine-arr} and \rulename{irefine-base}) where ever possible.
+Finally, after each $I$-refinement phase, we allocate 0.25 seconds to generates $E$-terms up to the size limit $k$ at each eligible refinement tree node and then propagate the results to see if we can synthesize a complete, satisfying program.
+
+The phases of $I$-refinement we go through are:
+\begin{enumerate}
+  \item Create an initial refinement tree with the search parameters $s$ and $m$.
+  \item Increase $m$ by one ($m = 1$) and extend the refinement tree accordingly.
+  \item Increase $m$ by one ($m = 2$) and extend the refinement tree accordingly.
+  \item Increase $s$ by five ($s = 6$) and extend the refinement tree accordingly.
+  \item Increase $m$ by one ($m = 3$).
+\end{enumerate}
+By the end of the process, we synthesize programs with $E$-terms of size 13, triply-nested pattern matches, with scrutinees up to size six.
+This is simple strategy is sufficient to handle all of the examples that we discuss in \autoref{sec:benchmark-suite}.
 
 \section{Example Development}
 \label{sec:example-development}
+
+The input to the \myth{} synthesizer is a series of top-level declarations in the subset of OCaml identified by \mlsyn{} along with a synthesis problem---a name, goal type, and example values.
+For example, the 
+
 
 \section{Benchmark Suite}
 \label{sec:benchmark-suite}
