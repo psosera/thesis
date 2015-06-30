@@ -634,16 +634,14 @@ A hallmark of a good program synthesis tool is that can produce surprising resul
 To illustrate this, we close by examining a more complicated example from our benchmarks, \texttt{list\_pairwise\_swap}, which swaps consecutive pairs of elements in a list.
 When the list has odd length, we choose to return the empty list.
 When we provide \myth{} with the following set of examples,
-\[
-  \begin{array}{l}
-    & [] ⇒ []
-    \bnfalt & [0] ⇒ []
-    \bnfalt & [1] ⇒ []
-    \bnfalt & [1,0] ⇒ [0,1]
-    \bnfalt & [0,1] ⇒ [1,0]
-    \bnfalt & [0,1,0,1] ⇒ [1,0,1,0],
-  \end{array}
-\]
+\begin{align*}
+  & [] ⇒ [] \\
+  \bnfalt & [0] ⇒ [] \\
+  \bnfalt & [1] ⇒ [] \\
+  \bnfalt & [1,0] ⇒ [0,1] \\
+  \bnfalt & [0,1] ⇒ [1,0] \\
+  \bnfalt & [0,1,0,1] ⇒ [1,0,1,0],
+\end{align*}
 it produces the following function:
 
 \begin{center}
