@@ -1,0 +1,22 @@
+\begin{figure}
+  \begin{center}
+  \tabcolsep 5.8pt
+  \footnotesize
+  \begin{tabular}{|c|c|c|c|}
+  \hline
+  \textbf{Test} & \textbf{Time (s), No Ctx} & \textbf{Time (s), w/ Ctx} & \textbf{% Difference} \\
+  \hline
+
+%%%%% TABLE DATA
+{{ data }}
+%%%%%
+
+  \hline
+  \end{tabular}
+  \end{center}
+  \caption[\myth{} benchmark suite performance results in context]{%
+    \myth{} benchmark suite performance results in context.
+    Reports the time taken in seconds to synthesis each benchmark program in a minimal context (``No Ctx''), in the extended context given by \autoref{fig:myth-extended-context} (``w/ Ctx''), and the percentage difference between the two (``\% Difference'').
+  }
+  \label{fig:myth-raw-context}
+\end{figure}

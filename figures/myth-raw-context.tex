@@ -1,0 +1,111 @@
+\begin{figure}
+  \begin{center}
+  \tabcolsep 5.8pt
+  \footnotesize
+  \begin{tabular}{|c|c|c|c|}
+  \hline
+  \textbf{Test} & \textbf{Time (s), No Ctx} & \textbf{Time (s), w/ Ctx} & \textbf{Percent Diff} \\
+  \hline
+
+%%%%% TABLE DATA
+\multicolumn{4}{|c|}{\textbf{Booleans}} \\
+\hline
+bool\_band & 0.0028 & 0.0052 & 0.6000 \\
+\hline
+bool\_bor & 0.0024 & 0.0048 & 0.6667 \\
+\hline
+bool\_impl & 0.0024 & 0.005 & 0.7027 \\
+\hline
+bool\_neg & 0.001 & 0.002 & 0.6667 \\
+\hline
+bool\_xor & 0.0026 & 0.0048 & 0.5946 \\
+\hline
+\multicolumn{4}{|c|}{\textbf{Lists}} \\
+\hline
+list\_append & 0.005 & 0.012 & 0.8235 \\
+\hline
+list\_compress & 0.0932 & 163.4742 & 1.998 \\
+\hline
+list\_concat & 0.008 & 0.0176 & 0.7500 \\
+\hline
+list\_drop & 0.013 & 1.6316 & 1.968 \\
+\hline
+list\_even\_parity & 0.005 & 0.6274 & 1.968 \\
+\hline
+list\_filter & 0.016 & 1.6792 & 1.962 \\
+\hline
+list\_fold & 0.1724 & 0.591 & 1.097 \\
+\hline
+list\_hd & 0.001 & 0.0234 & 1.836 \\
+\hline
+list\_inc & 0.001 & 0.004 & 1.200 \\
+\hline
+list\_last & 0.003 & 0.106 & 1.890 \\
+\hline
+list\_length & 0.001 & 0.022 & 1.826 \\
+\hline
+list\_map & 0.0108 & 0.0944 & 1.589 \\
+\hline
+list\_nth & 0.0152 & 0.9 & 1.933 \\
+\hline
+list\_pairwise\_swap & 0.007 & 5.807 & 1.995 \\
+\hline
+list\_rev\_append & 0.0144 & 0.0314 & 0.7424 \\
+\hline
+list\_rev\_fold & 0.008 & 0.0158 & 0.6555 \\
+\hline
+list\_rev\_snoc & 0.0068 & 0.02 & 0.9851 \\
+\hline
+list\_rev\_tailcall & 0.005 & 0.0052 & 0.0392 \\
+\hline
+list\_snoc & 0.0036 & 0.078 & 1.824 \\
+\hline
+list\_sort\_sorted\_insert & 0.0094 & 0.008 & -0.1609 \\
+\hline
+list\_sorted\_insert & 0.1592 & 27.107 & 1.977 \\
+\hline
+list\_stutter & 0.001 & 0.0208 & 1.817 \\
+\hline
+list\_sum & 0.0028 & 0.006 & 0.7273 \\
+\hline
+list\_take & 0.1488 & 1.2964 & 1.588 \\
+\hline
+list\_tl & 0.001 & 0.0216 & 1.823 \\
+\hline
+\multicolumn{4}{|c|}{\textbf{Natural Numbers}} \\
+\hline
+nat\_iseven & 0.001 & 0.0222 & 1.828 \\
+\hline
+nat\_max & 0.0166 & 0.0158 & -0.0494 \\
+\hline
+nat\_pred & 0.001 & 0.0016 & 0.4615 \\
+\hline
+nat\_add & 0.0028 & 0.0038 & 0.3030 \\
+\hline
+\multicolumn{4}{|c|}{\textbf{Trees}} \\
+\hline
+tree\_binsert & 0.4834 & 9.8018 & 1.812 \\
+\hline
+tree\_collect\_leaves & 0.0208 & 0.0392 & 0.6133 \\
+\hline
+tree\_count\_leaves & 0.0118 & 0.0414 & 1.113 \\
+\hline
+tree\_count\_nodes & 0.0112 & 0.035 & 1.030 \\
+\hline
+tree\_inorder & 0.0192 & 0.0396 & 0.6939 \\
+\hline
+tree\_map & 0.017 & 0.0362 & 0.7218 \\
+\hline
+tree\_nodes\_at\_level & 1.1078 & 4.4172 & 1.198 \\
+\hline
+tree\_postorder & 1.467 & 9.8668 & 1.482 \\
+%%%%%
+
+  \hline
+  \end{tabular}
+  \end{center}
+  \caption[\myth{} benchmark suite performance results in context]{%
+    \myth{} benchmark suite performance results in context.
+  }
+  \label{fig:myth-raw-context}
+\end{figure}

@@ -325,20 +325,372 @@ Note that because the version of OCaml we used features a runtime with a global 
 We expect that there are substantial performance benefits to moving to an implementation that can utilize multiple cores.
 All benchmarks were run five times in succession, and we report the average runtime collected from those trials.
 
-\input{figures/myth-raw-benchmarks.tex}
-
-\input{figures/myth-raw-benchmarks-graphs}
+\input{figures/myth-raw-benchmarks}
 
 \autoref{fig:myth-raw-benchmarks} presents the complete performance data of running \myth{} over our benchmark suite.
 The benchmark suite contains 42 test programs.
-On average, we provided \myth{} with seven examples and it produced a program of size 13 in 0.092 seconds.
-The average execution time is inflated by a pair of benchmarks (\texttt{tree\_nodes\_at\_level} and \texttt{tree\_postorder}) that took longer than a second to execute.
-The median execution time, 0.0075 seconds, is more indicative of \myth{}'s performance over these benchmarks.
+On average, we provided \myth{} with 7 examples and it produced a program of size 13 in 0.092 seconds.
+Since every program that we synthesize is a function, we count an example as a single collection of input/output examples that determines one execution of the function in question.
+For example, we count the partial function we provided to \myth{} to synthesis the $\mkwd{append}$ function,
+\begin{align*}
+   & [] ⇒ ([] ⇒ [] \bnfalt [0] ⇒ [0]) \\
+  \bnfalt & [0] ⇒ ([] ⇒ [0] \bnfalt [0] ⇒ [0, 0]) \\
+  \bnfalt & [1,0] ⇒ ([] ⇒ [1, 0] \bnfalt [0] ⇒ [1, 0, 0]),
+\end{align*}
+as six examples, corresponding to the following executions of $\mkwd{append}$:
+\begin{align*}
+  \mkwd{append}\;[]\;[] &= [] \\
+  \mkwd{append}\;[]\;[0] &= [0] \\
+  \mkwd{append}\;[0]\;[] &= [0] \\
+  \mkwd{append}\;[0]\;[0] &= [0, 0] \\
+  \mkwd{append}\;[1, 0]\;[] &= [1, 0] \\
+  \mkwd{append}\;[1, 0]\;[0] &= [0, 0, 0] \\
+\end{align*}
 
-We graph relevant data in \autoref{fig:myth-benchmark-graphs} to better visualize the trends.
+\paragraph{Examples and Program Complexity}
+
+\input{figures/myth-benchmarks-graphs-counts}
+
+Let's take a deeper look at the data, first by examining the interplay between the number of examples required to synthesize a program and its final size.
+From \autoref{sec:example-development}, we saw that examples in \myth{} have the practical effect of forcing \myth{} to discriminate between cases.
+For example, two examples distinguishing between the base case and inductive case of a data type can result in a pattern match on an appropriate value.
+Or, two different examples might force the synthesizer to choose an $E$-term involving variables and function application rather than a constant.
+In either case, \myth{} discriminates between examples by adding complexity to the synthesized program in the form of additional language constructs.
+
+Our hope is that our type-directed synthesis style requires a minimal amount of examples to create complex programs.
+To assess this, in \autoref{fig:myth-benchmarks-graphs-counts} we graph the 42 benchmark programs against the number of examples used, the size of the resulting program, and the ratio of the synthesized program to the number of examples used.
+These graphs better allow us to see trends in the data that we presented in table form in \autoref{fig:myth-raw-benchmarks}.
+In particular, we see from the first graph that the average size of our synthesized programs scales with the complexity of the data types that we are operating over: $\mBool = 6.4$, $\mnat = 10$, $\mlist = 12.8$, and $\mtree = 19.75$ AST nodes.
+However, aside from the non-recursive boolean programs whose examples completely determine their functionality (at an average of 3.6 examples per program), the second graph shows that we require roughly the same number of examples---6--7 such examples---to synthesize recursive functions over $\mnat$s, $\mlist$s, and $\mtree$s ($\mnat = 6.25$, $\mlist = 7$, and $\mtree = 7.29$).
+
+Consequently, this means that it appears as our programs operate over more complex data types, we require comparatively less examples to produce more complex programs.
+To see this, in the third graph we compare the ratio of synthesized program size to the number of examples used to synthesize that program.
+While the ratios are fairly close between the $\mbool$, $\mnat$, and $\mlist$ programs ($\mbool = 1.78$, $\mnat = 1.6$, and $\mtree = 1.83$), the more complex $\mtree$ programs benefit more with each example that we provide ($\mtree = 2.71$).
+The programs with the best ratios are \texttt{list\_stutter} (11 AST nodes, 3 examples, 3.67 size/example ratio) and \texttt{tree\_inorder} (15 AST nodes, 5 examples, 3.0 size/example ratio).
+In particular, the \texttt{list\_stutter} we've studied throughout this work is ``optimal'' for $\mkwd{list}$ programs in the (informal) sense that we only need to present one example for each case of the $\mkwd{list}$ data type as well as an additional example for the $\mkwd{Cons}$ case to avoid synthesizing a constant.
+\texttt{list\_stutter} also benefits greatly from $I$-refinement when synthesizing the $\mCons(x, \mCons(x, ◼))$ portion of the $\mCons$ branch because this program fragment is entirely dictated by the two examples that are distributed to it.
+The program with the worst ratio is \texttt{list\_drop} (13 AST nodes, 11 examples, 1.18 size/example ratio) which provides particularly tricky because we must provide several additional examples to handle the partial behavior of the function when we try to drop more elements than the length of the input list.
+
+\paragraph{Synthesis Speed}
+
+\input{figures/myth-raw-benchmarks-graphs}
+
+In addition to understanding how \myth{} uses examples, we would also like to understand how quickly it can synthesize programs.
+\autoref{fig:myth-benchmarks-timing-graph} shows the time taken to synthesize each program of the benchmark suite, classified by the primary data type that the program operates over.
+With two exceptions, \texttt{tree\_nodes\_at\_level} and \texttt{tree\_postorder}, all the benchmark programs synthesize in sub-second time, effectively instantaneous.
+Looking at the average runtime of each class of programs, we see that the synthesis time scales with the complexity of the subject data type ($\mbool = 0.00061$, $\mnat = 0.00068$, $\mlist = 0.0029$, and $\mtree = 0.020$ seconds).
+However, within each class, the run times vary wildly with a standard deviation of $0.19$ seconds across all the examples.
+One might expect that the runtime ought to consistently scale with the size of the program, but this isn't the case because our refined synthesis procedure does not perform a breadth-first search.
+By effectively adopting a hybrid depth-first/breadth-first search of the refinement tree, we are able to synthesis some programs that take advantage of $I$-refinements very quickly even though they are comparatively large.
+
+In contrast, performance stalls when we are forced to $E$-guess terms whose size crosses the exponential barrier of term generation or explore lots of nested matches.
+\texttt{tree\_nodes\_at\_level} and \texttt{tree\_postorder} both fall into the former category.
+For example, \myth{} produces the following program for \texttt{tree\_nodes\_at\_level}
+
+\begin{center}
+  \begin{minipage}{\textwidth}
+    \begin{lstlisting}
+      let tree_nodes_at_level : tree -> nat -> nat =
+       let rec f1 (t1:tree) : nat -> nat =
+         fun (n1:nat) ->
+           match t1 with
+             | Leaf -> O
+             | Node (t2, b1, t3) -> (match n1 with
+                                       | O -> S (O)
+                                       | S (n2) -> sum (f1 t3 n2) (f1 t2 n2))
+       in
+         f1
+      ;;
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+The function application in the $\mS$ branch of the inner match has size 12 which takes significantly longer to generate.
 
 \subsection{Context Size and Performance}
 \label{subsec:context-size-and-performance}
 
+\input{figures/myth-extended-context}
+
+In the previous section, we synthesized the example programs in the minimal context necessary.
+In practice, a synthesis tool can achieve this by allowing the user to choose which functions in scope ought to be usable during the synthesis process.
+However, if there are many such functions available, or the user is unsure of what functions the program might use, we will need to synthesize in a rich context.
+To simulate this, we also ran our benchmark suite in a context with a number of helper functions comparable to the prior work~\todo{cite---Escher, Leon, etc.}.
+\autoref{fig:myth-extended-context} gives the signatures of the types and functions found in this context.
+Whenever, a benchmark program is one of the functions found in the context, we remove that function from the context so we don't end up synthesizing the trivial invocation of that top-level function.
+
+\input{figures/myth-raw-context}
+\input{figures/myth-context-graphs}
+
+\autoref{fig:myth-raw-context} compares the performance numbers between synthesizing the benchmark suite in a minimal context versus the extended context.
+It also reports the percentage difference between synthesizing in the minimal versus extended contexts.
+\autoref{fig:myth-context-graphs} provides plots of synthesis times in the extended context along with the percentage differences in execution time between minimal and extended contexts.
+From the data, it is clear that the context has a very significant effect on the execution time of \myth{}.
+Overall, there is a 101\% increase in performance moving from the minimal context to the extended context.
+Thankfully, because the synthesis times were already sub-second, the median execution time remains imperceptible at $0.0234$ seconds.
+
+However, several benchmarks experience a dramatic, noticeable change in run time.
+The most egregious of these examples is \texttt{list\_compress} which jumps up to an average run time of 2.5 minutes!
+Examining the output for \texttt{list\_compress} reveals the problem:
+
+\begin{center}
+  \begin{minipage}{0.5\textwidth}
+    \begin{lstlisting}
+let list_compress : list -> list =
+  let rec f1 (l1:list) : list =
+    match l1 with
+    | Nil -> Nil
+    | Cons (n1, l2) ->
+      (match f1 l2 with
+      | Nil -> l1
+      | Cons (n2, l3) ->
+        (match compare n2 n1 with
+        | LT -> Cons (n1, Cons (n2, l3))
+        | EQ -> Cons (n1, l3)
+        | GT -> Cons (n1, Cons (n2, l3))))
+in
+  f1
+;;
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+The triply nested match is relatively quick to synthesize in the minimal context because we only have $\mkwd{compare}$ with which to make complex match scrutinees.
+However, with the addition of $\mkwd{append}$ and $\mkwd{plus}$ from the extended context, we now gain many more possible informative scrutinees that must be explored in the refinement tree.
+The other cases where the execution time explodes, \eg, \texttt{tree\_binsert} and \texttt{list\_sorted\_insert}, work out similarly where deep matching is necessary, but the space of possible matches explodes with the extended context.
+
 \section{Extended Examples}
 \label{sec:extended-examples}
+
+\input{figures/myth-extended-examples-results}
+
+In addition to the benchmark suite, we also tested \myth{} on a variety of extended examples to better understand the limits of the system.
+\autoref{fig:myth-extended-examples-results} gives an overview of the examples and their execution time with \myth{}.
+
+\paragraph{Interpreters}
+
+Typed, functional programming languages are excellent for writing compilers and interpreters because abstract syntax trees line up well algebraic data types.
+As a result, our type-directed program synthesis style works well for synthesizing these sorts of programs.
+To demonstrate this, we provide an example of synthesizing an interpreter for the following calculator language:
+
+\begin{center}
+  \begin{minipage}{0.25\textwidth}
+    \begin{lstlisting}
+type exp =
+| Const of nat
+| Sum of exp * exp
+| Prod of exp * exp
+| Pred of exp
+| Max of exp * exp
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+The interpreter for this language has size 47 and requires 22 examples to synthesize in approximately 12 seconds.
+
+\begin{center}
+  \begin{minipage}{0.75\textwidth}
+    \begin{lstlisting}
+let arith : exp -> nat =
+  let rec f1 (e1:exp) : nat =
+    match e1 with
+      | Const (n1) -> n1
+      | Sum (e2, e3) -> sum (f1 e2) (f1 e3)
+      | Prod (e2, e3) -> mult (f1 e2) (f1 e3)
+      | Pred (e2) -> (match f1 e2 with
+                        | O -> O
+                        | S (n1) -> n1)
+      | Max (e2, e3) -> (match compare (f1 e2) (f1 e3) with
+                           | LT -> f1 e3
+                           | EQ -> f1 e3
+                           | GT -> f1 e2)
+  in
+    f1
+;;
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+It utilizes several helper functions, $\mkwd{sum}$, $\mkwd{mult}$, and $\mkwd{compare}$, and the function itself contains multiple nested pattern matches with complex scrutinees which, from \autoref{subsec:analysis}, explains why it takes significantly longer to synthesize than the benchmark suite's programs.
+
+\paragraph{Type Dynamic}
+
+Recall from \autoref{subsec:static-and-dynamic-semantics-of-mlsyn} that part of our checks to ensure that \mlsyn{} is well-founded is enforcing a positivity restriction on data types.
+This restrictions says that a recursive occurrence of a data type cannot appear to the left of an arrow in the type of any of its constructors.
+For example, consider the data type encoding type dynamic~\todo{cite---dynamic work}:
+\[
+  \begin{array}{l}
+    \mkwd{type}\;\mdyn = \\
+    \bnfalt \mError \\
+    \bnfalt \mBase\;\mof\;\mnat \\
+    \bnfalt \mDyn\;\mof\;\mdyn → \mdyn
+  \end{array}
+\]
+$\mdyn$ provides dynamic typing functionality over $\mnat$s ($\mBase$) and functions ($\mDyn$).
+This data type breaks the positivity restriction because of the signature of $\mDyn$, so we would not allow it in \mlsyn{}.
+
+However, as we showed in \autoref{subsec:static-and-dynamic-semantics-of-mlsyn}, the simplest infinite loop you can produce using this loophole requires the use of an external function (call it $f : \mdyn → \mdyn$) and its subsequent double application $f\,(D\,f)$.
+Because \mlsyn{} does not have $\mlet$-bindings, we must synthesize a much larger function to produce this infinite loop, if it is even possible to produce in \mlsyn{} sans positivity restriction at all!
+It is very likely that we will not encounter this program during normal execution of \myth{} because if such a program with an infinite loop exists, it is likely too complicated for \myth{} synthesize in practice.
+
+In light of this revelation, we left out the positivity restriction from \myth{} and attempted to synthesize a pair of recursive functions over $\mdyn$, \texttt{dyn\_app\_twice} which applies a $\mDyn$ function twice and \texttt{dyn\_sum} which performs the addition operation through $\mdyn$s.
+In either case, we produce $\mError$ if the types do not line up appropriately.
+In both cases we are able to synthesize the correct function, lending weight to the argument that we would not encounter infinite loops via the positivity restriction in practice.
+In particular, \texttt{dyn\_sum} is a particular hairy function, requiring two triply nested pattern matches to correctly raise $\mError$ at all the correct points in the program.
+
+\begin{center}
+  \begin{minipage}{0.75\textwidth}
+    \begin{lstlisting}
+let dyn_sum : dyn -> dyn -> dyn =
+  fun (d1:dyn) ->
+    fun (d2:dyn) ->
+      match d1 with
+        | Error -> Error
+        | Base (n1) -> (match n1 with
+                          | O -> (match d2 with
+                                    | Error -> Error
+                                    | Base (n2) -> d2
+                                    | Dyn (f3) -> Error)
+                          | S (n2) -> (match n2 with
+                                         | O -> succ d2
+                                         | S (n3) -> succ (succ d2)))
+        | Dyn (f3) -> Error
+;;
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+Note that this pattern of programming is similar to error handling with an option/maybe type.
+In lieu of additional constructs to avoid excessive match expressions, we would need to use deeply nested pattern matches to crack open option/maybe values.
+
+\paragraph{Free Variables Collector}
+
+\myth{} combines depth-first and breadth-first search of the refinement tree in a particular way: first it efficiently computes the possible set of $I$-refinement all at once and then it $E$-guesses at the leaves.
+This makes \myth{} very efficient when synthesizing programs that feature shallow pattern matches over large data types.
+To illustrate this point, we synthesize programs that collect the free variables of a simply typed lambda calculus encoded in a locally nameless style~\todo{cite---locally nameless work}.
+The largest such program, \texttt{fvs\_large}, operates over the following data type:
+
+\begin{center}
+  \begin{minipage}{0.75\textwidth}
+    \begin{lstlisting}
+type exp =
+  | Unit
+  | BVar of nat
+  | FVar of nat
+  | Lam of nat * exp
+  | App of exp * exp
+  | Pair of exp * exp
+  | Fst of exp
+  | Snd of exp
+  | Inl of exp
+  | Inr of exp
+  | Const of nat
+  | Add of exp * exp
+  | Sub of exp * exp
+  | Mult of exp * exp
+  | Div of exp * exp
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+Passing the necessary 31 examples to \myth{} produces the following function in 3.024 seconds:
+
+\begin{center}
+  \begin{minipage}{0.75\textwidth}
+    \begin{lstlisting}
+let fvs_large : exp -> list =
+  let rec f1 (e1:exp) : list =
+    match e1 with
+      | Unit -> []
+      | BVar (n1) -> []
+      | FVar (n1) -> [n1]
+      | Lam (n1, e2) -> f1 e2
+      | App (e2, e3) -> append (f1 e2) (f1 e3)
+      | Pair (e2, e3) -> append (f1 e2) (f1 e3)
+      | Fst (e2) -> f1 e2
+      | Snd (e2) -> f1 e2
+      | Inl (e2) -> f1 e2
+      | Inr (e2) -> f1 e2
+      | Const (n1) -> []
+      | Add (e2, e3) -> append (f1 e2) (f1 e3)
+      | Sub (e2, e3) -> append (f1 e2) (f1 e3)
+      | Mult (e2, e3) -> append (f1 e2) (f1 e3)
+      | Div (e2, e3) -> append (f1 e2) (f1 e3)
+  in
+    f1
+;;
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+While this program is larger than any that we have synthesized so far, it is not the slowest by far.
+This is because even though the match is tall, we discover it via $I$-refinement and synthesize the relatively thin branches (maximum size 9) through $E$-guessing very quickly.
+Note that we are unable to synthesize the additional branch with a $\mkwd{Match}$ constructor with our na\"{i}ve parameter search strategy because we would need the $E$-guess the function application $\mkwd{append}\,(f1 e1)\,(\mkwd{append}\,(f1 e2)\,(f1 e3))$ of size 15, and \myth{} times out before it can do so.
+With a better tuned search strategy, synthesizing these larger branches is certainly possible for \myth{}
+
+\paragraph{Inside-out Recursion}
+
+A hallmark of a good program synthesis tool is that can produce surprising results.
+To illustrate this, we close by examining a more complicated example from our benchmarks, \texttt{list\_pairwise\_swap}, which swaps consecutive pairs of elements in a list.
+When the list has odd length, we choose to return the empty list.
+When we provide \myth{} with the following set of examples,
+\[
+  \begin{array}{l}
+    & [] ⇒ []
+    \bnfalt & [0] ⇒ []
+    \bnfalt & [1] ⇒ []
+    \bnfalt & [1,0] ⇒ [0,1]
+    \bnfalt & [0,1] ⇒ [1,0]
+    \bnfalt & [0,1,0,1] ⇒ [1,0,1,0],
+  \end{array}
+\]
+it produces the following function:
+
+\begin{center}
+  \begin{minipage}{0.95\textwidth}
+    \begin{lstlisting}
+let list_pairwise_swap : list -> list =
+  let rec f1 (l1:list) : list =
+    match l1 with
+      | Nil -> []
+      | Cons (n1, l2) -> (match l2 with
+                            | Nil -> []
+                            | Cons (n2, l3) -> Cons (n2, Cons (n1, f1 l3)))
+  in
+    f1
+;;
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+This implementation seems to be correct as it performs the expected double pattern match, swaps the two head elements, and recursively swaps the rest.
+However, in the case where we call the function with the list $[1, 0, 1, 0, 1]$, it produces the list $[0, 1, 0, 1]$, truncating the last element off the list rather than returning $[]$.
+To remedy this, we provide one additional example to \myth{}, $[1, 0, 1] ⇒ []$, and it now produces the correct result:
+
+\begin{center}
+  \begin{minipage}{0.95\textwidth}
+    \begin{lstlisting}
+let list_pairwise_swap : list -> list =
+  let rec f1 (l1:list) : list =
+    match l1 with
+      | Nil -> []
+      | Cons (n1, l2) -> (match f1 l2 with
+                            | Nil -> (match l2 with
+                                        | Nil -> []
+                                        | Cons (n2, l3) -> Cons (n2,
+                                                             Cons (n1, f1 l3)))
+                            | Cons (n2, l3) -> [])
+  in
+    f1
+;;
+    \end{lstlisting}
+  \end{minipage}
+\end{center}
+
+Rather than immediately pattern matching on the list twice, \texttt{list\_pairwise\_swap} instead pattern matches on \emph{a recursive call to the function}.
+This seemingly odd behavior has a surprising effect: $f1\,l2$ becomes a test to see if the list has even ($\mNil$) length or odd length $(\mCons)$!
+In the case when the list has odd length, we return $[]$, otherwise we proceed as normal.
+
+In many situations, \myth{} elects to perform this behavior, a phenomenon we call \emph{inside-out recursion}, because it turns out to save an AST node (see \texttt{list\_compress}, \texttt{list\_even\_parity}, and \texttt{tree\_postorder}).
+However, it turns out this behavior is necessary to implement \texttt{list\_pairwise\_swap} correctly because in the absence of $\mlet$-bindings or a helper function to judge whether the list has odd length, there is no other way to perform the necessary test.
+In this sense, even though \myth{} is performing relatively na\"{i}ve search, it is still able to produce results that are surprising, yet correct, at first glance!

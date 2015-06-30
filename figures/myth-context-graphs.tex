@@ -1,0 +1,70 @@
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[
+        log origin=infty,
+        width=0.90\textwidth,
+        height=4cm,
+        ybar,
+        bar width=6pt,
+        xlabel=,
+        ylabel=Time (s),
+        ymode=log,
+        xmin=0,
+        xmax=42,
+        ymin=0.001,
+        ymax=10,
+        ytick={0.001, 0.0234, 1, 10},
+        xticklabels={,,},
+        scaled ticks=false,
+        tick label style={/pgf/number format/fixed},
+        log ticks with fixed point,
+      ]
+        \addplot table[x index=0, y index=1] {data/myth-context-graphs.data};
+        \draw [red] ({rel axis cs:0,0}|-{axis cs:1,0.0234}) -- ({rel axis cs:1,0}|-{axis cs:1,0.0234});
+        \draw [dashed, black] (axis cs:5.5,0.001) -- (axis cs:5.5,10);
+        \draw [dashed, black] (axis cs:30.5,0.001) -- (axis cs:30.5,10);
+        \draw [dashed, black] (axis cs:34.5,0.001) -- (axis cs:34.5,10);
+        \node at (axis cs:2.75,2) { $\mBool$ };
+        \node at (axis cs:22,2) { $\mlist$ };
+        \node at (axis cs:32.5,2) { $\mnat$ };
+        \node at (axis cs:38,2) { $\mtree$ };
+      \end{axis}
+    \end{tikzpicture}
+
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=\textwidth,
+        height=4cm,
+        ybar,
+        bar width=6pt,
+        xlabel=,
+        ylabel=\% Difference,
+        xmin=0,
+        xmax=42,
+        ymin=0,
+        ymax=2,
+        xticklabels={,,},
+        ytick={0,0.5,1.097,2},
+      ]
+        \addplot[black!60!yellow, fill=black!30!yellow] table[x index=0, y index=2] {data/myth-context-graphs.data};
+        \draw [red] ({rel axis cs:0,0}|-{axis cs:1,1.097}) -- ({rel axis cs:1,0}|-{axis cs:1,1.097});
+        \draw [dashed, black] (axis cs:5.5,0) -- (axis cs:5.5,2);
+        \draw [dashed, black] (axis cs:30.5,0) -- (axis cs:30.5,2);
+        \draw [dashed, black] (axis cs:34.5,0) -- (axis cs:34.5,2);
+        \node at (axis cs:2.75,1.75) { $\mBool$ };
+        \node at (axis cs:21.5,1.75) { $\mlist$ };
+        \node at (axis cs:33,1.75) { $\mnat$ };
+        \node at (axis cs:38.5,1.75) { $\mtree$ };
+      \end{axis}
+    \end{tikzpicture}
+
+    \hrule
+    \caption[\myth{} benchmark suite graphs in context]{%
+      \myth{} benchmark suite graphs in the extended context specified by \autoref{fig:myth-extended-context}
+      The first graph shows the execution time (in log scale) of \myth{} on each benchmark program in context ($\text{median} = 0.0234$).
+      The second graph shows percentage difference in execution time between \myth{} synthesizing in a minimal context and in the extended context ($\text{median} = 1.097$).
+    }
+    \label{fig:myth-context-graphs}
+  \end{center}
+\end{figure}

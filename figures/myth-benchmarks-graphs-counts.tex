@@ -1,0 +1,94 @@
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=\textwidth,
+        height=4cm,
+        ybar,
+        bar width=6pt,
+        xlabel=,
+        ylabel=\#/examples,
+        xmin=0,
+        xmax=42,
+        ymin=1,
+        ymax=20,
+        xticklabels={,,},
+        ytick={1,6,10,20},
+      ]
+        \addplot[black!60!green, fill=black!30!green] table[x index=0, y index=1] {data/myth-benchmarks-counts.data};
+        \draw [red] ({rel axis cs:0,0}|-{axis cs:1,6}) -- ({rel axis cs:1,0}|-{axis cs:1,6});
+        \draw [dashed, black] (axis cs:5.5,0) -- (axis cs:5.5,20);
+        \draw [dashed, black] (axis cs:30.5,0) -- (axis cs:30.5,20);
+        \draw [dashed, black] (axis cs:34.5,0) -- (axis cs:34.5,20);
+        \node at (axis cs:2.75,17) { $\mBool$ };
+        \node at (axis cs:20,17) { $\mlist$ };
+        \node at (axis cs:32.5,17) { $\mnat$ };
+        \node at (axis cs:38,17) { $\mtree$ };
+      \end{axis}
+    \end{tikzpicture}
+
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=\textwidth,
+        height=4cm,
+        ybar,
+        bar width=6pt,
+        xlabel=,
+        ylabel=Size,
+        xmin=0,
+        xmax=42,
+        ymin=1,
+        ymax=32,
+        xticklabels={,,},
+        ytick={1,12,18,32},
+      ]
+        \addplot[black!60!yellow, fill=black!30!yellow] table[x index=0, y index=2] {data/myth-benchmarks-counts.data};
+        \draw [red] ({rel axis cs:0,0}|-{axis cs:1,12}) -- ({rel axis cs:1,0}|-{axis cs:1,12});
+        \draw [dashed, black] (axis cs:5.5,0) -- (axis cs:5.5,32);
+        \draw [dashed, black] (axis cs:30.5,0) -- (axis cs:30.5,32);
+        \draw [dashed, black] (axis cs:34.5,0) -- (axis cs:34.5,32);
+        \node at (axis cs:2.75,27) { $\mBool$ };
+        \node at (axis cs:20,27) { $\mlist$ };
+        \node at (axis cs:32.5,27) { $\mnat$ };
+        \node at (axis cs:38,27) { $\mtree$ };
+      \end{axis}
+    \end{tikzpicture}
+
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=\textwidth,
+        height=4cm,
+        ybar,
+        bar width=6pt,
+        xlabel=,
+        ylabel=Examples/Size,
+        xmin=0,
+        xmax=42,
+        ymin=1,
+        ymax=4,
+        xticklabels={,,},
+        ytick={1,1.875,2.5,4},
+      ]
+        \addplot[black!60!blue, fill=black!30!blue] table[x index=0, y index=3] {data/myth-benchmarks-counts.data};
+        \draw [red] ({rel axis cs:0,0}|-{axis cs:1,1.875}) -- ({rel axis cs:1,0}|-{axis cs:1,1.875});
+        \draw [dashed, black] (axis cs:5.5,0) -- (axis cs:5.5,4);
+        \draw [dashed, black] (axis cs:30.5,0) -- (axis cs:30.5,4);
+        \draw [dashed, black] (axis cs:34.5,0) -- (axis cs:34.5,4);
+        \node at (axis cs:2.75,3.5) { $\mBool$ };
+        \node at (axis cs:20,3.5) { $\mlist$ };
+        \node at (axis cs:32.5,3.5) { $\mnat$ };
+        \node at (axis cs:38,3.5) { $\mtree$ };
+      \end{axis}
+    \end{tikzpicture}
+
+    \hrule
+    \caption[\myth{} benchmark suite graphs---counts]{%
+      \myth{} benchmark suite graphs---counts.
+      Programs are grouped by the class of data type that they operate over.
+      The first graph shows the number of examples used to generate each program ($\text{median} = 6$ examples).
+      The second graph shows the size of the synthesized program ($\text{median} = 12$ AST nodes).
+      The third graph shows the ratio of synthesized program size to the number of examples used to generate that program ($\text{median} = 1.875$ seconds).
+    }
+    \label{fig:myth-benchmarks-graphs-counts}
+  \end{center}
+\end{figure}
