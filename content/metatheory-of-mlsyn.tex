@@ -66,6 +66,7 @@ Recall that soundness of type-directed program synthesis can be broken up into t
 Unsurprisingly, both properties hold in \mlsyn{}.
 
 \begin{lemma}[Type Soundness of \mlsyn{}]\ %
+  \label{lem:type-soundness-of-mlsyn}
   \begin{enumerate}
     \item If $Γ ⊢ τ ⇝ E$, then $Γ ⊢ E ⇒ τ$.
     \item If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $Γ ⊢ I ⇐ τ$.
@@ -101,6 +102,7 @@ Unsurprisingly, both properties hold in \mlsyn{}.
 \end{proof}
 
 \begin{lemma}[Example Soundness of \mlsyn{}]\ %
+  \label{lem:example-soundness-of-mlsyn}
   If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $I ⊨ Χ$.
 \end{lemma}
 \begin{proof}

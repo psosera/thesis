@@ -89,7 +89,7 @@ In our updated algorithm, rather than having to synthesize $E$-terms up to size 
 This is a tremendous win in terms of efficiency because of the exponential cost of enumerating large $E$-terms.
 
 Unlike match depth, we do not run into issues of overspecialization if $k$ begins too large.
-In fact, by admitting larger $E$-terms, we use more variables and function applications which, by our Minimum Programming Principle (\autoref{minimum-program-principle}) makes it more likely our synthesized program generalizes to the behavior that the user intends.
+In fact, by admitting larger $E$-terms, we use more variables and function applications which, by our Minimum Programming Principle (\autoref{subsec:the-minimum-program-principle}) makes it more likely our synthesized program generalizes to the behavior that the user intends.
 Furthermore, the cost of synthesizing $E$-terms of modest size is very small.
 It is not until we reach the critical point in the exponential cliff that generation time jumps from sub-seconds to minutes.
 So we are safe in starting with an $E$-term size of reasonable size.
@@ -126,18 +126,216 @@ This is simple strategy is sufficient to handle all of the examples that we disc
 \section{Example Development}
 \label{sec:example-development}
 
-The input to the \myth{} synthesizer is a series of top-level declarations in the subset of OCaml identified by \mlsyn{} along with a synthesis problem---a name, goal type, and example values.
-For example, the 
+\input{figures/myth-stutter}
 
+The input to the \myth{} synthesizer is a series of top-level declarations in the subset of OCaml identified by \mlsyn{} along with a synthesis problem---a name, goal type, and example values.
+For example, \autoref{fig:myth-stutter} gives the source code for the $\mkwd{stutter}$ in \myth{} that we have studied extensively in the previous chapters.
+\myth{} has no built-in data types, so we must provide them all ourselves using algebraic data types.
+Here, we declare a type of monomorphic $\mlist$s whose carrier type is $\mnat$.
+The declaration of $\mkwd{stutter}$ contains the familiar three input/output examples\footnote{%
+  For sake of convenience, \myth{} provides syntactic sugar for representing lists and natural numbers.
+}
+suggesting the intended behavior of $\mkwd{sutter}$.
+
+We arrived at this set of examples by using the following process:
+\begin{enumerate}
+  \item We observed that the likely data type we need to perform induction over was $\mlist$, so we provided examples of how the function should work in both cases of $\mlist$ as defined its constructors: $[] ⇒ [] \bnfalt [0] ⇒ [0; 0]$.
+  \item We ran \myth{} with these examples, obtaining the program:
+
+    \begin{minipage}{0.5\textwidth}
+      \begin{center}
+        \begin{lstlisting}
+          let list_stutter : list -> list =
+            fun (l1:list) -> match l1 with
+                               | Nil -> []
+                               | Cons (n1, l2) -> [0; 0]
+          ;;
+        \end{lstlisting}
+      \end{center}
+    \end{minipage}
+
+    Upon inspection, this program is not sufficient because while it has the correct behavior in the $\mNil$ case, it does not have the correct behavior in the $\mCons$ case, returning a constant list rather than performing a more general calculation.
+
+  \item To fix this problem, we need to add additional examples to rule out this expression in the $\mCons$ branch.
+    Keeping in mind our trace completeness restriction to power recursive function calls (\autoref{subsec:trace-completeness}), we add
+    one additional example that is trace complete with respect to the original examples, $[1; 0] ⇒ [1; 1; 0; 0]$, and see if that creates a satisfactory program.
+    Updating our program with this additional example and running it through \myth{} yields:
+
+    \begin{minipage}{0.6\textwidth}
+      \begin{center}
+        \begin{lstlisting}
+          let list_stutter : list -> list =
+            let rec f1 (l1:list) : list =
+              match l1 with
+                | Nil -> []
+                | Cons (n1, l2) -> Cons (n1, Cons (n1, f1 l2))
+            in
+              f1
+          ;;
+        \end{lstlisting}
+      \end{center}
+    \end{minipage}
+
+    Which is the standard implementation of $\mkwd{stutter}$, so we are done!
+\end{enumerate}
+
+We use this process of iterative example refinement based on the inductive structure of the data type to develop all of the programs we supply to \myth{}.
+
+\paragraph{Multi-argument Functions}
+
+When synthesizing single argument functions, we can perform case analysis using our examples as described above in a straight forward manner.
+However, the process becomes more complex with multi-argument functions.
+In general, we will need additional examples demonstrating how our function behaves with each argument.
+
+As a simple example, consider synthesizing the $\mkwd{append}$ function of type $\mlist → \mlist → \mlist$.
+Since the only argument type is $\mlist$, it makes sense that we ought to perform case analysis on one of the $\mlist$ arguments.
+Let's choose the first argument and try the following examples:
+\begin{align*}
+ & [] ⇒ [] ⇒ [] \\
+\bnfalt & [0] ⇒ [] ⇒ [0] \\
+\bnfalt & [1,0] ⇒ [] ⇒ [1,0]
+\end{align*}
+Feeding these examples to \myth{} produces the following function
+
+\begin{minipage}{0.5\textwidth}
+  \begin{center}
+    \begin{lstlisting}
+      let list_append : list -> list -> list =
+        fun (l1:list) -> fun (l2:list) -> l1
+      ;;
+    \end{lstlisting}
+  \end{center}
+\end{minipage}
+
+This is not the $\mkwd{append}$ function we want; it is the function that always chooses its first argument!
+Of course, looking at the examples we provided, this is certainly the simplest program that satisfies the examples.
+
+The problem is that we have not specified the behavior of $\mkwd{append}$ on non-trivial second arguments.
+Let's try doing so incrementally, first introducing a single extra example:
+\begin{align*}
+ & [] ⇒ ([] ⇒ [] \bnfalt [0] ⇒ [0]) \\
+\bnfalt & [0] ⇒ [] ⇒ [0] \\
+\bnfalt & [1,0] ⇒ [] ⇒ [1,0]
+\end{align*}
+Running \myth{} on these examples yields the refined function:
+
+\begin{minipage}{0.5\textwidth}
+  \begin{center}
+    \begin{lstlisting}
+      let list_append : list -> list -> list =
+        fun (l1:list) ->
+          fun (l2:list) -> match l2 with
+                             | Nil -> l1
+                             | Cons (n1, l3) -> Cons (0, l1)
+      ;;
+    \end{lstlisting}
+  \end{center}
+\end{minipage}
+
+This function is closer to $\mkwd{append}$ but still not there.
+In particular, it only append a $0$ onto $l1$ in the $\mCons$ case, completely ignoring $l2$ in the process.
+Adding another example to handle when we call $\mkwd{append}\,[0]\,[0]$ results in the same program.
+We must add one additional example,
+\begin{align*}
+ & [] ⇒ ([] ⇒ [] \bnfalt [0] ⇒ [0]) \\
+\bnfalt & [0] ⇒ ([] ⇒ [0] \bnfalt [0] ⇒ [0, 0]) \\
+\bnfalt & [1,0] ⇒ ([] ⇒ [1, 0] \bnfalt [0] ⇒ [1, 0, 0]).
+\end{align*}
+On these examples \myth{} produces the program
+
+\begin{minipage}{0.5\textwidth}
+  \begin{center}
+    \begin{lstlisting}
+      let list_append : list -> list -> list =
+        let rec f1 (l1:list) : list -> list =
+          fun (l2:list) ->
+            match l1 with
+              | Nil -> l2
+              | Cons (n1, l3) -> Cons (n1, f1 l3 l2)
+        in
+          f1
+      ;;
+    \end{lstlisting}
+  \end{center}
+\end{minipage}
+
+This final program is the standard implementation of $\mkwd{append}$.
+
+\paragraph{Validation}
+
+An immediate question one might ask about this process is: ``How do you validate that the programs that \myth{} produces are correct?''
+Indeed, this proves to be a tricky issue.
+Even though we proved soundness of the system (\autoref{lem:type-soundness-of-mlsyn} and \autoref{lem:example-soundness-of-mlsyn}), this only guarantees that the programs \myth{} produces are well-typed and satisfy the examples.
+However, concrete examples only specify a finite subset of behavior which is insufficient to express the behavior of most functions we care to synthesis such as recursive functions.
+We appeal to the Minimum Program Principle (\autoref{subsec:the-minimum-program-principle}) to maximize the likelihood that the synthesized program agrees with the behavior that the user intends with their examples.
+However, at the end of the day, the user needs to validate for themselves that the resulting program meets their needs.
+
+They might accomplish this by inspecting their program for obvious defects as we did in the above example.
+Or they may test their program on a wider variety of examples than what they presented to \myth{}.
+To validate our own examples, we went through this process.
+Because we synthesized common recursive functional programs, we were able to verify the correctness of \myth{}'s output by inspection.
+In a minority of cases (some of which we explore in \autoref{sec:extended-examples}), the synthesized program's correctness was non-obvious and required additional testing to verify.
+
+This work flow, as is, has some clear downsides in the context of an end-user tool.
+In particular, validation is problematic because in a real-world scenario, the user may not know what program they want in the end.
+After all, they are using program synthesis to try to discover this program!
+However, this work flow is adequate for discovering how our typed-directed synthesis algorithm works and its behavior on real world examples.
 
 \section{Benchmark Suite}
 \label{sec:benchmark-suite}
 
-\subsection{The Sample Programs}
-\label{subsec:the-sample-programs}
+To assess the effectiveness of \myth{}, we created a synthesis benchmark suite consisting of 43 sample \myth{} programs developed using the methodology discussed in \autoref{sec:example-development}.
+These programs provide specifications of simple functions over fundamental functional data types---booleans, natural numbers, lists, and trees---exercising all of the core functional programming features that \myth{} provides: inductive algebraic data types, higher-order functions, and recursion.
+\begin{description}
+  \item[Booleans:]
+    Our simplest benchmarks involve synthesizing functions over booleans values.
+    These programs include common boolean operators: $\mkwd{neg}$, $\mkwd{and}$, $\mkwd{or}$, $\mkwd{impl}$, and $\mkwd{xor}$.
+    Because these boolean functions are all non-recursive, we can fully specify their behavior through straightforward case analysis with our examples, demonstrating the power of pure type-directed refinement.
+
+  \item[Natural Numbers:]
+    To graduate from the world from non-recursive functions to recursive functions, we introduce example programs over the most basic of inductive algebraic data types, the natural numbers:
+    \[
+      \mkwd{type}\;\mnat = \mO \bnfalt \mS\;\mkwd{of}\;\mnat.
+    \]
+    These functions include unary functions over $\mnat$s (\eg, $\mkwd{is\_even}$ and $\mkwd{prev}$) as well as binary operators over $\mnat$ (\eg, $\mkwd{max}$ and $\mkwd{sum}$).
+
+  \item[Lists:]
+    Expanding on $\mnat$s, the bulk of our benchmarks feature operations over $\mlist$s.
+    \mlsyn{} and consequently \myth{} do not have polymorphism.
+    Therefore, our $\mlist$ data type is \emph{monomorphic}, fixed to a particular carrier type, usually $\mnat$ or $\mBool$.
+    Our example programs include simple operations over a single list or pair of lists (\eg, $\mkwd{length}$ and $\mkwd{append}$) as well as more complex operations (\eg, $\mkwd{compress}$ and $\mkwd{reverse}$).
+    Note that because our type-directed synthesis style does not not admit synthesis of $\mkwd{let}$-bindings (\autoref{sec:let-binding}), we must provide the appropriate helper functions to synthesize these programs.
+    In particular, we explore synthesizing $\mkwd{reverse}$ with a variety of approaches: ``cons-on-end'' ($\mkwd{snoc}$), $\mkwd{append}$, $\mkwd{fold}$, and a tail-recursive variant that requires a second argument.
+    Finally, we use $\mlist$s to explore synthesis of higher-order functions, providing specifications for implementations of $\mkwd{map}$, $\mkwd{fold}$ and $\mkwd{filter}$ as well as usages of these higher-order functions as helpers.
+
+  \item[Trees:]
+    Finally, we also explore richer data types with functions over $\mtree$ data types which require richer sets of examples to capture their behavior.
+    These operations include simple $\mtree$ processing functions such as counting the number of nodes and performing different sorts of traversals over a $\mtree$ as well as more complicated operations such as binary insertion (assuming that the $\mtree$ is a binary search tree).
+\end{description}
+
+The full text of all these sample \myth{} programs as well as the resulting synthesized programs can be found in \autoref{app:the-myth-test-suite}.
 
 \subsection{Analysis}
 \label{subsec:analysis}
+
+Now, let us examine the results of running \myth{} over our benchmark suite.
+In this section, we present performance numbers for an implementation of \myth{} in the OCaml programming language~\todo{cite---OCaml manual}.
+This implementation was exercised on a desktop PC equipped with the openSUSE operating system (version 13.1), an Intel i7-3770 quad-core CPU clocked at 3.40 GHz, and 8 Gb of ram.
+Note that because the version of OCaml we used features a runtime with a global lock, we were unable to take advantage of more than one core.
+We expect that there are substantial performance benefits to moving to an implementation that can utilize multiple cores.
+All benchmarks were run five times in succession, and we report the average runtime collected from those trials.
+
+\input{figures/myth-raw-benchmarks.tex}
+
+\input{figures/myth-raw-benchmarks-graphs}
+
+\autoref{fig:myth-raw-benchmarks} presents the complete performance data of running \myth{} over our benchmark suite.
+The benchmark suite contains 42 test programs.
+On average, we provided \myth{} with seven examples and it produced a program of size 13 in 0.092 seconds.
+The average execution time is inflated by a pair of benchmarks (\texttt{tree\_nodes\_at\_level} and \texttt{tree\_postorder}) that took longer than a second to execute.
+The median execution time, 0.0075 seconds, is more indicative of \myth{}'s performance over these benchmarks.
+
+We graph relevant data in \autoref{fig:myth-benchmark-graphs} to better visualize the trends.
 
 \subsection{Context Size and Performance}
 \label{subsec:context-size-and-performance}

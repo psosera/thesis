@@ -1,0 +1,20 @@
+\newcommand{\benchmarksCount}{ {{ count }} }
+\begin{figure}
+  \begin{center}
+  \tabcolsep 5.8pt
+  \footnotesize
+  \begin{tabular}{|c|c|c|c|c|}
+  \hline
+  \textbf{Test} & \textbf{ \#/Examples } & \textbf{ Prog. size } & \textbf{Time (s)} \\
+  \hline
+
+%%%%% TABLE DATA
+{{ data }}
+%%%%%
+
+  \hline
+  \end{tabular}
+  \end{center}
+  \caption{\myth{} benchmark suite performance results}
+  \label{fig:myth-raw-benchmarks}
+\end{figure}

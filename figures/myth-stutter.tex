@@ -1,0 +1,24 @@
+\begin{figure}
+  \begin{center}
+    \begin{minipage}{0.625\textwidth}
+      \begin{lstlisting}
+        type nat =
+          | O
+          | S of nat
+
+        type list =
+          | Nil
+          | Cons of nat * list
+
+        let list_stutter : list -> list |>
+          { [] => []
+          | [0] => [0;0]
+          | [1;0] => [1;1;0;0]
+          } = ?
+      \end{lstlisting}
+    \end{minipage}
+  \end{center}
+\hrule
+\caption{Example \myth{} program: $\mkwd{stutter}$}
+\label{fig:myth-stutter}
+\end{figure}

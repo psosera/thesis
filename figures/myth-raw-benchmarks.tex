@@ -1,0 +1,112 @@
+\newcommand{\benchmarksCount}{ 42 }
+
+\begin{figure}
+  \begin{center}
+  \tabcolsep 5.8pt
+  \footnotesize
+  \begin{tabular}{|c|c|c|c|c|}
+  \hline
+  \textbf{Test} & \textbf{ \#/Examples } & \textbf{ Prog. size } & \textbf{Time (s)} \\
+  \hline
+
+%%%%% TABLE DATA
+\multicolumn{4}{|c|}{\textbf{Booleans}} \\
+\hline
+bool\_band & 4 & 6 & 0.0028 \\
+\hline
+bool\_bor & 4 & 6 & 0.0024 \\
+\hline
+bool\_impl & 4 & 6 & 0.0024 \\
+\hline
+bool\_neg & 2 & 5 & 0.001 \\
+\hline
+bool\_xor & 4 & 9 & 0.0026 \\
+\hline
+\multicolumn{4}{|c|}{\textbf{Lists}} \\
+\hline
+list\_append & 6 & 12 & 0.005 \\
+\hline
+list\_compress & 13 & 28 & 0.0932 \\
+\hline
+list\_concat & 6 & 11 & 0.008 \\
+\hline
+list\_drop & 11 & 13 & 0.013 \\
+\hline
+list\_even\_parity & 7 & 13 & 0.005 \\
+\hline
+list\_filter & 8 & 15 & 0.016 \\
+\hline
+list\_fold & 9 & 13 & 0.1724 \\
+\hline
+list\_hd & 3 & 5 & 0.001 \\
+\hline
+list\_inc & 4 & 8 & 0.001 \\
+\hline
+list\_last & 6 & 11 & 0.003 \\
+\hline
+list\_length & 3 & 8 & 0.001 \\
+\hline
+list\_map & 8 & 12 & 0.0108 \\
+\hline
+list\_nth & 13 & 16 & 0.0152 \\
+\hline
+list\_pairwise\_swap & 7 & 19 & 0.007 \\
+\hline
+list\_rev\_append & 5 & 13 & 0.0144 \\
+\hline
+list\_rev\_fold & 5 & 12 & 0.008 \\
+\hline
+list\_rev\_snoc & 5 & 11 & 0.0068 \\
+\hline
+list\_rev\_tailcall & 8 & 12 & 0.005 \\
+\hline
+list\_snoc & 8 & 14 & 0.0036 \\
+\hline
+list\_sort\_sorted\_insert & 7 & 11 & 0.0094 \\
+\hline
+list\_sorted\_insert & 12 & 24 & 0.1592 \\
+\hline
+list\_stutter & 3 & 11 & 0.001 \\
+\hline
+list\_sum & 3 & 8 & 0.0028 \\
+\hline
+list\_take & 12 & 15 & 0.1488 \\
+\hline
+list\_tl & 3 & 5 & 0.001 \\
+\hline
+\multicolumn{4}{|c|}{\textbf{Natural Numbers}} \\
+\hline
+nat\_iseven & 4 & 10 & 0.001 \\
+\hline
+nat\_max & 9 & 14 & 0.0166 \\
+\hline
+nat\_pred & 3 & 5 & 0.001 \\
+\hline
+nat\_add & 9 & 11 & 0.0028 \\
+\hline
+\multicolumn{4}{|c|}{\textbf{Trees}} \\
+\hline
+tree\_binsert & 20 & 31 & 0.4834 \\
+\hline
+tree\_collect\_leaves & 6 & 15 & 0.0208 \\
+\hline
+tree\_count\_leaves & 7 & 14 & 0.0118 \\
+\hline
+tree\_count\_nodes & 6 & 14 & 0.0112 \\
+\hline
+tree\_inorder & 5 & 15 & 0.0192 \\
+\hline
+tree\_map & 7 & 15 & 0.017 \\
+\hline
+tree\_nodes\_at\_level & 11 & 22 & 1.1078 \\
+\hline
+tree\_postorder & 9 & 32 & 1.467 \\
+%%%%%
+
+  \hline
+  \end{tabular}
+  \end{center}
+  \caption{\myth{} benchmark suite performance results}
+  \label{fig:myth-raw-benchmarks}
+\end{figure}
+
