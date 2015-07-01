@@ -1,0 +1,45 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      τ  & \bnfdef & ∀α.\,τ \bnfalt  α \bnfalt τ_1 → τ_2 \bnfalt T & Types\\
+      e  & \bnfdef & x \bnfalt e\,[τ] \bnfalt Λα.\,e \bnfalt e_1\,e_2 \bnfalt λx{:}τ.\,e \bnfalt c & Terms \\
+      E  & \bnfdef & x \bnfalt E\,[τ] \bnfalt E\,I & Elimination Terms \\
+      I  & \bnfdef & E \bnfalt Λα.\,I  λx{:}τ.\,I \bnfalt c & Introduction Terms \\
+      v  & \bnfdef & Λα.\,e \bnfalt λx{:}τ.\,e \bnfalt c & Values \\
+      ℰ  & \bnfdef & ◻ \bnfalt ℰ\,[τ] \bnfalt ℰ\,e \bnfalt v\,ℰ & Evaluation Contexts \\
+      Γ  & \bnfdef & · \bnfalt x{:}τ, Γ \bnfalt α{:}*, Γ & Typing Contexts \\
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \text{(Extends the definition of \lsyn{}---\autoref{fig:lsyn-defn})} \\
+      \fbox{$e ⟶ e'$} \qquad
+        \inferrule[eval-tapp]
+          {}
+          {(Λα.\,e)\,[τ] ⟶ [τ/α]e} \\
+      \fbox{$\begin{array}{c}Γ ⊢ E ⇒ τ \\ Γ ⊢ I ⇐ τ\end{array}$} \qquad
+        \inferrule[t-Etapp]
+          {Γ ⊢ E ⇒ ∀α.\,τ_1 \\ Γ ⊢ τ}
+          {Γ ⊢ E\,[τ] ⇒ [τ/α] τ_1} \qquad
+        \inferrule[t-Itabs]
+          {α{:}*, Γ ⊢ I ⇐ τ}
+          {Γ ⊢ Λα.\,I ⇐ ∀α.\,τ} \\
+      \fbox{$Γ ⊢ τ$} \qquad
+        \inferrule[wf-forall]
+          {α{:}*, Γ ⊢ τ}
+          {Γ ⊢ ∀α.\,τ} \qquad
+        \inferrule[wf-tvar]
+          {α{:}* ∈ Γ}
+          {Γ ⊢ α} \qquad
+        \inferrule[wf-arr]
+          {Γ ⊢ τ_1 \\ Γ ⊢ τ_2}
+          {Γ ⊢ τ_1 → τ_2} \qquad
+        \inferrule[wf-base]
+          { }
+          {Γ ⊢ T}
+    \end{gather*}
+  \end{center}
+
+  \hrule
+  \caption{\systemfsyn{} syntax and typechecking}
+  \label{fig:system-f-syn-defn}
+\end{figure}

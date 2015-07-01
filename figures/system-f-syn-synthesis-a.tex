@@ -1,0 +1,51 @@
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{>{$}l<{$} >{$}r<{$} >{$}l<{$} l}
+      v  & \bnfdef & … \bnfalt q & Values \\
+      χ  & \bnfdef & … \bnfalt Λq_1, …, q_k:α.\,χ \bnfalt q & Example Values \\
+      Γ  & \bnfdef & · \bnfalt x{:}τ, Γ \bnfalt α{:}*, Γ \bnfalt q{:}α, Γ & Typing Contexts \\
+    \end{tabular} \\[12pt]
+    \hrule
+    \begin{gather*}
+      \fbox{$Γ ⇝ τ$} \qquad
+        \inferrule[wf-forall]
+          {α{:}*, Γ ⇝ τ}
+          {Γ ⇝ ∀α.\,τ} \qquad
+        \inferrule[wf-tvar]
+          {α{:}* ∈ Γ}
+          {Γ ⇝ α} \qquad
+        \inferrule[wf-arr]
+          {Γ ⇝ τ_1 \\ Γ ⇝ τ_2}
+          {Γ ⇝ τ_1 → τ_2} \qquad
+        \inferrule[wf-base]
+          { }
+          {Γ ⇝ T} \\
+      \fbox{$\begin{array}{c}Γ ⊢ τ ⇝ E \\ Γ ⊢ τ ▷ Χ ⇝ I\end{array}$} \qquad
+        \inferrule[eguess-tapp]
+          {Γ ⊢ ∀α.\,τ_1 ⇝ E \\ Γ ⇝ τ}
+          {Γ ⊢ [τ/α] τ_1 ⇝ E\,[τ]} \\
+        \inferrule[irefine-forall]
+          {Χ  = \many{Λq_1, …, q_k{:}α.\,χ_i}{i < m} \\ Χ' = \many{χ_i}{i < m} \\\\
+            q_1{:}α, …, q_k{:}α, α{:}*, Γ ⊢ τ ▷ Χ' ⇝ I}
+          {Γ ⊢ ∀α.\,τ ▷ Χ ⇝ Λα.\,I} \\
+      \fbox{$v ≃ χ$} \qquad
+        \inferrule[eq-pconst]
+          {}
+          {q ≃ q} \qquad
+        \inferrule[eq-tabs]
+          {I ⟶^* v \\ v ≃ χ}
+          {Λα.\,I ≃ Λq_1, …, q_k{:}α.\,χ} \\
+      \fbox{$Γ ⊢ χ : τ$} \qquad
+        \inferrule[ex-pconst]
+          {q{:}α ∈ Γ}
+          {Γ ⊢ q : α} \qquad
+        \inferrule[ex-tabs]
+        {α{:}*, q_1{:}α, …, q_k{:}α ⊢ χ : τ}
+          {Γ ⊢ Λq_1, …, q_k{:}α.\,χ : ∀α{:}.\,τ}
+    \end{gather*}
+  \end{center}
+
+  \hrule
+  \caption{\systemfsyn{} synthesis rules}
+  \label{fig:system-f-syn-synthesis-a}
+\end{figure}
