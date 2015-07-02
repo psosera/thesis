@@ -244,7 +244,7 @@ Say that we have this example world with the partial program skeleton $Λα.λx{
 It would be unsound to use this type equality to synthesize $0$ for the whole, even if this value agrees with the example, because the hole is held to an abstract type $α$.
 
 Rather than recording type equalities that could apply to an entire example world, we must instead record that the example values really have polymorphic type even though they are concrete values (of a particular, known type).
-To do this, we introduce \emphs{boxed polymorphic expression}, written $\pbox{e}{α}$, that records that a particular expression ought to be treated as if had type $α$.
+To do this, we introduce \emph{boxed polymorphic expression}, written $\pbox{e}{α}$, that records that a particular expression ought to be treated as if had type $α$.
 These boxes behave similarly to the polymorphic constants in that they are opaque to the outside world, but allow for testable equality (as long as the carrier type of the box also has testable equality).
 When refining a polymorphic instance value of the form $[τ_1]\,χ$ at goal type $∀α.\,τ$, we box any sub-expression of $χ$ that would have type $α$ when type checking $χ$ against the polymorphic type $∀.\,τ$.
 For example, if our example value was:

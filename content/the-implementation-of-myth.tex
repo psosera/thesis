@@ -1,11 +1,34 @@
 In \autoref{ch:implementation} we evolved the synthesis judgment of \mlsyn{} into an efficient synthesis procedure.
-This procedure went through several iterations in the chapter, so we summarize the final product here which we implemented directly in our prototype program synthesis tool, \myth{}.
+This procedure went through several iterations in the chapter, so we summarize the final product here.
 
-Our synthesis procedure consists of:
+The synthesis procedure that we implement directly in our prototype program synthesis tool, \myth{} (\autoref{ch:evaluating-myth}), consists of:
+\begin{itemize}
+  \item A \emph{refinement tree generation algorithm} (\autoref{fig:app-implementation-refinement-tree}),
+  \item A \emph{relevant term generation algorithm} (\autoref{fig:app-implementation-genE} and \autoref{fig:app-implementation-genI}), and
+  \item An overall synthesis procedure that, given a synthesis specification, synthesizes the first program it finds that satisfies that specification.
+\end{itemize}
+
+Given a signature $Σ$, context $Γ$, goal type $τ$, and examples $Χ$, our synthesis procedure operates as follows:
 \begin{enumerate}
-  \item A \emph{refinement tree generation algorithm},
-  \item A \emph{relevant term generation algorithm}, and
-  \item An iterative procedure that, given a synthesis problem, synthesizes programs according to a set of \emph{search metrics}.
-  \end{enumerate}
+  \item Let our search parameter initial values be $s = 1$ (the maximum match scrutinee size), $m = 0$ (the maximum match depth), and $k = 13$ (the maximum $E$-term size).
+  \item Starting with the initial synthesis $I$-refinement phase of the synthesis plan described below:
+    \begin{enumerate}
+      \item Execute the next phase of $I$-refinement.
+      \item Perform $E$-guessing for 0.25 seconds (using $\mguess$ defined in \autoref{fig:app-implementation-refinement-tree}) up to size $k$ at all elligible nodes in the current refinement tree.
+        A refinement tree node is elligible for $E$-guessing if we have not yet found a satisfying expression at that node and its corresponding goal type is a base type $T$.
+      \item Propogate newly found satisfying programs upwards in the refinement tree.
+        If we construct an overall, satisfying program to the original synthesis problem then terminate, returning that program.
+        Otherwise, move onto the next phase of $I$-refinement repeat.
+    \end{enumerate}
+\end{enumerate}
+The phases of $I$-refinement in our synthesis plan are:
+\begin{enumerate}
+  \item Create an initial refinement tree with the search parameters $s$ and $m$.
+  \item Increase $m$ by one ($m = 1$) and extend the refinement tree accordingly.
+  \item Increase $m$ by one ($m = 2$) and extend the refinement tree accordingly.
+  \item Increase $s$ by five ($s = 6$) and extend the refinement tree accordingly.
+  \item Increase $m$ by one ($m = 3$).
+\end{enumerate}
+If we are unable to find a satisfying program and run out of synthesis steps, we return an error stating that the procedure could not find a satisfying program.
 
-\todo{Copy-paste the three bits of procedure here.}
+\input{figures/app-implementation}
