@@ -1,0 +1,435 @@
+\noindent\large\texttt{tests/pldi-2015-extended/arith.ml}
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+(* -matches 2 -scrutinee 8 *)
+
+type nat =
+| O
+| S of nat
+
+type cmp =
+  | LT
+  | EQ
+  | GT
+
+type exp =
+| Const of nat
+| Sum of exp * exp
+| Prod of exp * exp
+| Pred of exp
+| Max of exp * exp 
+       
+let rec sum (n1:nat) (n2:nat) : nat =
+  match n1 with
+  | O -> n2
+  | S (n1) -> S (sum n1 n2)
+;;
+
+let rec mult (n1:nat) (n2:nat) : nat =
+  match n1 with
+  | O -> O
+  | S (n1) -> sum n2 (mult n1 n2)
+;;
+
+let rec compare (n1 : nat) (n2 :nat) : cmp =
+  match n1 with
+  | O -> ( match n2 with 
+           | O -> EQ
+           | S (m) -> LT
+         )
+  | S (m1) -> 
+      ( match n2 with
+      | O -> GT
+      | S (m2) -> (compare m1 m2) )
+;;
+
+let arith : exp -> nat |>
+{ Const (0) => 0
+| Const (1) => 1                     
+| Const (2) => 2
+| Sum (Const(2), Const(2)) => 4
+| Sum (Const(2), Const(1)) => 3
+| Sum (Const(0), Const(2)) => 2
+| Prod (Const(0), Const(2)) => 0
+| Prod (Const(2), Const(1)) => 2
+| Prod (Const(2), Const(2)) => 4
+| Prod (Prod(Const(2), Const(2)), Const(2)) => 8
+| Prod (Sum(Const(2), Const(1)), Const(2)) => 6
+| Pred (Const(0)) => 0
+| Pred (Const(1)) => 0
+| Pred (Const(2)) => 1
+| Max (Const(0), Const(0)) => 0
+| Max (Const(0), Const(1)) => 1
+| Max (Const(0), Const(2)) => 2
+| Max (Const(1), Const(0)) => 1
+| Max (Const(1), Const(1)) => 1
+| Max (Const(1), Const(2)) => 2
+| Max (Const(2), Const(0)) => 2  
+| Max (Const(2), Const(1)) => 2
+} = ?
+\end{minted}
+
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+let arith : exp -> nat =
+  let rec f1 (e1:exp) : nat =
+    match e1 with
+      | Const (n1) -> n1
+      | Sum (e2, e3) -> sum (f1 e2) (f1 e3)
+      | Prod (e2, e3) -> mult (f1 e2) (f1 e3)
+      | Pred (e2) -> (match f1 e2 with
+                        | O -> O
+                        | S (n1) -> n1)
+      | Max (e2, e3) -> (match compare (f1 e2) (f1 e3) with
+                           | LT -> f1 e3
+                           | EQ -> f1 e3
+                           | GT -> f1 e2)
+  in
+    f1
+;;
+\end{minted}
+
+\noindent\large\texttt{tests/pldi-2015-extended/dyn\_app\_twice.ml}
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+type nat =
+   | O
+   | S of nat
+
+type dyn =
+  | Error
+  | Base of nat
+  | Dyn of (dyn -> dyn)
+
+
+let succ (d:dyn) : dyn =
+  match d with
+  | Error -> Error
+  | Base ( n ) -> Base (S(n))
+  | Dyn ( f ) -> Error
+;;
+
+let pred (d:dyn) : dyn =
+  match d with
+  | Error -> Error
+  | Base ( n ) ->
+    (match n with
+    | O -> Base ( O )
+    | S ( n ) -> Base ( n ))
+  | Dyn ( f ) -> Error
+;;
+
+let dyn_app_twice : dyn -> dyn -> dyn |>
+{
+  Dyn (succ) => ( Base( 0 ) => Base( 2 )
+                | Base( 1 ) => Base( 3 ) )
+| Dyn (pred) => ( Base( 0 ) => Base( 0 )
+                | Base( 1 ) => Base( 0 ) )
+| Error => Error => Error
+| Base( 0 ) => Error => Error
+} = ?
+\end{minted}
+
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+let dyn_app_twice : dyn -> dyn -> dyn =
+  fun (d1:dyn) ->
+    fun (d2:dyn) ->
+      match d1 with
+        | Error -> Error
+        | Base (n1) -> Error
+        | Dyn (f3) -> f3 (f3 d2)
+;;
+\end{minted}
+
+\noindent\large\texttt{tests/pldi-2015-extended/dyn\_sum.ml}
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+type nat =
+   | O
+   | S of nat
+
+type dyn =
+  | Error
+  | Base of nat
+  | Dyn of (dyn -> dyn)
+
+
+let succ (d:dyn) : dyn =
+  match d with
+  | Error -> Error
+  | Base ( n ) -> Base (S(n))
+  | Dyn ( f ) -> Error
+;;
+
+let id (d:dyn) : dyn = d ;;
+
+let dyn_sum : dyn -> dyn -> dyn |>
+{ Dyn (id) =>
+  ( Error    => Error
+  | Dyn (id) => Error
+  | Base (0) => Error
+  | Base (1) => Error
+  | Base (2) => Error )
+| Error =>
+  ( Error    => Error
+  | Dyn (id) => Error
+  | Base (0) => Error
+  | Base (1) => Error
+  | Base (2) => Error )
+| Base (0) =>
+  ( Error    => Error
+  | Dyn (id) => Error
+  | Base (0) => Base (0)
+  | Base (1) => Base (1)
+  | Base (2) => Base (2) )
+| Base (1) =>
+  ( Error    => Error
+  | Dyn (id) => Error
+  | Base (0) => Base (1)
+  | Base (1) => Base (2)
+  | Base (2) => Base (3) )
+| Base (2) =>
+  ( Error    => Error
+  | Dyn (id) => Error
+  | Base (0) => Base (2)
+  | Base (1) => Base (3)
+  | Base (2) => Base (4) )
+} = ?
+\end{minted}
+
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+let dyn_sum : dyn -> dyn -> dyn =
+  fun (d1:dyn) ->
+    fun (d2:dyn) ->
+      match d1 with
+        | Error -> Error
+        | Base (n1) -> (match n1 with
+                          | O -> (match d2 with
+                                    | Error -> Error
+                                    | Base (n2) -> d2
+                                    | Dyn (f3) -> Error)
+                          | S (n2) -> (match n2 with
+                                         | O -> succ d2
+                                         | S (n3) -> succ (succ d2)))
+        | Dyn (f3) -> Error
+;;
+\end{minted}
+
+\noindent\large\texttt{tests/pldi-2015-extended/fvs\_large.ml}
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+type nat =
+  | O
+  | S of nat
+
+type list =
+  | Nil
+  | Cons of nat * list
+
+type exp =
+  | Unit
+  | BVar of nat
+  | FVar of nat
+  | Lam of nat * exp
+  | App of exp * exp
+  | Pair of exp * exp
+  | Fst of exp
+  | Snd of exp
+  | Inl of exp
+  | Inr of exp
+  | Const of nat
+  | Add of exp * exp
+  | Sub of exp * exp
+  | Mult of exp * exp
+  | Div of exp * exp
+
+let rec append (l1:list) (l2:list) : list =
+  match l1 with
+  | Nil -> l2
+  | Cons (x, l1p) -> Cons (x, append l1p l2)
+;;
+
+let fvs_large : exp -> list |>
+  { Unit => []
+  | FVar (0) => [0]
+  | FVar (1) => [1]
+  | FVar (2) => [2]
+  | BVar (0) => []
+  | Lam (0, Unit) => []
+  | Lam (0, FVar (1)) => [1]
+  | App (Unit, Unit) => []
+  | App (FVar (0), Unit) => [0]
+  | App (Unit, FVar (1)) => [1]
+  | Fst (Unit) => []
+  | Fst (FVar (1)) => [1]
+  | Snd (Unit) => []
+  | Snd (FVar (1)) => [1]
+  | Pair (Unit, Unit) => []
+  | Pair (FVar (0), Unit) => [0]
+  | Pair (Unit, FVar (1)) => [1]
+  | Pair (FVar (0), FVar (1)) => [0; 1]
+  | Inl (Unit) => []
+  | Inl (FVar (1)) => [1]
+  | Inr (Unit) => []
+  | Inr (FVar (1)) => [1]
+  | Const (0) => []
+  | Add (FVar (0), Unit) => [0]
+  | Add (Unit, FVar (1)) => [1]
+  | Sub (FVar (0), Unit) => [0]
+  | Sub (Unit, FVar (1)) => [1]
+  | Mult (FVar (0), Unit) => [0]
+  | Mult (Unit, FVar (1)) => [1]
+  | Div (FVar (0), Unit) => [0]
+  | Div (Unit, FVar (1)) => [1]
+  } = ?
+\end{minted}
+
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+let fvs_large : exp -> list =
+  let rec f1 (e1:exp) : list =
+    match e1 with
+      | Unit -> Nil
+      | BVar (n1) -> Cons (n1, Nil)
+      | FVar (n1) -> Nil
+      | Lam (n1, e2) -> f1 e2
+      | App (e2, e3) -> append (f1 e2) (f1 e3)
+      | Pair (e2, e3) -> append (f1 e2) (f1 e3)
+      | Fst (e2) -> f1 e2
+      | Snd (e2) -> f1 e2
+      | Inl (e2) -> f1 e2
+      | Inr (e2) -> f1 e2
+      | Match (e2, n1, e3, n2, e4) -> (match f1 e2 with
+                                         | Nil -> append (f1 e3) (f1 e4)
+                                         | Cons (n3, l1) -> Cons (n3,
+                                                              append (f1 e3)
+                                                                (f1 e4)))
+      | Const (n1) -> Nil
+      | Binop (e2, b1, e3) -> append (f1 e2) (f1 e3)
+  in
+    f1
+;;
+\end{minted}
+
+\noindent\large\texttt{tests/pldi-2015-extended/fvs\_medium.ml}
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+type nat =
+  | O
+  | S of nat
+
+type list =
+  | Nil
+  | Cons of nat * list
+
+type binop =
+  | Add
+  | Sub
+  | Mul
+  | Div
+
+type exp =
+  | Unit
+  | BVar of nat
+  | FVar of nat
+  | Lam of nat * exp
+  | App of exp * exp
+  | Pair of exp * exp
+  | Fst of exp
+  | Snd of exp
+  | Const of nat
+  | Binop of exp * binop * exp
+
+let rec append (l1:list) (l2:list) : list =
+  match l1 with
+  | Nil -> l2
+  | Cons (x, l1p) -> Cons (x, append l1p l2)
+;;
+
+let fvs_medium : exp -> list |>
+  { Unit => []
+  | BVar (0) => [0]
+  | BVar (1) => [1]
+  | BVar (2) => [2]
+  | FVar (0) => []
+  | Lam (0, Unit) => []
+  | Lam (0, BVar (1)) => [1]
+  | App (Unit, Unit) => []
+  | App (BVar (0), Unit) => [0]
+  | App (Unit, BVar (1)) => [1]
+  | App (BVar (0), BVar (1)) => [0; 1]
+  | Fst (Unit) => []
+  | Fst (BVar (1)) => [1]
+  | Snd (Unit) => []
+  | Snd (BVar (1)) => [1]
+  | Pair (Unit, Unit) => []
+  | Pair (BVar (0), Unit) => [0]
+  | Pair (Unit, BVar (1)) => [1]
+  | Pair (BVar (0), BVar (1)) => [0; 1]
+  | Const (0) => []
+  | Binop (BVar (0), Add, Unit) => [0]
+  | Binop (Unit, Add, BVar (1)) => [1]
+  } = ?
+\end{minted}
+
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+let fvs_medium : exp -> list =
+  let rec f1 (e1:exp) : list =
+    match e1 with
+      | Unit -> Nil
+      | BVar (n1) -> Cons (n1, Nil)
+      | FVar (n1) -> Nil
+      | Lam (n1, e2) -> f1 e2
+      | App (e2, e3) -> append (f1 e2) (f1 e3)
+      | Pair (e2, e3) -> append (f1 e2) (f1 e3)
+      | Fst (e2) -> f1 e2
+      | Snd (e2) -> f1 e2
+      | Const (n1) -> Nil
+      | Binop (e2, b1, e3) -> append (f1 e2) (f1 e3)
+  in
+    f1
+;;
+\end{minted}
+
+\noindent\large\texttt{tests/pldi-2015-extended/fvs\_small.ml}
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+type id =
+  | A
+  | B
+  | C
+
+type nat =
+  | O
+  | S of nat
+
+type list =
+  | Nil
+  | Cons of id * list
+
+type exp =
+  | EBVar of nat
+  | EFVar of id
+  | EApp  of exp * exp
+
+let rec append (l1:list) (l2:list) : list =
+  match l1 with
+  | Nil -> l2
+  | Cons (x, l1p) -> Cons (x, append l1p l2)
+;;
+
+let fvs_small : exp -> list |>
+  { EBVar (0) => []
+  | EFVar (A) => [A]
+  | EFVar (B) => [B]
+  | EApp (EBVar (0), EBVar (0)) => []
+  | EApp (EFVar (A), EBVar (0)) => [A]
+  | EApp (EBVar (0), EFVar (A)) => [A]
+  } = ?
+\end{minted}
+
+\begin{minted}[fontsize=\footnotesize,frame=lines]{ocaml}
+let fvs_small : exp -> list =
+  let rec f1 (e1:exp) : list =
+    match e1 with
+      | EBVar (n1) -> Nil
+      | EFVar (i1) -> Cons (i1, Nil)
+      | EApp (e2, e3) -> append (f1 e2) (f1 e3)
+  in
+    f1
+;;
+\end{minted}
+
+

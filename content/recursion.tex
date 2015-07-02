@@ -79,12 +79,12 @@ However, recursion poses even more of a problem than this.
 It is is unlikely for us to encounter $ω$ if we enumerate programs in order of size as suggested in \autoref{ch:a-simple-synthesis-calculus} because its encoding in \lsyn{} is roughly 30 AST nodes which is too large to generate in a reasonable amount of time.
 However, such non-terminating expressions in a standard functional programming language are much smaller by comparison.
 For example imagine that we are synthesizing the body of a function in an ML-like language:
-\begin{lstlisting}
-  let rec f (x:int) : int = ?.
-\end{lstlisting}
-We may try to $E$-guess the expression \lstinline|f x| for the body of \lstinline|f| which produces an infinite loop.
+\[
+  \mlet\;\mrec\;f\;(x{:}\mnat) : \mnat = ◼.
+\]
+We may try to $E$-guess the expression $f\,x$ for the body of $f$ which produces an infinite loop.
 This expression, in contrast to $ω$, is a mere 3 AST nodes which makes it very likely that we would encounter this term during enumeration.
-Furthermore, because this looping term is so small, we'll enumerate many other equivalent terms that contain it, \eg, \lstinline|f (f x)| or \lstinline|f (f (f x))|.
+Furthermore, because this looping term is so small, we'll enumerate many other equivalent terms that contain it, \eg, $f\,(f\,x)$ or $f\,(f\,(f\,x))$.
 We could alter our evaluation strategy to include a timeout or limit on number of evaluation steps, but with so many non-terminating terms, this approach would not scale appropriately.
 
 \section{A Functional Synthesis Programming Language}

@@ -1,24 +1,25 @@
 \begin{figure}
   \begin{center}
-    \begin{minipage}{0.625\textwidth}
-      \begin{lstlisting}
-        type nat =
-          | O
-          | S of nat
+      \begin{cminted}{ocaml}
+type nat =
+| O
+| S of nat
 
-        type list =
-          | Nil
-          | Cons of nat * list
+type list =
+| Nil
+| Cons of nat * list
 
-        let list_stutter : list -> list |>
-          { [] => []
-          | [0] => [0;0]
-          | [1;0] => [1;1;0;0]
-          } = ?
-      \end{lstlisting}
-    \end{minipage}
+let list_stutter : list -> list |>
+{ [] => []
+| [0] => [0;0]
+| [1;0] => [1;1;0;0]
+} = ?
+      \end{cminted}
   \end{center}
 \hrule
-\caption{Example \myth{} program: $\mkwd{stutter}$}
+\caption[Example \myth{} program: $\mkwd{stutter}$]{%
+  Example \myth{} program: $\mkwd{stutter}$.
+  (Throughout this chapter we typeset \myth{} source code and output in a fixed-width, syntax highlighted font.)
+}
 \label{fig:myth-stutter}
 \end{figure}

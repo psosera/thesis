@@ -1,22 +1,20 @@
 \begin{figure}
-  \begin{minipage}{\textwidth}
-    \begin{center}
-      \begin{lstlisting}
-        type bool = True | False
-        type nat = O | S of nat
-        type list = Nil | Cons of nat * list
-        type cmp = LT | EQ | GT
-        type tree = Leaf | Node of tree * nat * tree
+  \begin{center}
+    \begin{cminted}{ocaml}
+type bool = True | False
+type nat = O | S of nat
+type list = Nil | Cons of nat * list
+type cmp = LT | EQ | GT
+type tree = Leaf | Node of tree * nat * tree
 
-        val andb : bool -> bool -> bool
-        val orb : bool -> bool -> bool
-        val compare : nat -> nat -> cmp
-        val plus : nat -> nat ->  nat
-        val div2 : nat -> nat
-        val append : list -> list -> list
-      \end{lstlisting}
-    \end{center}
-  \end{minipage}
+val andb : bool -> bool -> bool
+val orb : bool -> bool -> bool
+val compare : nat -> nat -> cmp
+val plus : nat -> nat ->  nat
+val div2 : nat -> nat
+val append : list -> list -> list
+    \end{cminted}
+  \end{center}
 
   \hrule
   \caption{\myth{} benchmarks: extended context}

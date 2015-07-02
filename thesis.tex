@@ -79,17 +79,13 @@
 \setlength{\headheight}{15pt}
 
 %%%%% Code Formatting %%%%%
-\usepackage{listings}
-\lstset{%
-  language=[Objective]Caml,
-  basicstyle=\small\upshape\ttfamily,
-  framexleftmargin=1ex,
-  framexrightmargin=1ex,
-  showstringspaces=false,
-  commentstyle=\itshape\rmfamily,
-  columns=flexible,
-  stringstyle=\ttfamily
-}
+\usepackage{fancyvrb}
+\usepackage{minted}
+
+\usepackage{xpatch,letltxmacro}
+\LetLtxMacro{\cminted}{\minted}
+\let\endcminted\endminted
+\xpretocmd{\cminted}{\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}}{}{}
 
 %%%%% PDF output %%%%%
 \usepackage[pdftex]{hyperref}
