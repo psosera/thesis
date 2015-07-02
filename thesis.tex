@@ -82,12 +82,18 @@
 \usepackage{fancyvrb}
 \usepackage{minted}
 
+% Quick hack to define a centered minted environment: \cminted
 \usepackage{xpatch,letltxmacro}
 \LetLtxMacro{\cminted}{\minted}
 \let\endcminted\endminted
 \xpretocmd{\cminted}{\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}}{}{}
 
-%%%%% PDF output %%%%%
+%%%%% Bibliography Management %%%%%
+
+\usepackage[backend=biber]{biblatex}
+\addbibresource{synthesis.bib}
+
+%%%%% PDF Output %%%%%
 \usepackage[pdftex]{hyperref}
 \hypersetup{%
   pdftitle={\Title},
@@ -280,7 +286,7 @@ Preface
 
 %%%%%%%%%%%%%%%%%%%% Bibliography {{{ %%%%%%%%%%%%%%%%%%%%
 
-
+\printbibliography
 
 %%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
 
