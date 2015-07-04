@@ -1,49 +1,116 @@
-Program synthesis is one of the great pursuits of computer science.  Given a
-specification for a program, can we derive a program that meets that
-specification?  If our specification is correct, then synthesis promises to give
-us programs that are \emph{correct by construction}.  Even if we don't care
-about correctness, the specification of a program such that a synthesizer can
-create it is (hopefully) much easier than writing the program in the first
-place.  Finally, because programs are general, being able to synthesize programs
-implies that we are able to synthesize a wide range of objects: anything that
-can be phrased in terms of computer programs!
+As computer scientists, we are obsessed with harnessing computation for the purposes of automating tasks, from the mundane---processing your taxes, reminding your about your next appointment, or sharing your opinions with others on the Internet---to the critical---ensuring that an airplane stays upright, keeping sensitive data secure, or guaranteeing that a medical machine dispenses an appropriate amount of a drug to a patient.
+However, can we automate the one task that defines our field: writing computer programs.
+In other words, given a specification for a program, can we derive a program that meets that specification?
+This process of generating programs automatically from specification is called \emph{program synthesis} and is one of the greatest, longest-standing pursuits of the field.
 
-The problem of program synthesis was posed as early as the 60s.
-Here, the specification took the form of constraints expressed in a suitable
-logic, \eg, first-order logic, and synthesis amounted to performing some
-combination of translation of the terms of the logic and search to find a
-program that met those constraints.  However, at worst, program synthesis in its
-full generality is an undecidable problem, and at best, it is an intractable
-problem for all but the most trivial of programs.
+At its core, program synthesis is a problem of combining \emph{search} with \emph{specification}
+The domain of the search is the infinite sea of possible programs (for some particular programming language).
+Specification allows us to pick out particular programs of interest that we find during search.
+This specification can take many forms, for example, logical statements~\citep{green-ijcai-1969, manna-tse-1979}, input/output examples~\citep{summers-popl-1976, kitzelmann-thesis-2010, albarghouthi-cav-2013, feser-pldi-2015}, and partial programs~\citep{solar-lezama-thesis-2008, alur-fmcad-2013, singh-pldi-2013}, among others.
+The search and specification components of synthesis frequently inform each other; specification helps refine the space of possible programs, making search tractible, and different search techniques are more amendable to particular kinds of specification.
 
-As a result, research into program synthesis waned in the intervening years as the
-problem was deemed too difficult to tackle.  However, the field has seen a
-large resurgence in the present day due to a number of factors:
+If we can solve this problem, though, the rewards promise to be great indeed.
+By synthesizing a program from a specification, we guarantee that the program agrees with that specification by virtue of synthesis process.
+If that specification includes properties such as correctness or safety, then the program will enjoy those properties automatically.
+Furthermore, very often it is easier to write down a specification of how a program than write the program itself, especially if that specification is partial, for example, a collection of input/output examples or a demonstration of how the program should work.
+Program synthesis then becomes a tool that makes the power of computer programs more accessible to people, especially non-programmers who can signify their intent, but do not know how to translate that intent into a program.
+Finally, because computer programs are general-purpose, synthesizing programs means synthesizing methods of solving any task we can express as a program.
+This might mean deriving a complex program to determine the trajectory of a rocket or simply automating the task of entering data into a spreadsheet.
 
+In this thesis, we develop a \emph{type-theoretic interpretation} of program synthesis.
+Type theory~\citep{martin-lof-1984} provides alternative constructive foundations for all of mathematics.
+By studying type systems, programming language researchers leverage these foundations through the Curry-Howard Isomorphism~\citep{william-curry-1980} which equates proofs of propositions with programs of some type.
+By interpreting program synthesis through the lens of type theory, we hope to bring to bear the large body of work on type systems and proof search onto the program synthesis problem to enable efficient synthesis of expressive programs.
+
+\section{The Landscape of Program Synthesis}
+
+Many sub-disciplines within computer science tackle the problem of search in different ways, and as a result, these disciplines all have unique perspectives into program synthesis.
+The earliest such efforts came out of artificial intelligence and automatic theorem proving communities during the 60s and 70s~\citep{green-ijcai-1969, summers-popl-1976}.
+Since then approaches from machine learning~\citep{lau-thesis-2001, briggs-kes-2008, weimer-icse-2009}, formal methods~\citep{srivastava-popl-2010, bodik-popl-2010, kuncak-pldi-2010}, and programming language theory~\citep{albarghouthi-cav-2013, gvero-pldi-2013, scherer-icfp-2015} have all been applied to the program synthesis.
+However, even with all variety of approaches we have thrown at the problem, at worst, program synthesis in its full generality is an undecidable problem, and at best, it is an intractable problem for all but the most trivial of programs.
+
+Today, the field has seen a large resurgence in interest due to a number of factors:
 \begin{enumerate}
-\item General computational power has increased at an exponential rate over the
-last four decades.
-\item The rise of domain-specific languages, and more targeted programming
-domains such as protocols \cite{alur-popl-2005, udupa-pldi-2013}, concurrent
-programs \cite{solar-lezama-pldi-2008, cerny-cav-2011, prountzos-oopsla-2012},
-education \cite{singh-pldi-2013}, and strings and spreadsheets
-\cite{gulwani-popl-2011} has given synthesis tools smaller, more tractable
-domains to operate over.
-\item Related to the first point, the rise of sophisticated solver technology,
-in particular SAT and SMT solvers have helped make once intractable problems of
-search very feasible.
+  \item General computational power has increased at an exponential rate over the last four decades.~\citep{moore-electronics-1965}
+  \item The rise of domain-specific languages, and more targeted programming domains such as protocols~\citep{alur-popl-2005, udupa-pldi-2013}, concurrent programs~\citep{solar-lezama-pldi-2008, cerny-cav-2011, prountzos-oopsla-2012}, education~\citep{singh-pldi-2013}, and strings and spreadsheets~\citep{gulwani-popl-2011} has given synthesis tools smaller, more tractable domains to operate over.
+  \item Related to the first point, the rise of sophisticated solver technology, in particular SAT and SMT solvers~\citep{barrett-smt-2008} have helped make once intractable problems of search in logical very feasible in practice.
 \end{enumerate}
 
-\subsection{The Program Synthesis Problem}
+Here we briefly survey the field of program synthesis\footnote{%
+  Because program synthesis is such a vast field of study, we don't intend on capturing its full breadth here.
+  For more thorough introductions to program synthesis, we recommend reading the surveys by \citet{kreitz-automated-deduction-1998}, \citet{flener-jlp-1999}, \citet{gulwani-ppdp-2010}, and \citet{kitzelmann-aaip-2010}.
+} to get a sense of what approaches have been previously studied.
+We examine the field from the perspective of \emph{methodologies} used to perform program synthesis in order establish the benefits our of type-theoretic approach.
 
-Gulwani decomposes the program synthesis problem into three aspects
-\cite{gulwani-ppdp-2010}:
+\subsection{Methodologies}
+\label{subsec:methodologies}
 
-\begin{description}
-  \item[Specification] How does the user specify their intent?
-  \item[Domain] What sorts of programs does the synthesizer create?
-  \item[Discovery] How does the synthesizer synthesize the program?
-\end{description}
+\paragraph{AI and Logic-based Techniques}
+
+The earliest methods for program synthesis were developed from the automated theorem proving community.
+These researchers were motivated by the promise of generating programs from specifications that were provably correct by virtue of being derived from specification.
+Some methods used techniques lifted from early automated theorem prover technology, such as Green's resolution-based \textsc{QA3} system, to translate programs from logical specification~\citep{green-ijcai-1969}.
+These specifications took the form of complete axiomitizations of the problem space in first-order logic solved using resolution-based proof search techniques.
+Others took to direct rewriting tactics over the specification, for example, Manna and Waldinger's \textsc{Deadalus} system which rewrote logical specification~\citep{manna-tse-1979} and Summers's \textsc{Thesys} system which rewrote examples~\citep{summers-popl-1976}.
+Later, efforts from researchers such as Manna and Waldinger sought to unify the use of provers and transformation rules~\citep{manna-plas-1980}.
+Because all of these early works were rooted within theorem proving, the target language for synthesis was universally (a purely functional subset of) Lisp.
+
+These methods were technically innovative, but ultimately lacked in practicality.
+In particular, the logical specifications demanded by these tools were far removed from the reasoning styles that programmers understood.
+They were also highly constrained in the sorts of program symbols they were allowed to utilize.
+Finally, they were extremely heavyweight and did not scale past anything but the smallest of example programs~\citep{kreitz-automated-deduction-1998}.
+
+Regardless, \textsc{Thesys} is particularly note worthy in that it is one of the first \emph{inductive programming} synthesis systems~\citep{kitzelmann-aaip-2010} where it is able to generate programs in the presence of \emph{partial specification} such as examples.
+Examples form a partial specification because most programs of interest have an infinite range and a finite set of concrete examples can only specify a finite subset of that range.
+More modern systems such as \textsc{Igor2} have evolved from this line of work, and have overcome many of issues listed above~\citep{kitzelmann-thesis-2010, hofmann-aaip-2010}.
+\textsc{Igor2} uses a combination of examples, background knowledge, and program schemes---program skeletons that capture recurring patterns of program behavior such as folds or maps---to derive target functions by discovering patterns in the examples and deriving a set of recursive rules for generating them.
+
+In contrast, other inductive programming systems do not perform manipulation of the examples directly.
+Rather they employ a \emph{guess-and-check} approach where they enumerate candidate programs and evaluate them to verify that they satisfy the examples.
+For example Katayama's \textsc{MagicHaskeller}~\citep{katayama-pepm-2012} enumerates programs according to a set of
+logical rules and permitted components and evaluates them against user-provided input/output examples.
+And Albarghouthi's \textsc{Escher}~\citep{albarghouthi-cav-2013} builds up increasingly complicated components from atoms (\ie, variables and constants) and tests whether those atoms satisfy the examples.
+Notably, when the system requires additional examples such as when it evaluates a recursive function call, \textsc{Escher} queries the user to provide additional examples.
+Finally, Feser's $λ^2$ system~\citep{feser-pldi-2015} also enumerates programs and checks them against examples.
+However, unlike previous efforts, they \emph{refine} examples as they synthesize expressions, producing new examples appropriate for synthesizing the sub-expressions of this overall expression.
+Notably, these final approaches blur the line between the AI/logical tradition of program synthesis born from the original literature from the 70s and the more modern verification-based tradition that we see today.\foonote{%
+  At least, ``modern'' by the standards of when this thesis is written.
+  While program synthesis has proven to be an enduring problem, the different approaches understandably come and go as computer science matures and our technology becomes more advanced.
+}
+
+Note that while not directly related to program synthesis, \emph{per se}, because they explore the search space of programs through term enumeration, these guess-and-check inductive programming approaches share many concerns with \emph{automatic test generation}~\citep{claessen-flp-2014, grygiel-jfp-2013, yakushev-aaip-2010}.
+In particular when enumerating terms, we want to avoid generating redundant or otherwise unnecessary terms, in particular, terms that are equivalent to terms that we have already generated.
+
+\paragraph{Machine Learning Techniques}
+
+Bridging the gap between logic and machine learning are \emph{inductive logic programming} (ILP)~\citep{muggleton-jlp-1994} techniques that apply machine learning towards problems expressed in first-order logic, \ie, Prolog programs.
+Inductive logic programming is an umbrella term representing an entire subfield of machine learning that employs this methodology towards solving learning-based problems; inductive logic programming synthesis~\citep{flener-jlp-1999}, apply these techniques specifically towards program synthesis.
+For example, \citet{sankaranarayanan-icse-2008} use ILP to mine library specifcations by running unit tests on a library to gather information about the operations of the library.
+This information is then processed using ILP to produce Prolog specifications of the library's behavior.
+
+Other approaches rooted in machine learning have been applied to program synthesis as well.
+For example, genetic programming techniques have been used by \citet{briggs-kes-2008} to synthesize combinator expressions in a typed, functional programming language and by \citet{weimer-icse-2009} to automatically local bugs and derive patches in legacy C code.
+\citet{gulwani-popl-2007} used probabilistic inference to synthesize imperative programs from input/output examples.
+And finally, \citet{lau-thesis-2001} in her thesis developed version space algebras to synthesize text editor macros from examples---here, demonstrations by the user of the text macro they intended for the system to synthesize.
+
+\paragraph{Verification-based Techniques}
+
+The most recent efforts into program synthesis lie in the programming languages community.
+In particular, as off-the-shelf SAT and SMT solver technology like the Z3 theorem prover~\citep{demoura-tacas-2008} rapidly matured over the last decade, the verification community has been quick to take advantage of their power.
+With respect to program synthesis, this means transforming the specification given by the user into a series of constraints that can be discharged by the solver.
+The output of the solver can then be used to guide the search process accordingly.
+
+The most well-known use of solver technology in program synthesis is Solar-Lezama's \textsc{Sketch}~\citep{solar-lezama-thesis-2008}.
+Sketch allows users to write skeletons of Java-like programs annotated with holes whose contents are specified by generator expressions that describe the allowable set of program constructs for those holes.
+Sketch then translates the constraints on those holes, \eg assertions or reference implementations, into satisfiability equations which are then discharged to a SMT solver using Counterexample Guided Inductive Synthesis (CEGIS).
+Other work that uses solver technology in synthesis includes \citet{bodik-popl-2010}'s work to support incremental program develop with holes and examples, called \emph{angelic nondeterminism} and Torlak's \textsc{Rosette} which supports the development of solver-aided domain specific languages~\citep{torlak-pldi-2014}.
+
+In addition to satisfiability solvers, other verification technology has been reappropriated for the purposes of program synthesis.
+In particular techniques that leverage types, the focus of this thesis, have been explored to some degree.
+For example \textsc{Djinn}~\citep{augustsson-2004} synthesize Haskell programs from highly refined type signatures.
+\textsc{Prospector}~\citep{mandelin-pldi-2005}, Perelman's auto-completion tool for C\# programs~\citep{perelman-pldi-2012}, and \textsc{InSynth}~\citep{gvero-pldi-2013} all leverage types to accomplish code auto-completion.
+
+\section{Program Synthesis With Types}
 
 Innovation in synthesis aligns along these three axes.  For example, early
 methods focused purely on logical propositions as specification but quickly
@@ -55,7 +122,6 @@ tractability.  Finally, original synthesis techniques were purely
 synthesis technology takes advantage of today's computational power and
 primarily use search to find candidate programs.
 
-\subsection{Types and Program Synthesis}
 
 Types naturally partition the set of possible programs.  One level of the
 partitioning rules out ill-typed programs.  Another level classifies particular
@@ -128,86 +194,3 @@ functional languages with rich type systems --- has not been extensively
 explored in the literature, there is still plenty of learning opportunities
 offered by synthesis efforts in other domains.
 
-Broadly speaking, researchers have developed two distinct approaches to
-synthesis:
-\begin{description}
-\item[Analytical Synthesis] The synthesizer \emph{transforms} the specification
-along with any auxiliary information into a final program.
-\item[Search-based Synthesis] The synthesizer \emph{searches} for a program in
-some constrained search space that meets the specification.
-\end{description}
-The original literature on program synthesis focused on analytical methods,
-typically in the context of constructive theorem proving.  More recent work
-takes advantage of the exponential increase in computing power over the last 50
-years and other advances in technology, \eg, SAT and SMT solvers
-\cite{barrett-smt-2008} to make search tractable.
-
-This distinction between analysis and search-based approaches is somewhat
-arbitrary.  Indeed, most methods, including the one presented in this proposal,
-do some combination of analysis and search.  Regardless, the distinction is
-useful not just from a historical perspective but also helps put in context
-the spins that each of the subfields of computer science have put on the
-topic.
-
-\paragraph{Analytical Synthesis}
-The earliest methods for program synthesis were developed from the automated
-theorem proving community.  These researchers were motivated by the promise of
-generating programs from specifications that were provably correct by virtue of
-being derived from specification.  Some methods used techniques lifted from
-early automated theorem prover technology, \eg, Green's resolution-based QA3
-system, to translate programs from logical specification
-\cite{green-ijcai-1969}.  Others took to direct rewriting tactics over the
-specification, \eg, Manna and Waldinger's Deadalus which rewrote logical
-specification \cite{manna-tse-1979} and Summers's Thesys which rewrote examples
-\cite{summers-popl-1976}.  Later, efforts from researchers such as Manna and
-Waldinger sought to unify the use of provers and transformation rules
-\cite{manna-plas-1980}.  Interestingly enough, because all of these early works
-were rooted within theorem proving, the target language for synthesis was
-universally Lisp.
-
-These analytical methods were technically interesting for the time, but
-ultimately lacked in practicality.  In particular, the logical specifications
-demanded by these tools were far removed from the reasoning styles that
-programmers were understood or were highly constrained in the sorts of program
-symbols they were allowed to utilize.  They were also extremely heavyweight and
-did not scale past anything but the smallest of example programs
-\cite{kreitz-automated-deduction-1998}.
-
-Regardless, Thesys is particularly interesting in that it is one of the first
-systems that employed an approach to synthesis called \emph{inductive
-programming} \cite{kitzelmann-aaip-2010} where it is able to generate programs
-in the presence of \emph{partial specification}, \eg, examples.  More modern
-systems such as Igor2 have evolved from this line of work, and have overcome
-many of issues listed above \cite{kitzelmann-thesis-2010}.  Igor2 uses a
-combination of examples and background knowledge to derive target functions by
-discovering patterns in the examples and deriving a set of recursive rules for
-generating them.  Igor2 was originally implemented in the Maude programming
-language which, itself, is based on rewriting logic \cite{clavel-wrla-2000}, but
-has been ported to Haskell as well \cite{hofmann-aaip-2010}.
-
-\paragraph{Search-based Synthesis}
-
-Rather than relying purely on deduction, other efforts focused on search-based
-techniques.  \emph{Inductive Logic Programming} and the synthesis of logic
-programs from specification grew from the deductive theorem proving tradition
-\cite{muggleton-jlp-1994}.  However, rather than deductive transformations, ILP
-relies on inductive search to discover the predicates necessary to form a logic
-program that can ``deduce'' the given examples.
-
-\emph{Proof-theoretic techniques} apply the techniques of proof theory and proof
-search to the realm of program synthesis.  For example, Djinn derives Haskell
-programs from types \cite{augustsson-2004} according to a modification of
-Gentzen's LJ system.  In contrast, Coq is a industrial strength theorem prover
-that allows for the extraction of programs specified in Coq's logic
-\cite{coq-2012}.
-
-An alternative to proof-based search methods are the numerous \emph{``search and
-verify''} approaches that enumerate programs and then verify their correctness
-externally.  One such system is Katayama's MagicHaskeller
-\cite{katayama-pepm-2012} which enumerates programs according to a set of
-logical rules and permitted components.  The Sketch programming system
-\cite{solar-lezama-thesis-2008} employs counterexample-guided inductive
-synthesis where failed program candidates are used by the search procedure to
-quickly refine the search space.  Escher enumerates recursive programs but mods
-them by equivalence classes relative to the set of examples provided by the user
-\cite{albarghouthi-cav-2013}.

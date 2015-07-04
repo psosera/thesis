@@ -90,8 +90,9 @@
 
 %%%%% Bibliography Management %%%%%
 
-\usepackage[backend=biber]{biblatex}
-\addbibresource{synthesis.bib}
+%\usepackage[backend=biber]{biblatex}
+%\addbibresource{synthesis.bib}
+\usepackage[square, semicolon, sort]{natbib}
 
 %%%%% PDF Output %%%%%
 \usepackage[pdftex]{hyperref}
@@ -125,6 +126,7 @@
 \hbadness=10001
 
 \newcommand{\doublespaced}{\renewcommand{\baselinestretch}{2}\normalfont}
+\newcommand{\onehalfspaced}{\renewcommand{\baselinestretch}{1.5}\normalfont}
 \newcommand{\singlespaced}{\renewcommand{\baselinestretch}{1}\normalfont}
 
 \iftoggle{contentonly}{%
@@ -280,13 +282,16 @@ Preface
 \setcounter{page}{1}
 \pagenumbering{arabic}
 \hypersetup{pageanchor=true}
+\singlespaced
 \input{content}
 
 %%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%% Bibliography {{{ %%%%%%%%%%%%%%%%%%%%
 
-\printbibliography
+%\printbibliography
+\bibliographystyle{plainnat}
+\bibliography{synthesis}
 
 %%%%%%%%%%%%%%%%%%%% }}} %%%%%%%%%%%%%%%%%%%%
 
