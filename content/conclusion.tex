@@ -28,7 +28,7 @@ Regardless, we have only scratched the surface of types and language features we
 Here are some richer types to consider as next steps and the potential challenges they present for synthesis.
 \begin{description}
   \item[Linear Types:]
-    Linear logic~\cite{girard-1987}, linear type systems~\cite{wadler-pepm-1991}, and other substructural logics~\cite{walker-atapl-2005} allow developers to reason about resource management policies of their programs.
+    Linear logic~\citep{girard-1987}, linear type systems~\citep{wadler-pepm-1991}, and other sub-structural logics~\citep{walker-atapl-2005} allow developers to reason about resource management policies of their programs.
     The heart of the linear type system is the rule for type checking (linear) variables:
     \[
       \inferrule[t-var]
@@ -44,11 +44,11 @@ Here are some richer types to consider as next steps and the potential challenge
       {Γ = Γ_1 ∘ Γ_2 \\ Γ_1 ⊢ e_1 : τ_1 \\  Γ_2 ⊢ e_2 : τ_2 }
       {Γ ⊢ (e1, e2) : τ_1 × τ_2}
     \]
-    we must non-determistically partition our resources to satisfy each of the component expression of the pair.
+    we must non-deterministically partition our resources to satisfy each of the component expression of the pair.
     While a type checking algorithm can mitigate this by type checking $e_1$ first, noting what resources are used, and then type check $e_2$ with the remaining resources, in a synthesis system we do not know $e_1$ or $e_2$ up front, so a na\i've strategy must consider all possible partitions of the contexts to generate the pair components.
     Smarter search strategy are required to avoid this potential combinatorial explosion of possible synthesis sub-problems.
   \item[Generalized Algebraic Data Types:]
-    Generalized Algebraic Data Types (GADTs)~\cite{xi-popl-2003} allow for the type parameters of the return type of a constructor to vary rather than being fixed to a (polymorphic) type.
+    Generalized Algebraic Data Types (GADTs)~\citep{xi-popl-2003} allow for the type parameters of the return type of a constructor to vary rather than being fixed to a (polymorphic) type.
     The quintessential example of GADT usage is the tagless interpreter.
     Suppose that we have a data type corresponding to the terms of some simple language:
     \[
@@ -72,12 +72,12 @@ Here are some richer types to consider as next steps and the potential challenge
     Thus the function application $\mkwd{eval}\,(\mkwd{Const}\;1)$ has type $\mnat$ rather than some polymorphic type.
     This is accomplished by recording the \emph{type equalities} that we acquire during pattern matching (${'a} ∼ \mnat$).
 
-    The primary complexity of GADTs comes from the generation, propagation, and proper usage of these type equalities, in particular during type inference~\cite{peyton-jones-icfp-2006}.
+    The primary complexity of GADTs comes from the generation, propagation, and proper usage of these type equalities, in particular during type inference~\citep{peyton-jones-icfp-2006}.
     While a synthesis procedure does not need to directly worry about generation and propagation of these type equalities---type checking proper handles this---the synthesis procedure needs to be made aware of utilizing type equalities and anti-unification of type variables when generating terms.
     This is analogous to the problem of efficiently determining instantiations of polymorphic values during term generation (\autoref{sec:synthesizing-type-applications}).
     For example, if the $\mkwd{eval}$ function above was in our context, our synthesis procedure needs to be able to recognize that it can produce a $\mnat$ by applying $\mkwd{eval}$ to a $\mkwd{Const}$.
   \item[Dependent Types:]
-    Finally, dependent types~\cite{martin-lof-1984} allow us express arbitrary properties of our programs that are verified during type checking.
+    Finally, dependent types~\citep{martin-lof-1984} allow us express arbitrary properties of our programs that are verified during type checking.
     This is done by allowing types to be indexed by terms of the language.
     For example, we might parameterize our $\mkwd{list}$ type to be indexed by a natural number that we intend to be the length of all lists of that type: $\mkwd{list}\,0$ is the type of the empty list, $\mkwd{list}\,3$ is the type of lists of length three, and so forth.
     With this data type, then we can give our $\mkwd{append}$ function the richer type signature:
@@ -138,7 +138,7 @@ We call this this approach to synthesizing recursive functions \emph{recursive b
 Another example of additional specification are first-order constraints.
 We have conveniently left out dealing with first-order data such as integers or strings in our type-directed approach to synthesis.
 This is because such data types are not inductive in nature and thus do not benefit from the proof search techniques we employ.
-Existing solver technology such as SMT solvers~\cite{barrett-smt-2000} deal with constraints well; can we integrate both forms of specification into our synthesis algorithm?
+Existing solver technology such as SMT solvers~\citep{barrett-smt-2000} deal with constraints well; can we integrate both forms of specification into our synthesis algorithm?
 
 Consider synthesizing a pattern match,
 \[
@@ -154,7 +154,7 @@ whose branches will perform operations over the integer $n$ that we have yet to 
 Each branch will generate constraints on $n$, \eg, inequalities such as $n > 3$, that will constrain what $n$ can be.
 We cannot solve those constraints locally in the branches, we must \emph{propagate} those constraints back to the definition of $n$.
 At this point, we can discharge those constraints to a solver to generate an appropriate $n$.
-In the case where no such $n$ can be generated from the constraints, we know that our choices of sub-expressions in the branches are bad, and we must revise them somehow, for example by using counter-examples to help refine the program~\cite{solar-lezama-thesis-2008}.
+In the case where no such $n$ can be generated from the constraints, we know that our choices of sub-expressions in the branches are bad, and we must revise them somehow, for example by using counter-examples to help refine the program~\citep{solar-lezama-thesis-2008}.
 
 \paragraph{Push-down versus Bubble-up Evidence}
 Recursive back-patching and first-order constraints seem like unrelated modes of specification.
@@ -169,11 +169,11 @@ Thus, characterizing specification or evidence by their flow in the synthesis pr
 From \autoref{ch:evaluating-myth}, we see that the largest bottleneck in a practical synthesis system based on our type-and-example driven style is $E$-guessing.
 Back in \autoref{ch:a-simple-synthesis-calculus}, we demonstrated that the search space of programs grows exponentially with the size of the programs under consideration (\autoref{fig:lambda-terms-counts}).
 Virtually all of the optimizations we have considered were designed to keep us from falling off this ``exponential cliff'' where it becomes infeasible to enumerate $E$-terms.
-We can consider additional ways of refining examples to push the cliff further away, \eg, asserting particular example-refining axioms about known functions~\cite{feser-pldi-2015}, but we still have the fundamental problem of generating terms more efficiently.
+We can consider additional ways of refining examples to push the cliff further away, \eg, asserting particular example-refining axioms about known functions~\citep{feser-pldi-2015}, but we still have the fundamental problem of generating terms more efficiently.
 
 One large area of optimization we did not consider in this work is enumerating programs modulo equivalence classes.
 We already do this to some degree, for example, syntactically restricting synthesized programs to be in normal form, immediately ruling out all non-normal programs in the process.
-However, there are many other ways to derive equivalence classes such as employing congruence closure~\cite{nelson-jacm-1980}, recording evaluation results~\cite{albarghouthi-cav-2013}, or user-defined equivalences~\cite{feser-pldi-2015}.
+However, there are many other ways to derive equivalence classes such as employing congruence closure~\citep{nelson-jacm-1980}, recording evaluation results~\citep{albarghouthi-cav-2013}, or user-defined equivalences~\citep{feser-pldi-2015}.
 The latter form of equivalences classes are important to consider because user-defined types and operations carry their own equational reasoning principles.
 For example, addition-by-zero of natural numbers or appending empty lists are both equivalences that depend on the data types ($\mnat$ and $\mlist$) and the behavior of the operations ($\mkwd{plus}$ and $\mkwd{append}$) involved.
 We might even want to derive these equations automatically based on observation during the synthesis process, specialized to the examples that we are synthesizing over.
@@ -189,7 +189,7 @@ Certainly, we will likely never reach the point where we can synthesize all of o
 So what applications of type-directed program synthesis are more realistic to aim for?
 
 \paragraph{Programming Assistance Tools}
-Rather than trying to synthesize a program from scratch, can we involve the user in meaningful ways to guide the synthesis process or provide alternative forms of synthesis output such as visualization or code skeletons (such as those provided by the Leon synthesis tool for Scala programs~\cite{kneuss-oopsla-2013}) to help the developer?
+Rather than trying to synthesize a program from scratch, can we involve the user in meaningful ways to guide the synthesis process or provide alternative forms of synthesis output such as visualization or code skeletons (such as those provided by the Leon synthesis tool for Scala programs~\citep{kneuss-oopsla-2013}) to help the developer?
 Our refinement tree data structure offers promising insight into this area.
 Recall that the refinement tree represents all of the decisions about the design of a program that we can derive from the examples given by the user.
 By prioritizing particular branches of the refinement tree using heuristics, we can present the code skeletons to the user that are most likely to lead to a satisfying program.
@@ -217,7 +217,7 @@ The code skeleton is relatively quick to complete because it is dictated by $I$-
 \paragraph{From Enforcement to Synthesis}
 
 Finally, let us come full circle on the ideas that we developed at the beginning of this work.
-We observed that the primary role of rich type systems was to enforce increasingly complex properties of programs, for example concurrency protocols~\cite{mazurak-icfp-2010}, information flow properties~\cite{jia-icfp-2008}, differential privacy~\cite{gaboardi-popl-2013}, and other domain-specific concerns~\cite{hudak-handbook-pl-1998}, among others.
+We observed that the primary role of rich type systems was to enforce increasingly complex properties of programs, for example concurrency protocols~\citep{mazurak-icfp-2010}, information flow properties~\citep{jia-icfp-2008}, differential privacy~\citep{gaboardi-popl-2013}, and other domain-specific concerns~\citep{hudak-handbook-pl-1998}, among others.
 However, the same mechanisms that enforce properties of programs also allow us to constrain the space of possible programs, so we were able to appropriate type systems towards the goal of synthesizing programs.
 A natural end-goal of this work, therefore, is to turn type systems designed to enforce particular properties of programs into program synthesizers that synthesize programs that possess these properties automatically by construction!
 
