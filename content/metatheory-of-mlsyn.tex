@@ -187,7 +187,7 @@ This arises when evaluating higher-order partial functions.
 For example, if we evaluate $(v_1 ⇒ χ)\,v_2$, then we may compare two function values for equality if $v_1$ and $v_2$ are $\mfix$es.
 In \lsyn{}, function equality, namely $βη$-equivalence over functions, is decidable.
 However, in the presence of recursion, equivalence of functions is no longer decidable.
-To see this, note that \mlsyn{} is at least as expressive as the primitive recursive functions whose equality is known to be undecidable~\todo{cite---Kahrs}.
+To see this, note that \mlsyn{} is at least as expressive as the primitive recursive functions whose equality is known to be undecidable~\citep{kahrs-pr}.
 
 Therefore, we must resort to \rulename{eq-refl} that only equates two function values if they are syntactically identical (up to $α$-equivalence by the Barendregt Convention).
 However, this approximation means that we cannot synthesizing some particular programs higher-order synthesis problems.

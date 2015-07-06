@@ -1180,7 +1180,7 @@
   address = {SE-412 96 G\"{o}teborg, Sweden}
 }
 
-@book{anderson1992entailment,
+@book{anderson-entailment-1992,
   title     = { Entailment: The logic of relevance and necessity, vol. II },
   author    = { Anderson, Alan Ross and Belnap, Nuel D. and Dunn, J. Michael },
   year      = { 1992 },
@@ -1271,6 +1271,8 @@
   title     = { Satisfiability Modulo Theories },
   booktitle = { Hanbook of Satisfiability },
   publisher = { IOS Press },
+  chapter   = { 12 },
+  pages     = { 737--797 },
   year      = { 2008 },
 }
 
@@ -1290,15 +1292,6 @@
   publisher = {ACM},
   address = {New York, NY, USA},
   keywords = {polymorphism, subtyping, type inference},
-}
-
-@incollection{walker-atapl-2002,
-  author    = { Walker, David },
-  title     = { Substructural Type Systems },
-  editor    = { Pierce, Benjamin C. },
-  booktitle = { Advanced Topics in Types and Programming Languages },
-  publisher = { MIT Press },
-  year      = { 2002 },
 }
 
 @inproceedings{meijer-fpca-1991,
@@ -1674,11 +1667,11 @@
   year      = { 1991 },
 }
 
-@inbook{walker-atapl-2005,
+@incollection{walker-atapl-2005,
   author    = { Walker, David },
-  editor    = { Pierce, Benjamin C. },
-  title     = { Advanced Types and Programming Languages },
-  chapter   = { Substructural Type Systems },
+  booktitle = { Advanced Types and Programming Languages },
+  title     = { Substructural Type Systems },
+  chapter   = { 1 },
   pages     = { 3--34 },
   publisher = { The {MIT} Press },
   year      = { 2005 },
@@ -1720,12 +1713,12 @@
   year    = { 1980 },
 }
 
-@inbook{hudak-handbook-pl-1998,
+@incollection{hudak-handbook-pl-1998,
   author    = { Hudak, Paul },
   editor    = { Salas, Peter H. },
-  title     = { Handbook of Programming Languages },
-  volume    = { 3 },
-  chapter   = { Domain Specific Languages },
+  booktitle = { Handbook of Programming Languages },
+  chapter   = { 3 },
+  title     = { Domain Specific Languages },
   pages     = { 39--60 },
   publisher = { MacMillan },
   year      = { 1998 },
@@ -1835,5 +1828,81 @@
   author  = { Rohah Shah },
   title   = { Type-directed Program Synthesis with Record Types },
   school  = { University of Pennsylvania },
-  yaer    = { 2015 },
+  year    = { 2015 },
+}
+
+@inproceedings{aydemir-popl-2008,
+  author    = { Aydemir, Brian and Chargu{\'e}raud, Arthur and Pierce, Benjamin C. and Pollack, Randy and Weirich, Stephanie },
+  title     = { Engineering Formal Metatheory },
+  booktitle = { Proceedings of the 35th Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL) },
+  year      = { 2008 },
+  keywords  = { binding, coq, locally nameless },
+}
+
+@manual{ocaml-2014,
+  title   = { The {OCaml} System Release 4.02: Documentation and User’s Manual },
+  author  = { Xavier Leroy and Damien Doligez and Alain Frisch and Jacques Garrigue and Didier R\`{e}my and J\`{e}r\^{o}me Vouillon },
+  year    = { 2014 },
+  address = { http://caml.inria.fr/pub/docs/manual-ocaml/ },
+}
+
+@manual{fsharp-2013,
+  title   = { The F\# 3.1 Language Specification  },
+  author  = { Don Syme },
+  year    = { 2013 },
+  address = { http://fsharp.org/specs/language-spec/3.1/FSharpSpec-3.1-working.docx },
+}
+
+@article{haskell-2003,
+  author = {Simon {Peyton Jones} and others},
+  title = {The {Haskell} 98 Language and Libraries: The Revised Report},
+  journal = {Journal of Functional Programming},
+  volume = 13,
+  number = 1,
+  pages = {0--255},
+  month = {Jan},
+  year = 2003,
+  note = {\url{http://www.haskell.org/definition/}},
+}
+
+@article{tait-jsl-1967,
+  title     = { Intensional Interpretations of Functionals of Finite Type {I} },
+  author    = { Tait, W. W. },
+  journal   = { The Journal of Symbolic Logic },
+  volume    = { 32 },
+  number    = { 2 },
+  pages     = { 198--212 },
+  year      = { 1967 },
+  publisher = {Association for Symbolic Logic},
+}
+
+@unpublished{kahrs-pr,
+    author  = { Stefan Kahrs },
+    title   = { The Primitive Recursive Functions are Recursively Enumerable },
+    note    = { http://www.cs.kent.ac.uk/people/staff/smk/primrec.pdf },
+}
+
+@phdthesis{girard-thesis-1972,
+  author  = { Girard, Jean-Yves },
+  title   = { Interp\`{e}ation Fonctionnelle et \`{E}limination des Coupures de L’arithm\`{e}tique D’ordre Sup\`{e}rieur. },
+  school  = { Universit\`{e} Paris {VII} },
+  year    = { 1972 },
+}
+
+@book{pierce-tapl-2002,
+  author    = { Benjamin C. Pierce },
+  title     = { Types and Programming Languages },
+  publisher = { {MIT} Press },
+  year      = 2002,
+}
+
+@incollection{liang-csl-2007,
+  year={2007},
+  booktitle={Computer Science Logic},
+  series={Lecture Notes in Computer Science},
+  editor={Duparc, Jacques and Henzinger, ThomasA.},
+  title={Focusing and Polarization in Intuitionistic Logic},
+  publisher={Springer Berlin Heidelberg},
+  author={Liang, Chuck and Miller, Dale},
+  pages={451-465},
 }

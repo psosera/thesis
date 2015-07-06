@@ -69,7 +69,7 @@ It turns out that the necessary completeness lemma also holds rather trivially:
   By \rulename{satisfies} and \rulename{eq-fold}, we know that $σ(I) ≃ χ$.
   We know from the definition of $\mfun{unfold}$ that $∀σ ↦ \mfold{χ}.\,σ ↦ χ ∈ \mfun{unfold}(Χ)$ which is sufficient to conclude that $I ⊨ \mfun{unfold}(Χ)$.
 \end{proof}
-The problem is that we know that the addition of $μ$-types into the \stlc{} introduces non-termination~\todo{cite---TAPL}!
+The problem is that we know that the addition of $μ$-types into the \stlc{} introduces non-termination~\citep{pierce-tapl-2002}!
 In particular, let $ω$ be diverging term.
 Then the expression $λx:τ.\,ω$ cannot be synthesized in \lsyn{} extended with $μ$-types.
 Because $\rulename{irefine-guess}$ relies on evaluation, we will never be able to use it to synthesize $ω$ (which is an $E$-term).
@@ -95,7 +95,7 @@ Because we can easily enumerate infinite loops that ruin our generate-and-test $
 Rather than trying to solve this problem within \lsyn{} where we do not have many hooks for limiting recursive definitions, we graduate to \mlsyn{}, a core ML-like calculus for program synthesis and adopt standard techniques to remove non-termination from the system.
 \autoref{fig:mlsyn-defn} defines the syntax of \mlsyn{} which is divided into an external language of expressions $e$ and an internal language of introduction terms $I$ and elimination terms $E$ that constitute the $β$-normal forms of $e$.
 
-\mlsyn{} more closely approximates a real-world functional programming language like OCaml, F\#, or Haskell.~\todo{cite----all three language manuals}
+\mlsyn{} more closely approximates a real-world functional programming language like OCaml, F\#, or Haskell~\citep{ocaml-2014, fsharp-2013, haskell-2003}.
 On top of the lambdas and application introduced in \lsyn{}, \mlsyn{} introduces two major features:
 \begin{enumerate}
   \item Algebraic data types and
@@ -167,7 +167,7 @@ In addition to these standard rules, we enforce three additional properties to e
     If the function $e_1$ is a recursive function (currently being defined), \ie, is a variable $f$ annotated with $\mrec$, then the argument $e_2$ must be a variable annotated with $\mdec{f}$.
     We require that any recursive function application consists of a variable $f$ annotated with $\mrec$ and a variable $x$ annotated with $\mdec{f}$.
     In particular, a recursive function application involving an argument that is not a variable is always invalid.
-    This is strictly more constraining than Coq which performs some $β$-reductions to admit more programs~\todo{cite---Coq language manual}, but is much easier to formalize and implement in practice.
+    This is strictly more constraining than Coq which performs some $β$-reductions to admit more programs~\citep{coq-2012}, but is much easier to formalize and implement in practice.
 
     \rulename{t-app} ensures that every application is structurally recursive (or non-recursive) with $\mfun{struct}$.
     When type checking a function with \rulename{t-fix}, we record bindings for both the argument $x$ and the function itself $f$.
@@ -181,7 +181,7 @@ In addition to these standard rules, we enforce three additional properties to e
     Because we require patterns to be of the form $C(x_1, …, x_k)$, this restriction amounts to having exactly one branch for each constructor of type $T$.
     This constraint is enforced by the judgment $\mfun{complete}(Σ, \many{p_i}{i < m}, T)$ which ensures there is a one-to-one correspondence between a set of patterns and constructors at type $T$.
   \item[Positivity restriction:]
-    Finally, we enforce a positivity restriction on data types similar to Coq and Agda~\todo{cite---language manuals again} that ensures that a recursive occurrence of a data type does not occur to the left of an arrow in the type of a constructor.
+    Finally, we enforce a positivity restriction on data types similar to Coq and Agda~\citep{coq-2012, norell-thesis-2007} that ensures that a recursive occurrence of a data type does not occur to the left of an arrow in the type of a constructor.
     To see why this restriction is necessary, consider the data type:
     \[
       \mdata\;d = D\;\mof\; d → τ

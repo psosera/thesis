@@ -21,7 +21,7 @@ In successive chapters, we evolve \lsyn{} into a practical program synthesizer f
 \autoref{fig:stlc-defn} gives the syntax and semantics for \stlc{} which contains the essence of a typed, functional programming language---variables, functions, and application---and their usual type checking rules.
 In addition to these essentials, we also augment \stlc{} with a base type $T$ and a finite, non-empty set of constants $c_1, …, c_k$ of type $T$.
 While multiple constants are not necessary---a single constant makes $T$ isomorphic to the standard $\mUnit$ type---they allow us to synthesize interesting programs.
-We also define a small-step, call-by-value operational semantics for the language using evaluation contexts $ℰ$~\todo{cite---felleisen}.
+We also define a small-step, call-by-value operational semantics for the language using evaluation contexts $ℰ$ which capture the standard of congruence rules for call-by-value evaluation.
 
 \input{figures/lambda-terms-counts.tex}
 
@@ -44,12 +44,11 @@ Even in this extremely limited language, there are 11,084,176 such terms at size
 In contrast, if we limit our consideration to only the well-typed terms, we save an order of magnitude of work; there are only 1,439,481 well-typed terms of size 15 in \stlc.
 Finally, if we consider only well-typed programs, we may as well further refine our search to programs of a particular type that we are interested in.
 The savings here is even larger; if we are trying to find terms of type $T → T$, we only have to search 1,489 terms.
-\todo{Cite---lambda term counting work.}
 
 We could refine our term generation strategy by enumerating syntactically well-typed terms and then filtering out terms that fail to type check.
 This has the benefit of ensuring that any terms that we keep around will be well-typed.
 However, we still pay the time and space overhead of generating such terms and then type checking them, even if we end up throwing them away in the end.
-This is undesirable in the presence of the steep combinatorial explosion of terms as their size increases.
+This is undesirable in the presence of the steep combinatorial explosion of terms as their size increases, for example, \citet{grygiel-jfp-2013} show that there are approximately $2^{219}$ closed-terms in the simply-typed lambda calculus of size 50.
 Rather than type check after the fact, we should \emph{integrate} type checking into term enumeration so that we only ever consider well typed terms.
 
 To arrive at such an algorithm, we start with the type checking relation presented in \autoref{fig:stlc-defn}:
@@ -143,8 +142,8 @@ Therefore, all applications will be of the form $x\,I_1 … I_m$ where a variabl
 Arguments, in contrast, are allowed to be any $I$-term which includes $E$s because $E$s are included in the definition of $I$.
 
 This technique of splitting the syntax of expressions into introduction and elimination forms has several useful effects.
-In proof search, this syntax is useful for generating normal form proofs which, by the Curry-Howard Isomorphism~\todo{cite---Howard's ``The Formulae-as-types Notion of Construction''}, is equivalent to generating normal form programs in our setting.
-Dividing the syntax in this manner also facilities a description \emph{bidirectional type checking}~\todo{cite---Pierce and Turner 2000} where we explicitly state when a type is an input or output in the type checking judgment.
+In proof search, this syntax is useful for generating normal form proofs which, by the Curry-Howard Isomorphism~\citep{william-curry-1980}, is equivalent to generating normal form programs in our setting.
+Dividing the syntax in this manner also facilities a description \emph{bidirectional type checking}~\citep{pierce-toplas-2000} where we explicitly state when a type is an input or output in the type checking judgment.
 This distinction becomes very useful when we talk about refining specification in the context of full program synthesis in \autoref{sec:lsyn-a-program-synthesis-calculus}.
 
 \input{figures/stlc-gen-normal.tex}
@@ -161,7 +160,7 @@ Otherwise, the rules are identical to the $e$-term generation judgment given in 
 
 With well-typed term enumeration, we can efficiently search the space of \stlc{} programs.
 In addition to this search method, we also require some way of \emph{specifying} which particular programs we would like to find during the synthesis process.
-Specification can take many forms, for example, logical properties~\todo{cite---Sketch and Others} or execution traces~\todo{cite---Programming by Demonstration work}.
+Specification can take many forms, for example, logical properties~\citep{solar-lezama-thesis-2008, kuncak-pldi-2010} or execution traces~\citep{lau-thesis-2001}.
 Here, we will consider specifying programs with a combination of \emph{types} and \emph{examples}, in particular, input/output pairs of the form $(v ⇒ v')$ that say a synthesized function should produce the value $v'$ when given the value $v$.
 
 \subsection{Examples as Specification}
@@ -311,7 +310,7 @@ As described in \autoref{subsec:enumerating-normal-forms}, it is precisely the n
 
 Type checking and evaluation in the external language is the same as \stlc{}.
 We provide additional rules for type checking the additional constructs introduced in \lsyn{}.
-In particular, $E$ and $I$ terms are checked in a bidirectional type checking style~\todo{cite---Pierce and Turner 2000}.
+In particular, $E$ and $I$ terms are checked in a bidirectional type checking style~\citep{pierce-toplas-2000}.
 We note that during regular type checking, $E$ terms \emph{generate} types (as an output), and $I$ terms \emph{check} against types (as an input).
 To make this explicit, we separate $E$ and $I$ type checking into two separate judgments where we generate types $(E ⇒ τ)$ in the former case and check against types in $(I ⇐ τ)$ in the latter case.
 For example when type checking a variable (\rulename{t-Evar}), we can extract the type of that variable from the context.

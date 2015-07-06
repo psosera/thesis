@@ -32,7 +32,7 @@ This has the potential to be an enormous performance win as we are able to prune
 \input{figures/system-f-syn-defn}
 
 To add polymorphism to our synthesis calculi, we apply the same trick of turning the type checking rules for polymorphic values into synthesis rules.
-We start our exploration with System F~\todo{cite---Girard 1972}, the simply-typed lambda calculus extended with universal quantification.
+We start our exploration with System F~\citep{girard-thesis-1972}, the simply-typed lambda calculus extended with universal quantification.
 \autoref{fig:system-f-syn-defn} gives the definition of \systemfsyn{}, our extension of System F for type-directed program synthesis.
 The polymorphic type $∀α.\,τ$ possesses an introduction form, the type abstraction $Λα.\,e$, and an elimination form, the type application $e\,[τ]$.
 For example, we would write down the polymorphic identity function of type $∀α.\,α → α$ as
@@ -62,8 +62,22 @@ A straightforward reading of this synthesis rule says that we can synthesize a t
 Like the $E$-guessing rule for $μ$-types (\autoref{sec:mu-types}), \rulename{eguess-tapp} requires that we guess the universal type and the instantiation that will allow us to synthesize a term of the goal type through a single type application.
 
 With recursive types, we circumvented this problem by rolling recursive types into algebraic data types and functions.
-How do we make this guessing process deterministic for type applications?
-\todo{Fill this in!}
+And with other simple type extensions, we appealed to focusing (\autoref{subsec:tuple-efficiency}) to avoid guessing.
+However, in those cases, there were a finite number of eliminations we could perform, \ie, a finite number of tuple or record components.
+With polymorphism, there are an infinite number of type applications we could perform because a polymoprhic value can be instantiated to any type!
+
+We can mitigate this problem by performing a breadth-first search of the polymorphic instantiations in order of increasing size of type.
+That is, when $E$-guessing, we can initially focus on the possible complete instantiations of all polymorphic variables in the context of base type (size one).
+For example, with $\mnat$ and $\mbool$ in the context, we would explore the following instantiations of the polymorphic $\mkwd{map}$ function:
+\begin{gather*}
+  \mkwd{map}\,[\mnat]\,[\mnat] \\
+  \mkwd{map}\,[\mnat]\,[\mbool] \\
+  \mkwd{map}\,[\mbool]\,[\mnat] \\
+  \mkwd{map}\,[\mbool]\,[\mbool]
+\end{gather*}
+In successive $E$-guessing phases, we would expand our search to types of increasing size, \eg, arrows at base types, arrows of arrows, and so forth.
+In the presence of many base types and polymorphic types with multiple arguments, the number of instantiations grows quickly as we must consider all the possible ways of combining these base types to fully instantiate each polymorphic type.
+This blows up the size of our context, but  in practice, we will only need to explore instantiations at depth one or two (corresponding to base types and instantiated polymorphic types] as it is rare to instantiate a polymoprhic function at arrow type.
 
 \section{Examples for Polymorphic Values}
 \label{sec:examples-for-polymorphic-values}

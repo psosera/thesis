@@ -305,7 +305,7 @@ The full text of all these sample \myth{} programs as well as the resulting synt
 \label{subsec:analysis}
 
 Now, let us examine the results of running \myth{} over our benchmark suite.
-In this section, we present performance numbers for an implementation of \myth{} in the OCaml programming language~\todo{cite---OCaml manual}.
+In this section, we present performance numbers for an implementation of \myth{} in the OCaml programming language~\citep{ocaml-2014}.
 This implementation was exercised on a desktop PC equipped with the openSUSE operating system (version 13.1), an Intel i7-3770 quad-core CPU clocked at 3.40 GHz, and 8 Gb of ram.
 Note that because the version of OCaml we used features a runtime with a global lock, we were unable to take advantage of more than one core.
 We expect that there are substantial performance benefits to moving to an implementation that can utilize multiple cores.
@@ -399,7 +399,7 @@ The function application in the $\mS$ branch of the inner match has size 12 whic
 In the previous section, we synthesized the example programs in the minimal context necessary.
 In practice, a synthesis tool can achieve this by allowing the user to choose which functions in scope ought to be usable during the synthesis process.
 However, if there are many such functions available, or the user is unsure of what functions the program might use, we will need to synthesize in a rich context.
-To simulate this, we also ran our benchmark suite in a context with a number of helper functions comparable to the prior work~\todo{cite---Escher, Leon, etc.}.
+To simulate this, we also ran our benchmark suite in a context with a number of helper functions comparable to the prior work~\citep{albarghouthi-cav-2013, kuncak-pldi-2010}.
 \autoref{fig:myth-extended-context} gives the signatures of the types and functions found in this context.
 Whenever, a benchmark program is one of the functions found in the context, we remove that function from the context so we don't end up synthesizing the trivial invocation of that top-level function.
 
@@ -495,7 +495,7 @@ It utilizes several helper functions, $\mkwd{sum}$, $\mkwd{mult}$, and $\mkwd{co
 
 Recall from \autoref{subsec:static-and-dynamic-semantics-of-mlsyn} that part of our checks to ensure that \mlsyn{} is well-founded is enforcing a positivity restriction on data types.
 This restrictions says that a recursive occurrence of a data type cannot appear to the left of an arrow in the type of any of its constructors.
-For example, consider the data type encoding type dynamic~\todo{cite---dynamic work}:
+For example, consider the data type encoding type dynamic:
 \[
   \begin{array}{l}
     \mkwd{type}\;\mdyn = \\
@@ -543,7 +543,7 @@ In lieu of additional constructs to avoid excessive match expressions, we would 
 
 \myth{} combines depth-first and breadth-first search of the refinement tree in a particular way: first it efficiently computes the possible set of $I$-refinement all at once and then it $E$-guesses at the leaves.
 This makes \myth{} very efficient when synthesizing programs that feature shallow pattern matches over large data types.
-To illustrate this point, we synthesize programs that collect the free variables of a simply typed lambda calculus encoded in a locally nameless style~\todo{cite---locally nameless work}.
+To illustrate this point, we synthesize programs that collect the free variables of a simply typed lambda calculus encoded in a locally nameless style~\citep{aydemir-popl-2008}.
 The largest such program, \texttt{fvs\_large}, operates over the following data type:
 
 \begin{center}

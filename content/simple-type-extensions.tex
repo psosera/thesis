@@ -112,8 +112,10 @@ From the perspective of an implementation, this is undesirable because we must s
 These derivations may not be fruitful and become wasted work.
 Furthermore, if we require both components, then the order in which we apply $\mfst$ and $\msnd$ matters insofar as they represent two distinct-yet-equivalent derivations.
 
-To alleviate these problems we import the technique of \emph{focusing} from the proof search literature~\todo{cite---McLaughlin and Pfenning 2009} into program synthesis.  For a full treatment of focusing in program synthesis to efficiently handle tuples, see Frankle's Masters thesis~\todo{cite---Frankle 2015}.
-Here, we briefly describe the focusing procedure.
+To alleviate these problems we import the technique of \emph{focusing} from the proof search literature~\citep{liang-csl-2007} into program synthesis.
+Here, we briefly describe the focusing procedure.\footnote{%
+  For a full treatment of focusing in program synthesis to efficiently handle tuples, see \citet{frankle-mastersthesis-2015}.
+}
 Intutively, whenever we introduce a value of tuple type into the context, we greedily decompose the tuple down to base or arrow types.
 For example, suppose we have a variable $x$ of type $T_1 × ((T_2 × T_3) × T_4)$.
 Then by focusing on $x$, we obtain the following expressions of base type:
@@ -140,6 +142,7 @@ The record literal $\{\many{l_i = I_i}{i < m}\}$ introduces values of the record
 
 Naturally, the example value of a record type is the record value $\{\many{l_i = χ_i}{i < m}\}$.
 Generating a projection is straightforward: guess a record expression that has a field of the goal type that you are after and project out that field (\rulename{eguess-rproj}).
+To make this efficient in practice, we can use focusing as we did with tuples to make available all of the possible projections up front rather than speculatively guessing them.
 Record $I$-refinement (\rulename{irefine-record}) is identical to product $I$-refinement save for the presence of labels which are handled easily because they are recorded in the goal type.
 We know that the example values are record examples assuming that the examples are well-typed.
 Therefore, when synthesizing a field of a record, we use the collected examples values for that field during synthesis.
@@ -426,7 +429,7 @@ Building on the second point, because we can invoke \rulename{irefine-match} at 
 Here, we fall in the trap of synthesizing pattern matches over $x$ and $y$, but we may do them in any order.
 And furthermore, those pattern matches may appear far apart in any branch of the program.
 
-Historically, conditionals such as $\mkwd{if}$ statements and pattern matches have proven to be the most difficult to reason about during synthesis~\todo{cite---Escher and others that synthesize conditionals}.
+Historically, conditionals such as $\mkwd{if}$ statements and pattern matches have proven to be the most difficult to reason about during synthesis~\citep{albarghouthi-cav-2013}.
 They not only represent points of non-determinism, they also greatly expand the branching factor of the program.
 Furthermore many conditionals are syntactically distinct but semantically equivalent, making search difficult to optimize.
 In \autoref{ch:implementation}, we go through significant lengths to minimize these points of inefficiencies.
