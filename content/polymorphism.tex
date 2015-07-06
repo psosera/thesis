@@ -281,19 +281,42 @@ With this in mind, we can view polymorphic constants as the form of our example 
 \section{The Metatheory of Polymorphism}
 \label{sec:polymorphism-metatheory}
 
-We close our brief discussion of polymorphism by stating the necessary lemmas for soundness and completeness of \systemfsyn{}.
+We close our discussion of polymorphism by stating and proving the necessary lemmas for soundness and completeness of \systemfsyn{}.
 
 \begin{lemma}[Example-Type Preservation of Polymorphism]
 \label{lem:example-type-preservation-of-polymorphism}
 If $Γ ⊢ Χ : ∀α.\,τ$ then $q_1{:}α, …, q_k{:}α, α{:}*, Γ ⊢ Χ' : τ$ where $Χ = \many{σ_i ↦ Λq_1, …, q_k{:}α.\, χ_i}{i < m}$ and $Χ' = \many{σ_i ↦ χ_i}{i < m}$.
 \end{lemma}
+\begin{proof}
+  Consider $σ ↦ Λq_1, …, q_k{:}α.\,χ_i ∈ Χ$.
+  Because $Χ$ is well-typed, we know that $σ$ and the type abstraction are well-typed.
+  By inversion on \rulename{ex-tabs}, we know that $χ$ is well-typed under the context $q_1{:}α, …, q_k{:}α, α{:}*, Γ$ which is sufficient to conclude that $Χ'$ is well-typed.
+\end{proof}
 
 \begin{lemma}[Logicality of Polymorphism]
   \label{lem:logicality-of-polymorphism}
   If $I ⊨ Χ'$, then $Λα.\,I ⊨ Χ$ where $Χ = \many{σ_i ↦ Λq_1, …, q_k{:}α.\, χ_i}{i < m}$ and $Χ' = \many{σ_i ↦ χ_i}{i < m}$.
 \end{lemma}
+\begin{proof}
+  Consider a single $σ ↦ χ ∈ Χ'$.
+  By the definition of satisfaction for $I$, $σ(I) ⟶^* v$ and $v ≃ χ$.
+  Now, by unrolling the definition of satisfaction for $Λα.\,I$, we learn that we must show that
+  \[
+    σ(Λα.\,I) = Λα.\,σ(I) ≃ Λq_1, …, q_k{:}α.\,χ_i.
+  \]
+  However, this is immediate from \rulename{eq-tabs} and the fact that $v ≃ χ$.
+\end{proof}
 
 \begin{lemma}[Satisfaction Preservation of Polymorphism]
 \label{lem:satisfaction-preservation-of-polymorphism}
   If $Λα.\,I ⊨ Χ$ then $I ⊨ Χ'$ where $Χ = \many{σ_i ↦ Λq_1, …, q_k{:}α.\, χ_i}{i < m}$ and $Χ' = \many{σ_i ↦ χ_i}{i < m}$.
 \end{lemma}
+\begin{proof}
+  Consider a single $σ ↦ Λq_1, …, q_k{:}α.\,χ_i ∈ Χ$.
+  By the definition of satisfaction for $Λα.\,I$,
+  \[
+    σ(Λα.\,I) = Λα.\,σ(I) ≃ Λq_1, …, q_k{:}α.\,χ_i.
+  \]
+  Now, by unrolling the definition of satisfaction for $I$, we learn that we must show that $v ≃ χ$ where $σ(I) ⟶^* v$.
+  However, we know this by inversion of \rulename{ex-tabs} on the compatibility of the type abstraction values above.
+\end{proof}
