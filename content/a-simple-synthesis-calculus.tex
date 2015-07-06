@@ -90,18 +90,20 @@ This is because the rules for well-typed term enumeration mirror the rules for t
 }
 This observation leads to two natural properties of our term enumeration judgment:
 
-\begin{theorem}[Soundness of \stlc{} term enumeration]
-\label{thm:soundness-stlc-term-enumeration}
-If $Γ ⊢ τ ⇝ e$ then $Γ ⊢ e : τ$.
-\end{theorem}
-\begin{theorem}[Completeness of \stlc{} term enumeration]
-\label{thm:completeness-stlc-term-enumeration}
-If $Γ ⊢ e : τ$ then $Γ ⊢ τ ⇝ e$.
-\end{theorem}
-\begin{proof}
-  Both theorems follow from straightforward inductions on the given term-enumeration or type-checking derivations, respectively.
-  However, both theorems also follow the fact that the type-checking and term-enumeration judgments are actually equivalent!
-\end{proof}
+\begin{proofenv}
+  \begin{theorem}[Soundness of \stlc{} term enumeration]
+  \label{thm:soundness-stlc-term-enumeration}
+  If $Γ ⊢ τ ⇝ e$ then $Γ ⊢ e : τ$.
+  \end{theorem}
+  \begin{theorem}[Completeness of \stlc{} term enumeration]
+  \label{thm:completeness-stlc-term-enumeration}
+  If $Γ ⊢ e : τ$ then $Γ ⊢ τ ⇝ e$.
+  \end{theorem}
+  \begin{proof}
+    Both theorems follow from straightforward inductions on the given term-enumeration or type-checking derivations, respectively.
+    However, both theorems also follow the fact that the type-checking and term-enumeration judgments are actually equivalent!
+  \end{proof}
+\end{proofenv}
 
 \autoref{thm:soundness-stlc-term-enumeration} states that enumerated terms are well-typed, and \autoref{thm:completeness-stlc-term-enumeration} states that we are able to enumerate the well-typed terms.
 By combining both theorems, we know that well-typed term enumeration produces \emph{exactly} the set of well-typed terms, \ie, the ``All Typed'' dataset from \autoref{fig:lambda-terms-counts}.
@@ -330,13 +332,15 @@ When lifting typechecking of example values to example worlds, written $Γ ⊢ �
 For an environment to be well-typed, it suffices that for each binding in $σ$ to be well-typed according to the type recorded in $Γ$ (\rulename{t-env-cons}).
 In addition, \rulename{t-exw-cons} requires that each $σ$ contains a binding for each variable bound in $Γ$.
 This, coupled with \rulename{t-env-cons}, gives us the following consistency principle for example worlds:
-\begin{lemma}[Consistency of Example Worlds]
-  \label{lem:consistency-of-example-worlds}
-  If $Γ ⊢ Χ : τ_1$, then $∀σ ↦ χ ∈ Χ.\,x{:}τ \in Γ ↔ ([x/v] \in σ ∧ Γ ⊢ v : τ)$.
-\end{lemma}
-\begin{proof}
-  \rulename{t-exw-cons} enforces the $→$ direction, and \rulename{t-env-cons} enforces the $←$ direction.
-\end{proof}
+\begin{proofenv}
+  \begin{lemma}[Consistency of Example Worlds]
+    \label{lem:consistency-of-example-worlds}
+    If $Γ ⊢ Χ : τ_1$, then $∀σ ↦ χ ∈ Χ.\,x{:}τ \in Γ ↔ ([x/v] \in σ ∧ Γ ⊢ v : τ)$.
+  \end{lemma}
+  \begin{proof}
+    \rulename{t-exw-cons} enforces the $→$ direction, and \rulename{t-env-cons} enforces the $←$ direction.
+  \end{proof}
+\end{proofenv}
 Because our synthesis strategy requires evaluation, \autoref{lem:consistency-of-example-worlds} is necessary to ensure that every free variable has a (well-typed) value.
 
 \subsection{Synthesis}

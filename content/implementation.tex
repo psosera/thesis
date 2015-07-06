@@ -419,19 +419,21 @@ We could solve this by tracking the expressions that we pattern match over, but 
 This means that the problem of repetitive matches is really a problem of \emph{program equivalence} where we want to avoid generating semantically equivalent terms as scrutinees.
 
 Thankfully in this situation, our informative restriction are sufficient to rule out redundant matches as \autoref{lem:informativeness-rules-out-repetition} shows:
-\begin{lemma}[Informativeness Rules Out Repetition]
-  Consider a pattern match over some scrutinee $e$ of some data type with constructors $C_1, …, C_m$ and an expression $e'$ such that $e$ is equivalent to $e'$.
-  Then any inner pattern match whose scrutinee is $e'$ in any of these branches is invalid with respect to our informativeness restriction.
-  \label{lem:informativeness-rules-out-repetition}
-\end{lemma}
-\begin{proof}
-  $\mkwd{distribute}$ creates example worlds $Χ_1, …, Χ_m$ for each branch of the pattern match by evaluating $e$.
-  Consider a single such branch $k ∈ 1, …, m$ and pattern matching on a scrutinee $e'$ that is equivalent to $e$ in that branch.
-  (It could be $e$ itself).
-  By definition $Χ_k$ contains only the example worlds under which $e$ evaluated to a constructor value with head $C_k$.
-  Therefore, all of the example worlds in $Χ_k$ will evaluate to the same constructor value with head $C_k$.
-  This means that the inner pattern match will send all of its examples to branch $C_k$ which by definition of both Informativeness Restrictions is invalid.
-\end{proof}
+\begin{proofenv}
+  \begin{lemma}[Informativeness Rules Out Repetition]
+    Consider a pattern match over some scrutinee $e$ of some data type with constructors $C_1, …, C_m$ and an expression $e'$ such that $e$ is equivalent to $e'$.
+    Then any inner pattern match whose scrutinee is $e'$ in any of these branches is invalid with respect to our informativeness restriction.
+    \label{lem:informativeness-rules-out-repetition}
+  \end{lemma}
+  \begin{proof}
+    $\mkwd{distribute}$ creates example worlds $Χ_1, …, Χ_m$ for each branch of the pattern match by evaluating $e$.
+    Consider a single such branch $k ∈ 1, …, m$ and pattern matching on a scrutinee $e'$ that is equivalent to $e$ in that branch.
+    (It could be $e$ itself).
+    By definition $Χ_k$ contains only the example worlds under which $e$ evaluated to a constructor value with head $C_k$.
+    Therefore, all of the example worlds in $Χ_k$ will evaluate to the same constructor value with head $C_k$.
+    This means that the inner pattern match will send all of its examples to branch $C_k$ which by definition of both Informativeness Restrictions is invalid.
+  \end{proof}
+\end{proofenv}
 Thus, we do not need to do anything special to handle repetitive pattern matches as long as we employ the informativeness restriction to prune down the space of possible match expressions.
 
 \paragraph{Restricting Generation of Matches}
@@ -466,22 +468,24 @@ Note that the refinement rules are dictated entirely by the goal type and exampl
 In particular, \rulename{irefine-arr} applies at arrow type at any time and \rulename{irefine-base} applies at base type whenever the examples agree on their head constructor.
 Both rules always decomposes both the goal type and the examples on every invocation.
 Because our goal type and examples are necessarily finite structures, this leads to an important property of $I$-refinements with respect to the synthesis tree structure.
-\begin{lemma}[Finiteness of Refinement Derivations]
-  \label{lem:finiteness-of-refinement-derivations}
-  In any branch of a synthesis tree, the number of \rulename{irefine-arr} and \rulename{irefine-base} applications is finite.
-\end{lemma}
-\begin{proof}
-  We make the stronger claim that the number of such applications is bounded by the sum of the goal type and the size of the example values.
-  Consider the effects of each \rulename{irefine} rule on the synthesis state.
-  \begin{itemize}
-    \item \rulename{irefine-guess} ends the branch with a series of \rulename{eguess} derivations.
-      If a \rulename{eguess} derivation calls back into the \rulename{irefine} judgment, it is without any examples.
-    \item \rulename{irefine-arr} decomposes the goal type and example values while growing number of example worlds.
-    \item \rulename{irefine-base} decomposes the example values, keeps the number of example worlds, and may grow the goal type, \eg, moving from a base type to an arrow type if one of the constructor arguments is higher order.
-    \item \rulename{irefine-guess} distributes the examples, keeping the size of the examples and the goal type the size, but decreasing the number of example worlds.
-  \end{itemize}
-  From this, it is clear that the number of possible \rulename{irefine-arr} and \rulename{irefine-base} applications in a single branch is finite because the example values are necessarily finite and no \rulename{irefine} rule grows those example values.
-\end{proof}
+\begin{proofenv}
+  \begin{lemma}[Finiteness of Refinement Derivations]
+    \label{lem:finiteness-of-refinement-derivations}
+    In any branch of a synthesis tree, the number of \rulename{irefine-arr} and \rulename{irefine-base} applications is finite.
+  \end{lemma}
+  \begin{proof}
+    We make the stronger claim that the number of such applications is bounded by the sum of the goal type and the size of the example values.
+    Consider the effects of each \rulename{irefine} rule on the synthesis state.
+    \begin{itemize}
+      \item \rulename{irefine-guess} ends the branch with a series of \rulename{eguess} derivations.
+        If a \rulename{eguess} derivation calls back into the \rulename{irefine} judgment, it is without any examples.
+      \item \rulename{irefine-arr} decomposes the goal type and example values while growing number of example worlds.
+      \item \rulename{irefine-base} decomposes the example values, keeps the number of example worlds, and may grow the goal type, \eg, moving from a base type to an arrow type if one of the constructor arguments is higher order.
+      \item \rulename{irefine-guess} distributes the examples, keeping the size of the examples and the goal type the size, but decreasing the number of example worlds.
+    \end{itemize}
+    From this, it is clear that the number of possible \rulename{irefine-arr} and \rulename{irefine-base} applications in a single branch is finite because the example values are necessarily finite and no \rulename{irefine} rule grows those example values.
+  \end{proof}
+\end{proofenv}
 
 Now, let's consider applications of \rulename{irefine-match}.
 There are two dimensions of match applications to consider:
@@ -494,22 +498,24 @@ In contrast, we must add additional restrictions to ensure that the number of po
 
 With these considerations, we can formulate a lemma about the finiteness of \rulename{irefine-match} applications in any synthesis tree:
 
-\begin{lemma}[Finiteness of Match Derivations]
-  Suppose that we fix the maximum size of any match scrutinee expression to some constant $k$.  Then, in any synthesis tree, the number of possible \rulename{irefine-match} applications is finite (assuming that we apply an informativeness restriction on match expressions).
-  \label{lem:finiteness-of-match-derivations}
-\end{lemma}
-\begin{proof}
-  Our bound $k$ on the size of match scrutinees artificially limits match width.
-  As mentioned above, match depth is limited by our informativeness restriction.
-  To see why, note that match expressions distribute the example worlds among the branches of the match.
-  The number of example worlds does not grow.\footnote{%
-    From the proof of \ref{lem:finiteness-of-refinement-derivations}, we see that the number of example worlds increases when applying \rulename{irefine-arr}.
-    However, these additional example worlds are drawn from the structure of the goal example values, so it is really the size of the example values that is decreasing here.
-  }
-  Furthermore, our informativeness restriction ensures that once we reach branches with one or no examples, we will not be able to pattern match further as we will not be able to fulfill the requirement that at least two branches of the inner pattern match have examples.\footnote{%
-    This requires that we handle pattern matches over data types with single constructors differently, \eg, greedily expanding them with focusing as described in \autoref{subsec:tuple-efficiency}, as the informativeness restriction does not apply to them.
-  }
-\end{proof}
+\begin{proofenv}
+  \begin{lemma}[Finiteness of Match Derivations]
+    Suppose that we fix the maximum size of any match scrutinee expression to some constant $k$.  Then, in any synthesis tree, the number of possible \rulename{irefine-match} applications is finite (assuming that we apply an informativeness restriction on match expressions).
+    \label{lem:finiteness-of-match-derivations}
+  \end{lemma}
+  \begin{proof}
+    Our bound $k$ on the size of match scrutinees artificially limits match width.
+    As mentioned above, match depth is limited by our informativeness restriction.
+    To see why, note that match expressions distribute the example worlds among the branches of the match.
+    The number of example worlds does not grow.\footnote{%
+      From the proof of \ref{lem:finiteness-of-refinement-derivations}, we see that the number of example worlds increases when applying \rulename{irefine-arr}.
+      However, these additional example worlds are drawn from the structure of the goal example values, so it is really the size of the example values that is decreasing here.
+    }
+    Furthermore, our informativeness restriction ensures that once we reach branches with one or no examples, we will not be able to pattern match further as we will not be able to fulfill the requirement that at least two branches of the inner pattern match have examples.\footnote{%
+      This requires that we handle pattern matches over data types with single constructors differently, \eg, greedily expanding them with focusing as described in \autoref{subsec:tuple-efficiency}, as the informativeness restriction does not apply to them.
+    }
+  \end{proof}
+\end{proofenv}
 
 \autoref{lem:finiteness-of-refinement-derivations} and \autoref{lem:finiteness-of-match-derivations} assert that type-directed refinement---application of the \rulename{irefine} rules---is finite given a particular synthesis problem.
 In contrast, it is clear that $E$-guessing or raw-term generation is potentially limitless depending on the input context $Γ$.

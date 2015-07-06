@@ -3,10 +3,10 @@ As such, it only contains the bare essence of a typed, functional programming la
 However, one of the appeals of the type-directed synthesis approach is that we derive the synthesis judgment directly from the type checking judgment.
 In other words, type checking immediately gives us insight into program synthesis for new types!
 
-In this chapter, we explore the process of integrating new types into \lsyn{} by considering a number of additional basic types: units, products, sums, and records.
+In this chapter, we explore the process of integrating new types into \lsyn{} by considering a number of additional basic types: products, sums, and records.
 By playing this game with the type system of flipping inputs and outputs, we learn how to generate terms and refine examples of these types.
-In some cases, this is sufficient to synthesize this type within \lsyn{}.
-However in other cases, in particular, the more complex types that we consider in future chapters, we must do additional work to properly synthesize programs of those types.
+In some cases, this is sufficient to synthesize this type within \lsyn{} immediately.
+However in other cases, in particular, the more complex types that we consider in future chapters, we must do additional work to properly synthesize programs of these types.
 
 \section{Products}
 
@@ -38,70 +38,81 @@ Then the two example worlds that we create in \rulename{irefine-prod} are
   Χ_2 = σ_1 ↦ c_3, σ_2 ↦ c_4.
 \end{align*}
 
-To prove soundness, we need lemmas showing that each \rulename{irefine} rule preserves example typing.
-We can easily prove the necessary lemma here:
-\begin{lemma}[Example-Type Preservation of $\mfun{proj}$]
-\label{lem:example-type-preservation-of-proj}
-  If $Γ ⊢ Χ : τ_1 × τ_2$ then $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$ where $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
-\end{lemma}
-\begin{proof}
-  Immediate from the premise.
-  \rulename{t-exw-cons} says that each $σ_i$ is well-typed and \rulename{t-ex-pair} says that the example pairs are well-typed and their components are well-typed at $τ_1$ and $τ_2$.
-\end{proof}
+To prove soundness, we need type preservation and satisfaction soundness lemmas as discussed in \autoref{ch:metatheory-of-lsyn}.
+We can easily prove the necessary lemmas here:
+\begin{proofenv}
+  \begin{lemma}[Type Preservation of $\mfun{proj}$]
+  \label{lem:type-preservation-of-proj}
+    If $Γ ⊢ Χ : τ_1 × τ_2$ then $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$ where $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
+  \end{lemma}
+  \begin{proof}
+    Immediate from the premise of the statement.
+    \rulename{t-exw-cons} says that each $σ_i$ is well-typed and \rulename{t-ex-pair} says that the example pairs are well-typed and their components are well-typed at $τ_1$ and $τ_2$.
+  \end{proof}
+  \begin{lemma}[Satisfaction Soundness of $\mfun{proj}$]
+  \label{lem:satisfaction-soundness-of-proj}
+    If $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ then $(I_1, I_2) ⊨ Χ$ where $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
+  \end{lemma}
+  \begin{proof}
+    Consider a single example world $σ ↦ (χ_1, χ_2) ∈ Χ$.
+    Unfolding the definition of \rulename{satisfies} for $(I_1, I_2)$ shows that
+    \[
+      σ(I) = σ(I_1, I_2) ⟶^* (σ(I_1), σ(I_2))
+    \]
+    Therefore, it suffices to show that $(σ(I_1), σ(I_2)) ≃ (χ_1, χ_2)$, and by \rulename{eq-pair}, this means that we must show that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
+    By the definition of $\mkwd{proj}$, $σ ↦ χ_1 ∈ Χ_1$ and $σ ↦ χ_2 ∈ Χ_2$, so we know that by the definition of \rulename{satisfies} and the fact that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
+  \end{proof}
+\end{proofenv}
 
 Completeness requires that we show that \rulename{irefine-prod} preserves satisfaction of examples.
 The version of the lemma for $\mfun{proj}$ is also straightforward to prove:
-\begin{lemma}[Satisfaction Preservation of $\mfun{proj}$]
-\label{lem:satisfaction-preservation-of-proj}
-  If $(I_1, I_2) ⊨ Χ$ then $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ where $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
-\end{lemma}
-\begin{proof}
-  Consider a single example world $σ ↦ (χ_1, χ_2)$; the shape of the examples is guaranteed by example value canonicity.
-  By \rulename{satisfies}, we know that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
-  By unfolding $\mfun{proj}$, we know that this covers each of the example worlds in $Χ_1$ and $Χ_2$, so this is sufficient to conclude that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$.
-\end{proof}
+\begin{proofenv}
+  \begin{lemma}[Satisfaction Preservation of $\mfun{proj}$]
+  \label{lem:satisfaction-preservation-of-proj}
+    If $(I_1, I_2) ⊨ Χ$ then $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ where $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
+  \end{lemma}
+  \begin{proof}
+    Consider a single example world $σ ↦ (χ_1, χ_2)$; the shape of the examples is guaranteed by example value canonicity.
+    By \rulename{satisfies}, we know that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
+    By unfolding $\mfun{proj}$, we know that this covers each of the example worlds in $Χ_1$ and $Χ_2$, so this is sufficient to conclude that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$.
+  \end{proof}
+\end{proofenv}
 
 To show how we apply these lemmas, let's walk through the additional cases for proving example soundness and completeness in \lsyn{} extended with products.
-\begin{lemma}[Example Soundness of \lsyn{} with Products]
-  If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $I ⊨ Χ$.
-\end{lemma}
-\begin{proof}
-  \begin{description}
-    \item[Case \normalfont{\rulename{irefine-prod}}:]
-      $I = (I_1, I_2)$, $τ = τ_1 × τ_2$, with $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
-      By \autoref{lem:example-type-preservation-of-proj}, $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$.
-      Therefore, by our inductive hypothesis, we can conclude that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$.
-
-      Now, unfold the definition of \rulename{satisfies} for $I$.
-      Consider a single example world $σ ↦ (χ_1, χ_2)$:
-      \[
-        σ(I) = σ(I_1, I_2) ⟶^* (σ(I_1), σ(I_2))
-      \]
-      It suffices to show that $(σ(I_1), σ(I_2)) ≃ (χ_1, χ_2)$.
-      By \rulename{eq-pair}, we must show that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
-      By the definition of $\mkwd{proj}$, $σ ↦ χ_1 ∈ Χ_1$ and $σ ↦ χ_2 ∈ Χ_2$, so we know that by the definition of \rulename{satisfies} and the fact that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ that $σ(I_1) ≃ χ_1$ and $σ(I_2) ≃ χ_2$.
-  \end{description}
-\end{proof}
-\begin{lemma}[Completeness of \lsyn{} with Products]
-  If $Γ ⊢ I ⇐ τ$, $Γ ⊢ Χ : τ$, and $I ⊨ Χ$, then $Γ ⊢ τ ▷ Χ ⇝ I$.
-\end{lemma}
-\begin{proof}
-  \begin{description}
-  \item[Case \normalfont{\rulename{t-prod}}:]
-    $I = (I_1, I_2)$ and $τ = τ_1 × τ_2$.
-    Because $Χ$ is well-typed at $τ_1 × τ_2$, we know by \autoref{lem:example-value-canonicity} that $Χ = \many{σ_i ↦ (Χ_{1i}, Χ_{2i})}{i < n}$.
-    Let $(Χ_1, Χ_2) = \mfun{proj}(Χ)$.
-    To invoke our inductive hypothesis to conclude that we can synthesize $(I_1, I_2)$, we must show that:
-    \begin{itemize}
-      \item $Γ ⊢ I_1 ⇐ τ_1$ and $Γ ⊢ I_2 ⇐ τ_2$ which follows by the premise of \rulename{t-Ipair}.
-      \item $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$ which follows by \autoref{lem:example-type-preservation-of-proj}.
-      \item $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ which follows by \autoref{lem:satisfaction-preservation-of-proj}.
-    \end{itemize}
-    Therefore, we can invoke our inductive hypothesis to conclude that $Γ ⊢ τ_1 ▷ Χ_1 ⇝ I_1$ and $Γ ⊢ τ_2 ▷ Χ_2 ⇝ I_2$.
-    By \rulename{irefine-prod}, we can therefore conclude that $Γ ⊢ τ_1 × τ_2 ▷ Χ ⇝ (I_1, I_2)$.
-  \end{description}
-\end{proof}
-For the rest of the language extensions in this chapter, we merely provide the critical lemmas for proving soundness and completeness as the actual cases proceed in an identical fashion to the cases for products.
+\begin{proofenv}
+  \begin{lemma}[Example Soundness of \lsyn{} with Products]
+    If $Γ ⊢ Χ : τ$ and $Γ ⊢ τ ▷ Χ ⇝ I$, then $I ⊨ Χ$.
+  \end{lemma}
+  \begin{proof}
+    \begin{description}
+      \item[Case \normalfont{\rulename{irefine-prod}}:]
+        $I = (I_1, I_2)$, $τ = τ_1 × τ_2$, with $\mfun{proj}(Χ) = (Χ_1, Χ_2)$.
+        By \autoref{lem:type-preservation-of-proj}, $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$.
+        Therefore, by our inductive hypothesis, we can conclude that $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ and by \autoref{lem:satisfaction-soundness-of-proj} we can conclude our goal.
+    \end{description}
+  \end{proof}
+  \begin{lemma}[Completeness of \lsyn{} with Products]
+    If $Γ ⊢ I ⇐ τ$, $Γ ⊢ Χ : τ$, and $I ⊨ Χ$, then $Γ ⊢ τ ▷ Χ ⇝ I$.
+  \end{lemma}
+  \begin{proof}
+    \begin{description}
+    \item[Case \normalfont{\rulename{t-prod}}:]
+      $I = (I_1, I_2)$ and $τ = τ_1 × τ_2$.
+      Because $Χ$ is well-typed at $τ_1 × τ_2$, we know by \autoref{lem:example-value-canonicity} that $Χ = \many{σ_i ↦ (Χ_{1i}, Χ_{2i})}{i < n}$.
+      Let $(Χ_1, Χ_2) = \mfun{proj}(Χ)$.
+      To invoke our inductive hypothesis to conclude that we can synthesize $(I_1, I_2)$, we must show that:
+      \begin{itemize}
+        \item $Γ ⊢ I_1 ⇐ τ_1$ and $Γ ⊢ I_2 ⇐ τ_2$ which follows by the premise of \rulename{t-Ipair}.
+        \item $Γ ⊢ Χ_1 : τ_1$ and $Γ ⊢ Χ_2 : τ_2$ which follows by \autoref{lem:type-preservation-of-proj}.
+        \item $I_1 ⊨ Χ_1$ and $I_2 ⊨ Χ_2$ which follows by \autoref{lem:satisfaction-preservation-of-proj}.
+      \end{itemize}
+      Therefore, we can invoke our inductive hypothesis to conclude that $Γ ⊢ τ_1 ▷ Χ_1 ⇝ I_1$ and $Γ ⊢ τ_2 ▷ Χ_2 ⇝ I_2$.
+      By \rulename{irefine-prod}, we can therefore conclude that $Γ ⊢ τ_1 × τ_2 ▷ Χ ⇝ (I_1, I_2)$.
+    \end{description}
+  \end{proof}
+\end{proofenv}
+With the appropriate lemmas, the proof of soundness and completeness for products is identical to the analogous proof for functions (modulo the lemmas).
+Because of this, for the rest of the language extensions in this chapter, we merely provide the critical lemmas for proving soundness and completeness.
 
 \subsection{Efficiency}
 \label{subsec:tuple-efficiency}
@@ -149,25 +160,36 @@ Therefore, when synthesizing a field of a record, we use the collected examples 
 The $\mfun{rproj}$ meta-function performs this collection, generalizing the behavior of $\mfun{proj}$ for pairs to $m$-ary records.
 
 Consequently, the necessary lemmas to verify soundness and completeness are similar to the product case.
-\begin{lemma}[Example-Type Preservation of $\mfun{rproj}$]
-\label{lem:example-type-preservation-of-rproj}
-  If $Γ ⊢ Χ : \{\many{l_i{:}τ_i}{i < m}\}$ then $\many{Γ ⊢ Χ_i : τ_i}{i < m}$ where $\mfun{rproj}(Χ) = Χ_1, …, Χ_m$.
-\end{lemma}
-\begin{proof}
-  Similar to $\mfun{proj}$, the necessary conditions are immediate from the premise.
-  \rulename{t-exw-cons} says that each $σ_i$ is well-typed and \rulename{t-ex-record} says that the example records are well-typed and their components are well-typed at $τ_1, …, τ_m$.
-\end{proof}
+\begin{proofenv}
+  \begin{lemma}[Type Preservation of $\mfun{rproj}$]
+  \label{lem:type-preservation-of-rproj}
+    If $Γ ⊢ Χ : \{\many{l_i{:}τ_i}{i < m}\}$ then $\many{Γ ⊢ Χ_i : τ_i}{i < m}$ where $\mfun{rproj}(Χ) = Χ_1, …, Χ_m$.
+  \end{lemma}
+  \begin{proof}
+    Similar to $\mfun{proj}$, the necessary conditions are immediate from the premise.
+    \rulename{t-exw-cons} says that each $σ_i$ is well-typed and \rulename{t-ex-record} says that the example records are well-typed and their components are well-typed at $τ_1, …, τ_m$.
+  \end{proof}
 
-\begin{lemma}[Satisfaction Preservation of $\mfun{rproj}$]
-\label{lem:satisfaction-preservation-of-rproj}
-  If $\{\many{l_i=I_i}{i < m}\}) ⊨ Χ$ then $\many{I_i ⊨ Χ_i}{i < m}$ where $\mfun{proj}(Χ) = Χ_1, …, Χ_m)$.
-\end{lemma}
-\begin{proof}
-  Consider a single example world $σ ↦ \{\many{l_i = χ_i}{i < m}\}$.
-  Again, the shape of the value is guaranteed by example value canonicity.
-  By \rulename{satisfies}, we know that $\many{σ(I_i) ≃ χ_i}{i < m}$.
-  By unfolding $\mfun{proj}$, we know that this covers each of the example worlds among the $Χ_1, …, Χ_m$, so this is sufficient to conclude that $I_1 ⊨ Χ_1, …, I_m ⊨ Χ_m$.
-\end{proof}
+  \begin{lemma}[Satisfaction Soundness of $\mfun{rproj}$]
+  \label{lem:satisfaction-soundness-of-rproj}
+    If $\many{I_i ⊨ Χ_i}{i < m}$ then $\{\many{l_i=I_i}{i < m}\}) ⊨ Χ$ where $\mfun{proj}(Χ) = Χ_1, …, Χ_m)$.
+  \end{lemma}
+  \begin{proof}
+    Consider a single example world $σ ↦ \{\many{l_i = χ_i}{i < m}\} ∈ Χ$.
+    By \rulename{satisfies}, we know that we must show that $σ(I_i) ⟶^* v_i$ and $v_i ≃ χ_i$ for each $i ∈ 1, …, m$.
+    However, by unfolding the definition of $\mfun{proj}$ we see that each $χ_i$ is distributed to $Χ_i$ with the environment $σ$, and we know from our premise that his example world is satisified by $I_i$.
+  \end{proof}
+
+  \begin{lemma}[Satisfaction Preservation of $\mfun{rproj}$]
+  \label{lem:satisfaction-preservation-of-rproj}
+    If $\{\many{l_i=I_i}{i < m}\}) ⊨ Χ$ then $\many{I_i ⊨ Χ_i}{i < m}$ where $\mfun{proj}(Χ) = Χ_1, …, Χ_m)$.
+  \end{lemma}
+  \begin{proof}
+    Consider a single example world $σ ↦ \{\many{l_i = χ_i}{i < m}\} ∈ Χ$.
+    By \rulename{satisfies}, we know that $\many{σ(I_i) ≃ χ_i}{i < m}$.
+    By unfolding $\mfun{rproj}$, we know that this covers each of the example worlds among the $Χ_1, …, Χ_m$, so this is sufficient to conclude that $I_1 ⊨ Χ_1, …, I_m ⊨ Χ_m$.
+  \end{proof}
+\end{proofenv}
 
 \subsection{Subtyping and Synthesis}
 
@@ -212,7 +234,7 @@ Because they are $I$-forms, they are always checked against a sum type which ren
 
 Sum types are eliminated via pattern matching, written:
 \[
-  \mmatch\;e\;\mwith\;\minl{x_1} → e_1 \semisep \minr{x_2} → e_2
+  \mmatch\;e\;\mwith\;\minl{x_1} → e_1 \bnfalt \minr{x_2} → e_2
 \]
 which performs case analysis on a particular sum value to see which constructor created it.
 \rulename{eval-match-inl} and \rulename{eval-match-inr} describes what happens when we have either an $\minl{\!}$ or $\minr{\!}$ in the \emph{scrutinee position} of the sum.
@@ -259,46 +281,69 @@ We synthesize the $\minl{\!}$ branch expression using $Χ_1$ and the $\minr{\!}$
 Again, note that the example goal value has not changed during this process.
 
 Finally, to prove soundness and completeness in the presence of sums, we require the following lemmas:
-\begin{lemma}[Example-Type Preservation of $\mfun{distribute}$]
-  \label{lem:example-type-preservation-of-distribute}
-  If $Γ ⊢ Χ : τ$ and $Γ ⊢ E ⇐ τ_1 + τ_2$ then $x_1{:}τ_1, Γ ⊢ Χ_l : τ$ and $x_2{:}τ_2, Γ ⊢ Χ_r : τ$ where $\mfun{distribute}(E, Χ) = (Χ_l, Χ_r)$.
-\end{lemma}
-\begin{proof}
-  By \rulename{t-exw-cons}, we know that each example world $σ ↦ χ ∈ Χ$ has type $τ$.
-  By the definition of \rulename{distribute}, we know that each such example world is sent to either $Χ_l$ or $Χ_r$ with an additional binding, so it suffices to show that this additional binding is well-typed.
-  Consider a single example world $σ ↦ χ ∈ Χ$.
-  Unfolding the definition of $\mfun{distribute}$ we see that we obtain the binding for this example world from:
-  \[
-    σ(E) →^* \mkwd{inx}\;v
-  \]
-  where $\mkwd{inx}\;v$ is either $\minl{v}$ or $\minr{v}$.
-  We know this evaluation is possible because of type safety, canonical forms, and strong normalization.
+\begin{proofenv}
+  \begin{lemma}[Type Preservation of $\mfun{distribute}$]
+    \label{lem:type-preservation-of-distribute}
+    If $Γ ⊢ Χ : τ$ and $Γ ⊢ E ⇐ τ_1 + τ_2$ then $x_1{:}τ_1, Γ ⊢ Χ_l : τ$ and $x_2{:}τ_2, Γ ⊢ Χ_r : τ$ where $\mfun{distribute}(E, Χ) = (Χ_l, Χ_r)$.
+  \end{lemma}
+  \begin{proof}
+    By \rulename{t-exw-cons}, we know that each example world $σ ↦ χ ∈ Χ$ has type $τ$.
+    By the definition of \rulename{distribute}, we know that each such example world is sent to either $Χ_l$ or $Χ_r$ with an additional binding, so it suffices to show that this additional binding is well-typed.
+    Consider a single example world $σ ↦ χ ∈ Χ$.
+    Unfolding the definition of $\mfun{distribute}$ we see that we obtain the binding for this example world from:
+    \[
+      σ(E) →^* \mkwd{inx}\;v
+    \]
+    where $\mkwd{inx}\;v$ is either $\minl{v}$ or $\minr{v}$.
+    We know this evaluation is possible because of type safety, canonical forms, and strong normalization.
 
-  Consider the case where $E$ evaluates to $\minl{v}$; the $\minr{\!}$ case proceeds identically.
-  We know that $v$ must have type $τ_1$ because $E$ and $\minl{v}$, by preservation, have type $τ_1 + τ_2$.
-  Therefore, by \rulename{t-env-cons}, we know the binding is well-typed.
-\end{proof}
+    Consider the case where $E$ evaluates to $\minl{v}$; the $\minr{\!}$ case proceeds identically.
+    We know that $v$ must have type $τ_1$ because $E$ and $\minl{v}$, by preservation, have type $τ_1 + τ_2$.
+    Therefore, by \rulename{t-env-cons}, we know the binding is well-typed.
+  \end{proof}
 
-\begin{lemma}[Satisfaction Preservation of $\mfun{distribute}$]
-\label{lem:satisfaction-preservation-of-distribute}
-  Let $I$ be the expression
-  \[
-    \begin{array}{l}
-      \mmatch\;E\;\mwith \\
-      \⇥{1}\minl{x_1} → I_1 \\
-      \⇥{1}\minr{x_2} → I_2.
-    \end{array}
-  \]
-  If $I ⊨ Χ$ and $Γ ⊢ E ⇐ τ_1 + τ_2$ then $I_1 ⊨ Χ_l$ and $I_2 ⊨ Χ_r$ where $\mfun{distribute}(E, Χ) = (Χ_l, Χ_r)$.
-\end{lemma}
-\begin{proof}
-  Consider a single example world $σ ↦ χ ∈ Χ$.
-  Because $E$ is well-typed, we know by type safety, strong normalization, and canonical forms that $σ(E)$ reduces to either $\minl{v}$ or $\minr{v}$.
-  Consider the $\minl{\!}$ case; the $\minr{\!}$ case proceeds identically.
-  If $σ(E) ⟶^* \minl{v}$, then by \rulename{eval-match-inl} and the fact that $I ⊨ Χ$, $σ(I) ⟶ [v/x_1]σ(I_1) ⟶* v'$ and $v' ≃ χ$.
-  Note that every such $[v/x_1]σ ↦ χ ∈ Χ_l$ by the definition of $\mfun{distribute}$.
-  Therefore, we can conclude that $I_1 ⊨ Χ_l$.
-\end{proof}
+  \begin{lemma}[Satisfaction Soundness of $\mfun{distribute}$]
+    \label{satisfaction-soundness-of-distribute}
+    Let $I$ be the expression
+    \[
+      \begin{array}{l}
+        \mmatch\;E\;\mwith \\
+        \bnfalt \minl{x_1} → I_1 \\
+        \bnfalt \minr{x_2} → I_2.
+      \end{array}
+    \]
+    If $I_1 ⊨ Χ_l$ and $I_2 ⊨ Χ_r$ and $Γ ⊢ E ⇐ τ_1 + τ_2$ then $I ⊨ Χ$ where $\mfun{distribute}(E, Χ) = (Χ_l, Χ_r)$.
+  \end{lemma}
+  \begin{proof}
+    Consider a single example world $σ ↦ χ ∈ Χ$.
+    Because $E$ is well-typed, we know by type safety, strong normalization, and canonical forms that $σ(E)$ reduces to either $\minl{v}$ or $\minr{v}$.
+    Consider the $\minl{\!}$ case; the $\minr{\!}$ case proceeds identically.
+    If $σ(E) ⟶^* \minl{v}$, then by \rulename{eval-match-inl} we must show that $v' ≃ χ$ where $σ(I) ⟶ [v/x_1]σ(I_1) ⟶^* v'$.
+    However, by unfolding the definition of $\mfun{distribute}$, we know that $[v/x_1]σ ↦ χ ∈ Χ_l$.
+    Because $I_1 ≃ Χ_l$, we can conclude that $v' ≃ χ$.
+  \end{proof}
+
+  \begin{lemma}[Satisfaction Preservation of $\mfun{distribute}$]
+  \label{lem:satisfaction-preservation-of-distribute}
+    Let $I$ be the expression
+    \[
+      \begin{array}{l}
+        \mmatch\;E\;\mwith \\
+        \bnfalt \minl{x_1} → I_1 \\
+        \bnfalt \minr{x_2} → I_2.
+      \end{array}
+    \]
+    If $I ⊨ Χ$ and $Γ ⊢ E ⇐ τ_1 + τ_2$ then $I_1 ⊨ Χ_l$ and $I_2 ⊨ Χ_r$ where $\mfun{distribute}(E, Χ) = (Χ_l, Χ_r)$.
+  \end{lemma}
+  \begin{proof}
+    Consider a single example world $σ ↦ χ ∈ Χ$.
+    Because $E$ is well-typed, we know by type safety, strong normalization, and canonical forms that $σ(E)$ reduces to either $\minl{v}$ or $\minr{v}$.
+    Consider the $\minl{\!}$ case; the $\minr{\!}$ case proceeds identically.
+    If $σ(E) ⟶^* \minl{v}$, then by \rulename{eval-match-inl} and the fact that $I ⊨ Χ$, $σ(I) ⟶ [v/x_1]σ(I_1) ⟶* v'$ and $v' ≃ χ$.
+    Note that every such $[v/x_1]σ ↦ χ ∈ Χ_l$ by the definition of $\mfun{distribute}$.
+    Therefore, we can conclude that $I_1 ⊨ Χ_l$.
+  \end{proof}
+\end{proofenv}
 
 \subsection{Example: Boolean Operators}
 \label{subsec:example-boolean-operators}
@@ -339,7 +384,7 @@ We now apply \rulename{irefine-match}, guessing $x$ to pattern match on which re
 \end{align*}
 and the hole filled in with the following program fragment:
 \[
-  \mmatch\;x\;\mwith\;\minl{x_1} → ◼ \semisep \minr{x_2} → ◼
+  \mmatch\;x\;\mwith\;\minl{x_1} → ◼ \bnfalt \minr{x_2} → ◼
 \]
 
 Synthesizing the $\minr{\!}$ branch is straightforward.
@@ -360,11 +405,11 @@ where our program now looks like
 \[
   \begin{array}{l}
     λx{:}\mBool.\,λy{:}\mBool.\,\mmatch\;x\;\mwith \\
-    \⇥{1} \minl{x_1} →         \\
-    \⇥{2}   \mmatch\;y\;\mwith   \\
-    \⇥{3}     \minl{x'_1} → ◼ \\
-    \⇥{3}     \minr{x'_2} → ◼ \\
-    \⇥{1} \minr{x_2} → \mfalse.
+    \⇥{1} \bnfalt \minl{x_1} →         \\
+    \⇥{2}   (\mmatch\;y\;\mwith   \\
+    \⇥{2}   \bnfalt \minl{x'_1} → ◼ \\
+    \⇥{2}   \bnfalt \minr{x'_2} → ◼) \\
+    \⇥{1} \bnfalt \minr{x_2} → \mfalse.
   \end{array}
 \]
 In each of these branches, we can either guess the satisfying $E$-terms $x$ and $y$ with \rulename{irefine-eguess} or because there is only a single example in each branch, we can apply \rulename{irefine-sum-inl} and \rulename{irefine-sum-inr} to synthesize $\mtrue$ and $\mfalse$ directly.
@@ -372,11 +417,11 @@ In either case, the final result is the usual implementation of $\mkwd{and}$ tha
 \[
   \begin{array}{l}
     λx{:}\mBool.\,λy{:}\mBool.\,\mmatch\;x\;\mwith \\
-    \quad \minl{x_1} →                  \\
-    \qquad \mmatch\;y\;\mwith           \\
-    \qquad\quad \minl{x'_1} → \mtrue    \\
-    \qquad\quad \minr{x'_2} → \mfalse   \\
-    \quad \minr{x_2} → \mfalse.
+    \⇥{1} \bnfalt\minl{x_1} →               \\
+    \⇥{2}   (\mmatch\;y\;\mwith             \\
+    \⇥{2}   \bnfalt \minl{x'_1} → \mtrue    \\
+    \⇥{2}   \bnfalt \minr{x'_2} → \mfalse)  \\
+    \⇥{1} \bnfalt \minr{x_2} → \mfalse.
   \end{array}
 \]
 We can synthesize the other $2^3=8$ possible boolean operators using appropriate example sets with similar derivations in \lsyn{}.
@@ -395,10 +440,10 @@ Building on the first point, not only can we pattern match against any $E$ term,
 \[
   \begin{array}{l}
     \mmatch\;x\;\mwith \\
-    \⇥{1} \minl{x_1} →              \\
-    \⇥{2}   \mmatch\;x\;\mwith      \\
-    \⇥{3}     \minl{x'_1} → \mtrue  \\
-    \⇥{3}     \ldots
+    \bnfalt \minl{x_1} →                  \\
+    \⇥{1} \bnfalt \mmatch\;x\;\mwith      \\
+    \⇥{2}   \bnfalt \minl{x'_1} → \mtrue  \\
+    \⇥{2}   \ldots
   \end{array}
 \]
 is perfectly sound, it results in unnecessary work because the inner pattern match duplicates the efforts of the outer pattern match.

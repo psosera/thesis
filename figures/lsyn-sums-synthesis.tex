@@ -12,7 +12,7 @@
           {Γ ⊢ τ_1 + τ_2 ⇝ E \\\\
            \mfun{distribute}(E, Χ) = (Χ_l, Χ_r) \\\\
            x_1{:}τ_1, Γ ⊢ τ ▷ Χ_l ⇝ I_1 \\ x_2{:}τ_2, Γ ⊢ τ ▷ Χ_r ⇝ I_2}
-          {Γ ⊢ τ ▷ Χ ⇝ \mmatch\;E\;\mwith\;\minl{x_1} → I_1 \semisep \minr{x_2} → I_2} \\
+          {Γ ⊢ τ ▷ Χ ⇝ \mmatch\;E\;\mwith\;\minl{x_1} → I_1 \bnfalt \minr{x_2} → I_2} \\
       \fbox{$v ≃ χ$} \qquad
         \inferrule[eq-inl]
           {v ≃ χ}

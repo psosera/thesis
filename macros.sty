@@ -30,6 +30,18 @@
 
 %%%%% Math typesetting {{{
 
+\newenvironment{proofenv}{%
+  \vspace{1em}
+  \hrule width \textwidth height 2pt depth 0mm
+  \vspace{0.25em}
+  \hrule
+}{%
+  \hrule
+  \vspace{0.25em}
+  \hrule width \textwidth height 2pt depth 0mm
+  \vspace{1em}
+}
+
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}{Lemma}[section]
 \newtheorem{property}{Property}[section]
