@@ -1,5 +1,5 @@
 Program synthesis is an undecidable problem, so when building practical synthesis tools, we must resort to approximations and heuristics to not only make the problem solvable, but also tractable.
-However, this reality is frequently at odds with building a system that is understandable as the approximations and heuristics frequently bleed together so that their individual contributions are not clear.
+However, this reality is frequently at odds with building a system that is understandable, as the approximations and heuristics frequently bleed together so that their individual contributions are not clear.
 Ideally, we would like to build synthesis systems in such a way that we know precisely the impact of each feature and design choice.
 For example, does ruling out a certain class of programs impact the completeness of the synthesis algorithm?
 If so, are these programs relevant or are they safe to ignore for practical purposes?
@@ -135,17 +135,17 @@ We avoid this situation by splitting expressions into two sets of sub-terms.
   I &\bnfdef E \bnfalt λx{:}τ.\,I \bnfalt c
 \end{align*}
 $E$-forms include variables and \emph{elimination} forms, and $I$-forms include \emph{introduction} forms.
-For example, lambdas introduce values of arrow type and function application eliminates these values.
+For example, lambdas introduce values of arrow type, and function application eliminates these values.
 In contrast, the base type $T$ is introduced by its constants $c_1, …, c_k$ and have no corresponding elimination forms.
 
 With this syntax, $I$ and $E$ terms are in normal form by construction!
-To see this, note that function application requires that the head of a function application is an $E$, and the syntax of $E$s bottom outs at variables.
+To see this, note that function application requires that the head of a function application is an $E$, and the syntax of $E$s bottoms out at variables.
 Therefore, all applications will be of the form $x\,I_1 … I_m$ where a variable is always at the head of the application.
 Arguments, in contrast, are allowed to be any $I$-term which includes $E$s because $E$s are included in the definition of $I$.
 
 This technique of splitting the syntax of expressions into introduction and elimination forms has several useful effects.
 In proof search, this syntax is useful for generating normal form proofs which, by the Curry-Howard Isomorphism~\citep{william-curry-1980}, is equivalent to generating normal form programs in our setting.
-Dividing the syntax in this manner also facilities a description \emph{bidirectional type checking}~\citep{pierce-toplas-2000} where we explicitly state when a type is an input or output in the type checking judgment.
+Dividing the syntax in this manner also facilities a description of \emph{bidirectional type checking}~\citep{pierce-toplas-2000} where we explicitly state when a type is an input or output in the type checking judgment.
 This distinction becomes very useful when we talk about refining specification in the context of full program synthesis in \autoref{sec:lsyn-a-program-synthesis-calculus}.
 
 \input{figures/stlc-gen-normal.tex}
@@ -203,7 +203,7 @@ In contrast, consider a logical specification of how this function ought to beha
 \begin{gather*}
   \mkwd{sorted}(l) = ∀ x :: l' ⊑ l.\; ∀ y ∈ l.\; x < y
 \end{gather*}
-The $\mkwd{sorted}$ predicate states that for all sub-lists ($⊑$) of $l$, the head $x$ of that sub-list is least element of that sub-list.
+The $\mkwd{sorted}$ predicate states that for all sub-lists ($⊑$) of $l$, the head $x$ of that sub-list is the least element of that sub-list.
 While the logical specification precisely describes the behavior of any function that sorts, it takes a bit of ingenuity to come up with this specification.
 
 Finally and most importantly, we use examples because they decompose naturally with types.
@@ -211,7 +211,7 @@ For example, the input/output example $[0, 1] ⇒ [1, 0]$ decomposes according t
 We know that when the synthesized function's argument has the value $[0, 1]$, the body of that function must evaluate to $[1, 0]$.
 In contrast, it is not clear how to decompose the $\mkwd{sorted}$ predicate according to the type of the function we are synthesizing.
 
-\subsection{Example Specifications in \texorpdfstring{\stlc}{λ→}}
+\subsection{Example Specification in \texorpdfstring{\stlc}{λ→}}
 \label{subsec:example-specification-in-stlc}
 
 To adopt example specifications into \stlc{}, we need to account for the presence of higher-order functions.
@@ -250,7 +250,7 @@ specifies the $\mkwd{if}$ function of type $\mBool → T → T → T$, usually d
 \]
 Note that the convenience of specifying arguments to higher-order functions as lambdas allows us to use $\mtrue$ and $\mfalse$ in the input/output examples as expected.
 
-\section{\texorpdfstring{$λ_{syn}$}{λsyn}: a Program Synthesis Calculus}
+\section{\texorpdfstring{$λ_{syn}$}{λsyn}: A Program Synthesis Calculus}
 \label{sec:lsyn-a-program-synthesis-calculus}
 
 So far, we modified the type checking judgment of \stlc{} to create a type-directed term enumeration judgment and defined a grammar of example values to serve as our specification.
@@ -323,7 +323,7 @@ Constants $c_k$ all have type $T$ (\rulename{t-ex-base}), and a partial function
 \subsection{Example Worlds}
 \label{subsec:example-worlds}
 
-Example worlds were a critical component of how we synthesized $\mkwd{if}$ in \autoref{subsec:integrating-search-and-specification}.
+Example worlds were a critical component of how we synthesized the $\mkwd{if}$ function in \autoref{subsec:integrating-search-and-specification}.
 Recall that each example world contained not only an example value that the synthesized program needed to evaluate to, but also a collection of values that each free variable of the program takes on in that example world.
 To codify this, we define an example world as a pair $σ ↦ χ$ of a \emph{goal example value} $χ$ and an \emph{environment} $σ$ that maps variables to values.
 A collection of these example worlds is denoted with $Χ$, and when it is unambiguous to do so, we refer to these collections of example worlds as our ``examples''.
@@ -343,7 +343,7 @@ This, coupled with \rulename{t-env-cons}, gives us the following consistency pri
 \end{proofenv}
 Because our synthesis strategy requires evaluation, \autoref{lem:consistency-of-example-worlds} is necessary to ensure that every free variable has a (well-typed) value.
 
-\subsection{Synthesis}
+\subsection{Synthesis in \texorpdfstring{\lsyn{}}{λsyn}}
 \label{subsec:synthesis}
 
 \input{figures/lsyn-synthesis.tex}
@@ -379,7 +379,7 @@ The value bound to that variable is the left-hand side of each input/output exam
 We then use these new example worlds to synthesize the body of the lambda.
 
 In general, $Χ$ may contain $n$ example worlds $σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n$.
-When there are multiple example worlds, we simply $\mfun{apply}$ each of the example worlds to generate a collection $Χ_1, …, Χ_n$ of example worlds and then concatenate them all together to create the final collection of example worlds $Χ'$ to be used to synthesize the body of the lambda.
+When there are multiple example worlds, we simply $\mfun{apply}$ each of the example worlds to generate a collection $Χ_1, …, Χ_n$ of example worlds and then concatenates them all together to create the final collection of example worlds $Χ'$ to be used to synthesize the body of the lambda.
 This occurs if the user specifies multiple partial functions rather than a single partial function.
 
 Surprisingly, there is a subtle semantic distinction between a collection of a partial functions and a single partial function.

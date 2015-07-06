@@ -18,7 +18,7 @@ def main(args):
         env = Environment(loader = FileSystemLoader('.'))
         template = env.get_template(args[1])
         lines = convert_to_table_lines(args[2])
-        print(template.render(data = '\n\hline\n'.join(lines), count = len(lines)))
+        print(template.render(data = '\n'.join(lines), count = len(lines)))
 
 if __name__ == '__main__':
     main(sys.argv)

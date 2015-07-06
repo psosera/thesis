@@ -3,7 +3,7 @@
   \begin{center}
   \tabcolsep 5.8pt
   \footnotesize
-  \begin{tabular}{|c|c|c|c|c|}
+  \begin{tabular}{ccccc}
   \hline
   \textbf{Test} & \textbf{ \#/Examples } & \textbf{ Prog. size } & \textbf{Time (s)} \\
   \hline
@@ -16,5 +16,5 @@
   \end{tabular}
   \end{center}
   \caption{\myth{} benchmark suite performance results}
-  \label{fig:myth-raw-benchmarks}
+  \label{tbl:myth-raw-benchmarks}
 \end{figure}
