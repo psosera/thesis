@@ -313,7 +313,7 @@ All benchmarks were run five times in succession, and we report the average runt
 
 \input{figures/myth-raw-benchmarks}
 
-\autoref{fig:myth-raw-benchmarks} presents the complete performance data of running \myth{} over our benchmark suite.
+\autoref{tbl:myth-raw-benchmarks} presents the complete performance data of running \myth{} over our benchmark suite.
 The benchmark suite contains 42 test programs.
 On average, we provided \myth{} with 7 examples and it produced a program of size 13 in 0.092 seconds.
 Since every program that we synthesize is a function, we count an example as a single collection of input/output examples that determines one execution of the function in question.
@@ -345,7 +345,7 @@ In either case, \myth{} discriminates between examples by adding complexity to t
 
 Our hope is that our type-directed synthesis style requires a minimal amount of examples to create complex programs.
 To assess this, in \autoref{fig:myth-benchmarks-graphs-counts} we graph the 42 benchmark programs against the number of examples used, the size of the resulting program, and the ratio of the synthesized program to the number of examples used.
-These graphs better allow us to see trends in the data that we presented in table form in \autoref{fig:myth-raw-benchmarks}.
+These graphs better allow us to see trends in the data that we presented in table form in \autoref{tbl:myth-raw-benchmarks}.
 In particular, we see from the first graph that the average size of our synthesized programs scales with the complexity of the data types that we are operating over: $\mBool = 6.4$, $\mnat = 10$, $\mlist = 12.8$, and $\mtree = 19.75$ AST nodes.
 However, aside from the non-recursive boolean programs whose examples completely determine their functionality (at an average of 3.6 examples per program), the second graph shows that we require roughly the same number of examples---6--7 such examples---to synthesize recursive functions over $\mnat$s, $\mlist$s, and $\mtree$s ($\mnat = 6.25$, $\mlist = 7$, and $\mtree = 7.29$).
 
@@ -406,7 +406,7 @@ Whenever, a benchmark program is one of the functions found in the context, we r
 \input{figures/myth-raw-context}
 \input{figures/myth-context-graphs}
 
-\autoref{fig:myth-raw-context} compares the performance numbers between synthesizing the benchmark suite in a minimal context versus the extended context.
+\autoref{tbl:myth-raw-context} compares the performance numbers between synthesizing the benchmark suite in a minimal context versus the extended context.
 It also reports the percentage difference between synthesizing in the minimal versus extended contexts.
 \autoref{fig:myth-context-graphs} provides plots of synthesis times in the extended context along with the percentage differences in execution time between minimal and extended contexts.
 From the data, it is clear that the context has a very significant effect on the execution time of \myth{}.

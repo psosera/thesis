@@ -1,4 +1,4 @@
-\begin{figure}
+\begin{table}
   \begin{center}
   \tabcolsep 5.8pt
   \footnotesize
@@ -19,4 +19,4 @@
     Reports the time taken in seconds to synthesis each benchmark program in a minimal context (``No Ctx''), in the extended context given by \autoref{fig:myth-extended-context} (``w/ Ctx''), and the percentage difference between the two (``\% Difference'').
   }
   \label{tbl:myth-raw-context}
-\end{figure}
+\end{table}
