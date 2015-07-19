@@ -44,7 +44,7 @@ Then we need richer scrutinees to synthesize programs that use association lists
   \end{array}
 \]
 However, we want to avoid opening the door to complex scrutinees too quickly.
-This is because the number of possible scrutinees (and consequently, the number of possible matches) grows exponentially with the scrutinee size and very often, we only need to pattern match over a single variable.
+This is because the number of possible scrutinees (and consequently, the number of possible matches) grows exponentially with the scrutinee size and in the common case (based on personal experience and analysis of our benchmark suite), we only need to pattern match over a single variable.
 Our informativeness restriction rules out some of these scrutinees, but in practice, many scrutinees make it through the restriction, requiring us to add these branches to our refinement tree.
 These additional branches become more points where we have to $E$-guess, making synthesis more costly.
 Furthermore, on top of these scrutinees, as we increase the scrutinee size $s$, we also increase the liklihood of generating scrutinees that are equivalent to previously generated scrutinees.
@@ -265,12 +265,13 @@ In a minority of cases (some of which we explore in \autoref{sec:extended-exampl
 This work flow, as is, has some clear downsides in the context of an end-user tool.
 In particular, validation is problematic because in a real-world scenario, the user may not know what program they want in the end.
 After all, they are using program synthesis to try to discover this program!
-However, this work flow is adequate for discovering how our typed-directed synthesis algorithm works and its behavior on real world examples.
+However, this work flow is adequate for discovering how our type-directed synthesis algorithm works and its behavior on real world examples.
 
 \section{Benchmark Suite}
 \label{sec:benchmark-suite}
 
 To assess the effectiveness of \myth{}, we created a synthesis benchmark suite consisting of 43 sample \myth{} programs developed using the methodology discussed in \autoref{sec:example-development}.
+These benchmarks were developed in tandem with \myth{} to test the implementation as well as well as its expressiveness as we added features and optimized its synthesis engine.
 These programs provide specifications of simple functions over fundamental functional data types---booleans, natural numbers, lists, and trees---exercising all of the core functional programming features that \myth{} provides: inductive algebraic data types, higher-order functions, and recursion.
 \begin{description}
   \item[Booleans:]
@@ -332,6 +333,7 @@ as six examples, corresponding to the following executions of $\mkwd{append}$:
   \mkwd{append}\;[1, 0]\;[] &= [1, 0] \\
   \mkwd{append}\;[1, 0]\;[0] &= [0, 0, 0] \\
 \end{align*}
+The number of examples given to \myth{} for these benchmarks were the \emph{minimal amount}, \ie, removing any examples from that set would result in \myth{} synthesizing an incorrect program.
 
 \paragraph{Examples and Program Complexity}
 
@@ -349,7 +351,7 @@ These graphs better allow us to see trends in the data that we presented in tabl
 In particular, we see from the first graph that the average size of our synthesized programs scales with the complexity of the data types that we are operating over: $\mBool = 6.4$, $\mnat = 10$, $\mlist = 12.8$, and $\mtree = 19.75$ AST nodes.
 However, aside from the non-recursive boolean programs whose examples completely determine their functionality (at an average of 3.6 examples per program), the second graph shows that we require roughly the same number of examples---6--7 such examples---to synthesize recursive functions over $\mnat$s, $\mlist$s, and $\mtree$s ($\mnat = 6.25$, $\mlist = 7$, and $\mtree = 7.29$).
 
-Consequently, this means that it appears as our programs operate over more complex data types, we require comparatively less examples to produce more complex programs.
+Consequently, this means that it appears as our programs operate over more complex data types, we require comparatively fewer examples to produce more complex programs.
 To see this, in the third graph we compare the ratio of synthesized program size to the number of examples used to synthesize that program.
 While the ratios are fairly close between the $\mbool$, $\mnat$, and $\mlist$ programs ($\mbool = 1.78$, $\mnat = 1.6$, and $\mtree = 1.83$), the more complex $\mtree$ programs benefit more with each example that we provide ($\mtree = 2.71$).
 The programs with the best ratios are \texttt{list\_stutter} (11 AST nodes, 3 examples, 3.67 size/example ratio) and \texttt{tree\_inorder} (15 AST nodes, 5 examples, 3.0 size/example ratio).
@@ -507,8 +509,9 @@ For example, consider the data type encoding type dynamic:
 $\mdyn$ provides dynamic typing functionality over $\mnat$s ($\mBase$) and functions ($\mDyn$).
 This data type breaks the positivity restriction because of the signature of $\mDyn$, so we would not allow it in \mlsyn{}.
 
-However, as we showed in \autoref{subsec:static-and-dynamic-semantics-of-mlsyn}, the simplest infinite loop you can produce using this loophole requires the use of an external function (call it $f : \mdyn → \mdyn$) and its subsequent double application $f\,(D\,f)$.
-Because \mlsyn{} does not have $\mlet$-bindings, we must synthesize a much larger function to produce this infinite loop, if it is even possible to produce in \mlsyn{} sans positivity restriction at all!
+However, as we showed in \autoref{subsec:static-and-dynamic-semantics-of-mlsyn}, the simplest infinite loop you can produce using this loophole requires the use of an external function (call it $f : \mdyn → \mdyn$) and its subsequent double application $f\,(\mDyn\,f)$.
+Because \mlsyn{} does not have $\mlet$-bindings, we must synthesize a much larger program to produce this infinite loop.
+Furthermore, it is not clear if this is even possible to produce in \mlsyn{} without the positivity restriction because we can only synthesize function applications in normal form.
 It is very likely that we will not encounter this program during normal execution of \myth{} because if such a program with an infinite loop exists, it is likely too complicated for \myth{} synthesize in practice.
 
 In light of this revelation, we left out the positivity restriction from \myth{} and attempted to synthesize a pair of recursive functions over $\mdyn$, \texttt{dyn\_app\_twice} which applies a $\mDyn$ function twice and \texttt{dyn\_sum} which performs the addition operation through $\mdyn$s.
@@ -595,14 +598,16 @@ let fvs_large : exp -> list =
   \end{cminted}
 \end{center}
 
+Note that the number of examples is necessary with our synthesis scheme because we must specify several examples per constructor to produce meaningful expressions in each branch.
+
 While this program is larger than any that we have synthesized so far, it is not the slowest by far.
 This is because even though the match is tall, we discover it via $I$-refinement and synthesize the relatively thin branches (maximum size 9) through $E$-guessing very quickly.
-Note that we are unable to synthesize the additional branch with a $\mkwd{Match}$ constructor with our na\"{i}ve parameter search strategy because we would need the $E$-guess the function application $\mkwd{append}\,(f1 e1)\,(\mkwd{append}\,(f1 e2)\,(f1 e3))$ of size 15, and \myth{} times out before it can do so.
+Note that we are unable to synthesize an extension of the $\mkwd{exp}$ data type above with a $\mkwd{Match}$ constructor and our na\"{i}ve parameter search strategy because we would need the $E$-guess the function application $\mkwd{append}\,(f_1\,e_1)\,(\mkwd{append}\,(f_1\,e_2)\,(f_1\,e_3))$ of size 15, and \myth{} times out before it can do so.
 With a better tuned search strategy, synthesizing these larger branches is certainly possible for \myth{}
 
 \paragraph{Inside-out Recursion}
 
-A hallmark of a good program synthesis tool is that can produce surprising results.
+A hallmark of a good program synthesis tool is that it can produce surprising results.
 To illustrate this, we close by examining a more complicated example from our benchmarks, \texttt{list\_pairwise\_swap}, which swaps consecutive pairs of elements in a list.
 When the list has odd length, we choose to return the empty list.
 When we provide \myth{} with the following set of examples,

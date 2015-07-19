@@ -82,8 +82,7 @@ As a concrete example, we generate the well-typed closed term $(λx{:}T → T.\,
   {· ⊢ T → T ⇝ (λx{:}T → T.\,x)\,(λx{:}T.\,c_1)}
 \]
 Note that the derivation for term enumeration is identical to the derivation for type checking!
-This is because the rules for well-typed term enumeration mirror the rules for type checking.
-\footnote{%
+This is because the rules for well-typed term enumeration mirror the rules for type checking.\footnote{%
   In fact, because the type-checking and and term-enumeration judgments describe \emph{relations} which do not have inputs or outputs, they are equivalent!
   But then, why did we bother including a term-enumeration judgment at all?
   We use this term-enumeration judgment as a starting point to arrive at a synthesis judgment that will do more than relate terms and types; it will relate examples as well.
@@ -101,7 +100,6 @@ This observation leads to two natural properties of our term enumeration judgmen
   \end{theorem}
   \begin{proof}
     Both theorems follow from straightforward inductions on the given term-enumeration or type-checking derivations, respectively.
-    However, both theorems also follow the fact that the type-checking and term-enumeration judgments are actually equivalent!
   \end{proof}
 \end{proofenv}
 
@@ -169,7 +167,7 @@ Here, we will consider specifying programs with a combination of \emph{types} an
 \label{subsec:examples-as-specification}
 
 There are trade-offs involved in choosing examples as our means of specification over other options.
-Examples typically act as incomplete specifications as a finite set of input/output pairs can only specify a finite subset of a function's behavior.
+Examples typically act as incomplete specifications---for example, a finite set of input/output example pairs can only specify a finite subset of a function's behavior.
 This is a significant limitation because many non-equivalent programs satisfy a set of examples, and the synthesizer must choose among them by inferring the intent of the user.
 For example, if the synthesizer is provided with the single input/output example
 \[
@@ -184,12 +182,14 @@ or the program that always returns $c_1$,
   λx{:}T.\,λy{:}T.\,c_1.
 \]
 or some more elaborate function.
-To solve this problem, the user must specify more examples which is burdensome, or the synthesizer must resort to heuristics to choose a final program, \eg, choosing the smallest program with the least amount of variables.
+To solve this problem, the user must specify more examples which is burdensome, or the synthesizer must resort to heuristics to choose a final program, \eg, choosing the smallest program with the fewest number of variables.
 Thankfully, heuristics like this tend to work well in practice.
 Furthermore, this ambiguity can be mitigated by smart interface design decisions, \eg, displaying the top five synthesis results rather than a singular result and allowing the user to choose.
 
-On the other hand, examples are typically more natural to write down than complete logical statements.
-In some cases these logical statements are as complex---or even more complex---then the programs we intend to synthesize!
+In exchange for being incomplete, examples can be less burdensome on the user to specify.
+Because examples are typically concrete instances of a function's behavior, they allow the user to reason more about \emph{what} their function ought to do rather than \emph{how} the function ought to go about doing it.
+This is favorable because the ``how'' is usually the sticking point for a user to create a program on their own, whether it is because they do not understand the syntax of programming language they must use or the algorithms necessary to produce the desired behavior.
+
 For example, consider the set of input/output examples specifying a function in a language extended with natural numbers and lists:
 \begin{align*}
   []  &⇒ [] \\
@@ -198,7 +198,6 @@ For example, consider the set of input/output examples specifying a function in 
   [0, 1, 2] &⇒ [2, 1, 0]
 \end{align*}
 From this limited set of examples, the user's intent seems obvious: they want to synthesize a function that sorts a list of natural numbers.
-
 In contrast, consider a logical specification of how this function ought to behave:
 \begin{gather*}
   \mkwd{sorted}(l) = ∀ x :: l' ⊑ l.\; ∀ y ∈ l.\; x < y
@@ -232,6 +231,7 @@ Because of this, we restrict the right-hand side of a $⇒$ to be an example val
 This ensures that lambdas never appear as the \emph{goal} of a synthesis problem.
 In contrast, the left-hand side of a $⇒$ is a regular value which includes lambdas (and not partial functions).
 This means that when we give examples for higher-order functions, we provide function values for the arguments of those functions.
+We disallow partial functions as examples for higher-order arguments as doing so has surprising effects on the metatheory of the system; we explore this in more detail in~\autoref{ch:metatheory-of-mlsyn} where we lift this restriction to handle more advanced language features.
 For shorthand, we write the above partial function as $\many{v_i ⇒ χ_i}{i < m}$ where the partial function contains $m$ input/output pairs.
 
 As a concrete example within \stlc{}, consider the following synonyms for the church encodings of booleans over base type $T$:
@@ -361,7 +361,7 @@ Given a context $Γ$, goal type $τ$, and examples $Χ$ where $Γ ⊢ X : τ$, s
 The two mutually recursive judgments combine to form a non-deterministic synthesis system where a complete \rulename{irefine} derivation corresponds to a solution of this synthesis problem.
 
 \paragraph{Refinement}
-In \autoref{subsec:introducing-lsyn}, we observed that distinguishing between introductory forms $I$ and elimination forms $E$ helps identify when types function as input or output during typechecking.
+In \autoref{subsec:introducing-lsyn}, we observed that distinguishing between introductory forms $I$ and elimination forms $E$ helped us to identify when a type should be treated as an input or output during typechecking.
 This insight also applies to how we treat examples in tandem with term generation.
 With introduction forms, the shape of the term and its corresponding type dictate how we refine example values.
 For example, at base type, our example values consist of constants.
@@ -382,7 +382,7 @@ In general, $Χ$ may contain $n$ example worlds $σ_1 ↦ \mpf_1, …, σ_n ↦ 
 When there are multiple example worlds, we simply $\mfun{apply}$ each of the example worlds to generate a collection $Χ_1, …, Χ_n$ of example worlds and then concatenates them all together to create the final collection of example worlds $Χ'$ to be used to synthesize the body of the lambda.
 This occurs if the user specifies multiple partial functions rather than a single partial function.
 
-Surprisingly, there is a subtle semantic distinction between a collection of a partial functions and a single partial function.
+Surprisingly, there is a subtle semantic distinction between a collection of partial functions and a single partial function.
 To see this, consider synthesizing at goal type $T → T$ with the examples:
 \begin{align*}
   \mpf_1 &= σ_1 ↦ c_1 ⇒ c_2 \bnfalt c_3 ⇒ c_4 \\
@@ -403,6 +403,8 @@ then applying \rulename{irefine-arr} results in the following examples,
       \;& [x/c_5]σ ↦ c_6, [x/c_7]σ ↦ c_8, [x/c_9]σ ↦ c_{10}.
 \end{align*}
 The only difference between the two cases is the original environments, $σ_1$ and $σ_2$ versus $σ$, that we extend when deriving $Χ'$.
+The initial environments shared among all the example worlds ought to be identical (as the values for the free variables of the program must be the same), so in our simply-typed setting, there is no practical difference between a collection of partial functions and a single partial function.
+However, in~\autoref{ch:recursion}, we explore changes to \rulename{irefine-arr} that make this no fact longer true.
 
 \paragraph{Guessing}
 In contrast, with $E$-terms, we are unable to refine the examples in this manner.

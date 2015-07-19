@@ -139,9 +139,14 @@ Then by focusing on $x$, we obtain the following expressions of base type:
 We extend our context $Γ$ to not contain just free variables, but arbitrary $E$-terms.
 After focusing, we add these expressions to our context, making them available for use later in the synthesis derivation.
 
-Essentially, focusing allows us to rip out all of the components of a product, avoiding the cost of speculatively exploring derivations involving individual projections.
+Essentially, focusing allows us to rip out all of the components of a product for use immediately in our program.
 This has the cost of increasing the size of our context which in turn affects the cost of raw $E$-term generation.
-But we are able to greatly reduce the space of derivations involving pairs which results in a net win for performance.
+But with focusing, we are able to consider programs involving projections much earlier in the synthesis process as well as avoid additional derivations involving projections.
+For example, suppose we are generating $E$-terms of type $\mnat$ and have a variable $x$ of type $\mnat × \mnat$ in the context.
+Focusing brings $\mfst\,x$ and $\msnd\,x$ into the context for us to use.
+If we are exploring these derivations in terms of increasing size (as suggested in~\autoref{sec:generating-lambda-terms}), then we can immediately use the projections of $x$ rather than having to explore derivations of greater size to generate expressions involving $\mfst$ and $\msnd$.
+If we need to use these projections in the final program, than this is a net win.
+However, if we do not need these projections, then we will needlessly generate $E$-terms involving them earlier in the synthesis process than we would without focusing.
 
 \section{Records}
 
@@ -214,8 +219,10 @@ In our non-deterministic system, both rules are perfectly admissible.
 Intuitively, they state that rather than synthesizing at a particular goal type, we can synthesize at any subtype of that goal type which only increases the size of our search space.
 This justifies having a subsumption rule for both $E$ and $I$ terms; would like to apply this logic to any goal type that admits subtyping.
 
-Algorithmically this poses a difficulty in that we now need to efficiently and completely search the dimension of subtypes in addition to the dimension of terms.
-However, one can imagine using an iterative deepening approach on the number subtype derivations similar to how we can enumerate terms in order of increasing size.
+Algorithmically this poses a great difficulty in that we now need to efficiently and completely search the dimension of subtypes in addition to the dimension of terms.
+For example, when $E$-guessing we may be able to satisfying a goal of record type by synthesizing a record that is a width subtype of the goal, \ie, it has additional fields.
+To get to this point, however, we must grow our goal type so that we eventually search for terms of this (larger) subtype.
+One can imagine using an iterative deepening approach on the number subtype derivations similar to how we can enumerate terms in order of increasing size, but depending on the types involved, the number of subtypes may grow very quickly with the size of the subtyping derivation.
 Further implementation techniques might exploit the behavior of particular subtyping rules that we introduce into the system or heuristics to either prioritize likely subtypes or prune away unlikely or undesirable subtypes, sacrificing some completeness for tractability.
 
 \section{Sums}
@@ -481,10 +488,13 @@ In \autoref{ch:implementation}, we go through significant lengths to minimize th
 
 \section{Let Binding}
 \label{sec:let-binding}
-So far we have added basic types to \lsyn{} with good results.
+So far we have added basic types and language features to \lsyn{} with good results.
+These features have admitted natural forms of examples and refinement rules and have not disrupted soundness or completeness of \lsyn{}.
 However, the fact that a feature is simple does not necessarily mean that we can synthesize it easily.
-Let bindings provide an excellent example of this phenomenon.
+Let bindings are an excellent example of this fact.
 
+Let bindings allow us to bind a value to a name, a function or some other type.
+They are useful for implementing helper functions that cannot be inlined into the main function's definition, \eg because it is recursive, or simply shrinking the size of the program by avoiding code duplication.
 At first glance, we might introduce let bindings with the standard syntactic sugar:
 \[
  \mkwd{let}\;x = e_1\;\mkwd{in}\;e_2 ≝ (λx{:}τ.\,e_2)\;e_1.

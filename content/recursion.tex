@@ -91,11 +91,11 @@ We could alter our evaluation strategy to include a timeout or limit on number o
 
 \input{figures/mlsyn-defn}
 
-Because we can easily enumerate infinite loops that ruin our generate-and-test $E$-guess strategy, we need some way of restricting recursion so that we do not have this problem.
-Rather than trying to solve this problem within \lsyn{} where we do not have many hooks for limiting recursive definitions, we graduate to \mlsyn{}, a core ML-like calculus for program synthesis and adopt standard techniques to remove non-termination from the system.
+Because we can easily enumerate infinite loops that ruin our generate-and-test $E$-guess strategy, we need some way of restricting recursion so that we can regain strong normalization.
+Rather than trying to solve this problem within \lsyn{} where we do not have many hooks for limiting recursive definitions, we graduate to \mlsyn{}, a core ML-like calculus for program synthesis and adopt standard techniques to obtain strong normalization in the system.
 \autoref{fig:mlsyn-defn} defines the syntax of \mlsyn{} which is divided into an external language of expressions $e$ and an internal language of introduction terms $I$ and elimination terms $E$ that constitute the $β$-normal forms of $e$.
 
-\mlsyn{} more closely approximates a real-world functional programming language like OCaml, F\#, or Haskell~\citep{ocaml-2014, fsharp-2013, haskell-2003}.
+\mlsyn{} more closely approximates a real-world functional programming language like OCaml, Haskell, or F\#~\citep{ocaml-2014, fsharp-2013, haskell-2003}.
 On top of the lambdas and application introduced in \lsyn{}, \mlsyn{} introduces two major features:
 \begin{enumerate}
   \item Algebraic data types and
@@ -210,7 +210,7 @@ However, if $v_j$ are not among the $\many{v_i}{i < m}$ of the pattern match, ev
 The $\mNoMatch$ value type checks at any type $T$ (\rulename{t-nomatch}), and it only exists in the external language as it arises as the result of evaluating a partial function.
 Note that we've already restricted our $\mmatch$ expressions to be complete (via the $\mfun{complete}$ judgment), so $\mNoMatch$ values can only arise due to pattern match failures when evaluating partial functions.
 
-To determine which value to produce, we utilize the compatibility judgment ($≃$) that we use during synthesis to verify that an $E$-guessed term satisfies our examples.
+To determine which value to produce, we use the compatibility judgment ($≃$) that we used before to verify that an $E$-guessed term satisfies our examples.
 In \lsyn{} the compatibility judgment compared an example value $χ$ and a value $v$.
 However, when evaluating partial functions, we will compare two values---the argument and the input of each alternative---so we must expand compatibility to compare two values.
 Now that the syntactic classes are the same on both sides, we use symmetry (\rulename{eq-sym}) to account for the new case when we compare a partial function on the left to a function on the right, \ie, the flipped version of \rulename{eq-fix-pf}.
@@ -219,7 +219,7 @@ We can now also compare two partial functions for compatibility.
 Finally, because we are comparing two values, we may end up comparing two functions for compatibility.
 In \lsyn{} such a comparison is possible because functions are non-recursive so we can resort to a strategy based off of $βη$-equivalence.
 However, in \mlsyn{} this is not the case as our functions are recursive by default; in general, determining compatibility in this case is undecidable (a point we discuss in \autoref{ch:metatheory-of-mlsyn}).
-To remedy this, we add a reflexivity rule (\rulename{eq-refl}) that equates two syntactically identical terms (as long as they are not the exception value $\mNoMatch$).
+To remedy this, we add a reflexivity rule (\rulename{eq-refl}) that equates two syntactically identical terms.
 This is only an approximation, as we only consider a function equivalent to itself, but this works well in \mlsyn{} because comparing syntactically distinct, yet equivalent functions only occurs at higher type and is, therefore, uncommon in practice.
 
 \subsection{Synthesis in \texorpdfstring{\mlsyn{}}{MLsyn}}
@@ -371,13 +371,13 @@ More specifically, in either case, we will synthesize the following program skel
 \]
 Using the second set of examples, we will have four example worlds when synthesizing the body of the inner function.
 In the first two, $g$ will be bound to the partial function $\mtrue ⇒ \mtrue \bnfalt \mfalse ⇒ \mfalse$, and in the second two, $g$ will be bound to the partial function $\mtrue ⇒ \mfalse \bnfalt \mfalse ⇒ \mfalse$.
-Iif we use the second set of examples, we will have also four example worlds.
+If we use the second set of examples, we will have also four example worlds.
 However, in one of them, $g$ will be bound to the partial function $\mtrue ⇒ \mtrue$, another $\mtrue ⇒ \mfalse$, and in the last two $\mfalse ⇒ \mfalse$.
 In this particular case, we do not need to synthesize a recursive call, so the value assigned to $g$ does not matter.
 But if it did, then evaluation of $g$ using the second set of examples will likely fail because none of the example worlds received a complete definition of $g$.
 Because of this, we always specify multi-argument function examples in a nested style \emph{a la} the second set of examples.
 
-\subsection{Example: The \texorpdfstring{$\mkwd{and}$}{and} Function}
+\subsection{Example: The \texorpdfstring{$\mkwd{And}$}{And} Function}
 
 With that digression out of the way, let's continue synthesizing the $\mkwd{and}$ function using the examples
 \begin{align*}
@@ -409,6 +409,7 @@ In the first branch, the $\mtrue$ branch, we have to apply \rulename{irefine-mat
 From there, we can use \rulename{irefine-base} to synthesize $\mtrue$ and $\mfalse$.
 In the second branch, the $\mfalse$ branch, both example world's goal values are $\mfalse$, so we can synthesize $\mfalse$ directly using \rulename{irefine-base}.
 
+\subsection{Example: The \texorpdfstring{$\mkwd{Stutter}$}{Stutter} Function}
 Next, let's consider synthesizing a recursive function over some inductive data types.
 Suppose that we have the following signature corresponding to natural numbers $\mnat$ and lists over natural numbers $\mlist$,
 \begin{align*}

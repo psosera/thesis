@@ -45,8 +45,8 @@ Here are some richer types to consider as next steps and the potential challenge
       {Γ ⊢ (e1, e2) : τ_1 × τ_2}
     \]
     we must non-deterministically partition our resources to satisfy each of the component expression of the pair.
-    While a type checking algorithm can mitigate this by type checking $e_1$ first, noting what resources are used, and then type check $e_2$ with the remaining resources, in a synthesis system we do not know $e_1$ or $e_2$ up front, so a na\i've strategy must consider all possible partitions of the contexts to generate the pair components.
-    Smarter search strategy are required to avoid this potential combinatorial explosion of possible synthesis sub-problems.
+    While a type checking algorithm can mitigate this by type checking $e_1$ first, noting what resources are used, and then type check $e_2$ with the remaining resources, in a synthesis system we do not know $e_1$ or $e_2$ up front, so a na\'{i}ve strategy must consider all possible partitions of the contexts to generate the pair components.
+    Smarter search strategy and memoization techniques are required to avoid this potential combinatorial explosion of possible synthesis sub-problems.
   \item[Generalized Algebraic Data Types:]
     Generalized Algebraic Data Types (GADTs)~\citep{xi-popl-2003} allow for the type parameters of the return type of a constructor to vary rather than being fixed to a (polymorphic) type.
     The quintessential example of GADT usage is the tagless interpreter.
@@ -129,7 +129,7 @@ In the third case, we need to \emph{propagate} this expression upwards to a poin
 In the example above, this point is at the top of the match expression once we have potential candidate expressions from the other branches.
 
 Suppose that our synthesis procedure determines that branches $p_1$, $p_2$, and $p_3$ have candidate expressions $\mathcal{E}_1$, $\mathcal{E}_2$, and $\mathcal{E}_3$ that could complete their respective branches.
-Then it is sufficient to test all combinations of potentially satisfying expressions in each branch to see if any of the combinations results in an overall satisfying program.
+Then it is sufficient to test all combinations of potentially satisfying expressions in each branch to see if any of the combinations result in an overall satisfying program.
 With this approach to synthesizing recursive programs, we have to coordinate synthesis among the branches of a match rather than synthesizing them completely independently.
 In return, we are able to use the function currently being synthesized as part of the specification, reducing the number of examples we need to provide to the synthesizer.
 We call this this approach to synthesizing recursive functions \emph{recursive back-patching} because we are deferring evaluation of a recursive function until we have patched in all the points where it must make recursive calls.

@@ -64,7 +64,7 @@ Like the $E$-guessing rule for $μ$-types (\autoref{sec:mu-types}), \rulename{eg
 With recursive types, we circumvented this problem by rolling recursive types into algebraic data types and functions.
 And with other simple type extensions, we appealed to focusing (\autoref{subsec:tuple-efficiency}) to avoid guessing.
 However, in those cases, there were a finite number of eliminations we could perform, \ie, a finite number of tuple or record components.
-With polymorphism, there are an infinite number of type applications we could perform because a polymoprhic value can be instantiated to any type!
+With polymorphism, there are an infinite number of type applications we could perform because a polymorphic value can be instantiated to any type!
 
 We can mitigate this problem by performing a breadth-first search of the polymorphic instantiations in order of increasing size of type.
 That is, when $E$-guessing, we can initially focus on the possible complete instantiations of all polymorphic variables in the context of base type (size one).
@@ -77,7 +77,7 @@ For example, with $\mnat$ and $\mbool$ in the context, we would explore the foll
 \end{gather*}
 In successive $E$-guessing phases, we would expand our search to types of increasing size, \eg, arrows at base types, arrows of arrows, and so forth.
 In the presence of many base types and polymorphic types with multiple arguments, the number of instantiations grows quickly as we must consider all the possible ways of combining these base types to fully instantiate each polymorphic type.
-This blows up the size of our context, but  in practice, we will only need to explore instantiations at depth one or two (corresponding to base types and instantiated polymorphic types] as it is rare to instantiate a polymoprhic function at arrow type.
+This blows up the size of our context, but in practice, we will likely only need to explore instantiations at depth one or two (corresponding to base types and instantiated polymorphic types).
 
 \section{Examples for Polymorphic Values}
 \label{sec:examples-for-polymorphic-values}
@@ -246,7 +246,7 @@ This suggests an alternative example value for polymorphic types---the \emph{pol
   χ \bnfdef … \bnfalt [τ]\,χ.
 \]
 Rather than requiring the user to specify polymorphic binders, we allow them to use concrete values along with a concrete type instantiation instead.
-When using these concrete values, we need to remember in each example world what these type instantiations are so that we can 
+When using these concrete values, we need to remember in each example world what these type instantiations are so that we can move between type variables and concrete types as necessary.
 We might do this by recording \emph{type equalities} for each example world.
 For example, when refining the single example world $[\mnat] 0 ⇒ 0$ for a goal type $∀α.\,α → α$, we will eventually end up with the refined world
 \[

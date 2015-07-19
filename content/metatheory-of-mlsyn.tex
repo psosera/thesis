@@ -244,7 +244,7 @@ and synthesize in a context
 \[
   Γ = \mkwd{plus} : \mnat → \mnat → \mnat, \mkwd{id} : \mnat → \mnat.
 \]
-In our starting environment, $\mkwd{plus}$ is bound to the usual definition of addition over natural numbers and $\mkwd{id}$ is bound to the value $λx{:}\mnat.\,plus\,x\,\mO$.
+In our starting environment, $\mkwd{plus}$ is bound to the usual definition of addition over natural numbers and $\mkwd{id}$ is bound to the value $λx{:}\mnat.\,\mkwd{plus}\,x\,\mO$.
 Then, we are unable to synthesize the candidate function:
 \[
   λf{:}(\mnat → \mnat) → \mnat.\,f\,\mkwd{id}.

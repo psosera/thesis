@@ -7,7 +7,7 @@ We present the full details of the proofs here to provide a template for reasoni
 
 \section{Soundness}
 
-Soundness states that the programs we synthesis are ``correct''.
+Soundness states that the programs we synthesize are ``correct''.
 In type-directed program synthesis, correctness has two components:
 \begin{itemize}
   \item The synthesized program is well-typed at the goal type, \emph{type soundness}, and
@@ -134,7 +134,7 @@ With these two facts, we can now prove example soundness.
 
 Before we prove completeness we need several auxiliary theorems and lemmas.
 The first theorem is strong normalization which states that every term evaluates to a value.
-The satisfaction judgment (\rulename{satisfies}) relies on evaluation to values, and so whenever we need to show that a program satisfies a set of examples, we implicitly rely on strong normalization to guarantee that evaluation produces a value.
+The satisfaction judgment (\rulename{satisfies}) relies on evaluation to values, so whenever we need to show that a program satisfies a set of examples, we implicitly rely on strong normalization to guarantee that evaluation produces a value.
 \begin{proofenv}
   \begin{lemma}[Strong Normalization of \lsyn{}]
   \label{lem:strong-normalization-of-lsyn}
@@ -265,7 +265,7 @@ This statement makes the stronger claim that any example set satisfied by a prog
   \end{proof}
 \end{proofenv}
 
-In the above proofs, the bulk of the work resided in showing that our example refinement rules respected both types and example satisfaction.
+In the above proofs, the bulk of the work resided in showing that our example refinement rules respected both type and example satisfaction.
 In summary, we need the following critical lemmas to prove soundness and completeness of synthesis in the presence of new language features:
 \begin{itemize}
   \item \emph{Type preservation} lemmas stating that refined examples produced by the \rulename{irefine} rules are well-typed.

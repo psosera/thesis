@@ -137,9 +137,9 @@ Therefore, the above procedure produces the smallest program possible that satis
 However, is this a desirable property of a program synthesizer?
 The following principle answers this question in the affirmative:
 \begin{definition}[The Minimum Program Principle]
-  In program synthesis, smaller satisfying program (in terms of program size) are more likely to generalize to the desired behavior intended by the user.
+  In program synthesis, smaller satisfying programs (in terms of program size) are more likely to generalize to the desired behavior intended by the user.
 \end{definition}
-The Minimum Program Principle is not a provable theorem, but a search heuristic exploited by many program synthesis tools~\citep{summers-popl-1976, albarghouthi-cav-2013, perelman-pldi-2014, feser-pldi-2015}) to refine the space of programs even further.
+The Minimum Program Principle is not a provable theorem, but a search heuristic inspired by Occam's razor that many program synthesis tools exploit~\citep{summers-popl-1976, albarghouthi-cav-2013, perelman-pldi-2014, feser-pldi-2015}) to refine the space of programs even further.
 
 Intuitively, the Minimum Program Principle observes that a smaller program is less likely to over-specialize on the examples given to the synthesizer.
 To see this, consider the specification we gave for $\mkwd{stutter}$ in \autoref{ch:recursion}:
@@ -302,7 +302,7 @@ This results in slightly more verbose programs but prunes the search space signi
 \label{subsec:reigning-in-matches}
 
 In all program synthesis systems, the conditional proves to be most tricky to generate efficiently.
-This is because conditionals only \emph{add} information to our synthesis problem.
+This is because conditionals only \emph{add} information to our synthesis problem, increasing the space of possible programs.
 In the case of pattern matching, it is clear that this information comes in the form of additional variables into the context.
 However, with plain old $\mkwd{if}$-expressions,
 \[
@@ -322,7 +322,7 @@ Therefore, to remain tractable, we need some additional heuristics to keep the n
 \paragraph{Informativeness}
 In general, we cannot tell upfront if a particular match scrutinee will allow us to create a satisfying program.
 However, we can apply heuristics to prune out scrutinees that are unlikely to help us to make progress.
-These heuristics weaken completeness further; we will be unable to synthesis some programs given example sets that the programs otherwise satisfy.
+Some of these heuristics weaken completeness further; we will be unable to synthesis some programs given example sets that the programs otherwise satisfy.
 However, in return we can make synthesis with match expressions much more efficient.
 
 Recall that when we synthesize a match, we distribute the example worlds to the branches of the match according to how the match scrutinee evaluates in each world.
@@ -449,11 +449,11 @@ However, if we avoid pattern match generation in this situation altogether, we r
 \input{figures/mlsyn-raw-term-collection-semantics}
 
 \autoref{fig:mlsyn-raw-term-collection-semantics} splits up raw-term enumeration into two functions, $\mgen_E$ and $\mgen_I$, which enumerates $E$- and $I$-forms respectively.
-The refinement portion of our collection semantics in \autoref{fig:mlsyn-collection-semantics} are modified to call either generation function when an $E$- or $I$-form must be generated without examples.
+The refinement portions of our collection semantics in \autoref{fig:mlsyn-collection-semantics} are modified to call either generation function when an $E$- or $I$-form must be generated without examples.
 Notably, we never generate match expressions in either raw-term generation function because of our informativeness restrictions.
 This implies that we will never have a match expression appear as an argument to a function or constructor.
 However, this does not change the expressiveness of our synthesis procedure as any pattern match that occurred within the arguments of an application or constructor can be hoisted outside of it instead.
-In our collection semantics, this implies that we must first generate such a match via $\mfmatch$ and than generate the application through $\mgen$ or constructor through $\mrefine$ rather than the other way around.
+In our collection semantics, this implies that we must first generate such a match via $\mfmatch$ and then generate the application through $\mgen$ or constructor through $\mrefine$ rather than the other way around.
 
 \subsection{Refinement Trees}
 \label{subsec:refinement-trees}
@@ -493,7 +493,7 @@ There are two dimensions of match applications to consider:
   \item[Width:] At any given point in the synthesis tree, if we have a way of generating an infinite number of expressions of base type, \eg, lists and the $\mkwd{append}$ function, then we can use those expressions as scrutinees of an infinite number of match expressions.
   \item[Depth:] In any given branch of a synthesis tree, we may be able to generate an infinite chain of nested matches.
 \end{description}
-Our informativeness restriction from \autoref{subsec:reigning-in-matches} ensure that match depth is finite.
+Our informativeness restriction from \autoref{subsec:reigning-in-matches} ensures that match depth is finite.
 In contrast, we must add additional restrictions to ensure that the number of possible scrutinees at any given point in a synthesis tree is finite.
 
 With these considerations, we can formulate a lemma about the finiteness of \rulename{irefine-match} applications in any synthesis tree:
@@ -574,7 +574,7 @@ Given a signature $Σ$, context $Γ$, goal type $τ$, and examples $Χ$:
   \item If we are unable to create such a solution, increment our search parameters and repeat starting at step (2).
 \end{enumerate}
 
-With this algorithm, we may not synthesize smallest program possible as we are no longer exploring the synthesis tree in an breadth-first manner.
+With this algorithm, we may not synthesize smallest program possible as we are no longer exploring the synthesis tree in a breadth-first manner.
 We can think of synthesis with refinement trees as performing some partial depth-first search to explore the set of refinements before proceeding in a breadth first manner with matches and $E$-guessing.
 The precise description of the programs generated by this algorithm is dependent on our choice of how we explore the search parameters on each iteration of the search.
 We discuss our particular choice of search metric exploration in \autoref{ch:evaluating-myth}.
@@ -602,7 +602,7 @@ Then, the resulting refinement tree tree looks like this:
     ]
   \end{forest}
 \end{center}
-We can make no further progress because the examples at the \rulename{irefine-arr} node do not share head constructor, and we are not allowed to introduce matches as the match depth is zero.
+We can make no further progress because the examples at the \rulename{irefine-arr} node do not share the same head constructor, and we are not allowed to introduce matches as the match depth is zero.
 
 While we can $E$-guess terms up to size $5$, the only term we can generate (in the empty context) is $l$ which does not satisfy the body of the $\mfix$.
 We therefore need to iterate by incrementing our search parameters and repeating the process.
@@ -686,7 +686,7 @@ Here, $\mgen_E^{x{:}τ_1}$ and $\mgen_I^{x{:}τ_1}$ are \emph{relevant term gene
 Inspired by relevance logic~\citep{anderson-entailment-1992}, these functions are variants of our standard term-enumeration functions except that they require that all expressions they generate must contain the relevant variable $x$.
 \autoref{fig:mlsyn-relevant-gen-elim} and \autoref{fig:mlsyn-relevant-gen-intro} gives the definition of relevant $E$- and $I$-term generation.
 The functions operate similarly to the $\mgen$ functions we developed in \autoref{fig:mlsyn-raw-term-collection-semantics}.
-The critical difference is that when our relevant $E$-term generation functions bottoms out at size one, rather than generating all terms of goal type $τ$, we only a single term, the relevant variable $x$, when the goal type is the relevant variable's type.
+The critical difference is that when our relevant $E$-term generation functions bottoms out at size one, rather than generating all terms of goal type $τ$, we generate only a single term, the relevant variable $x$, when the goal type is the relevant variable's type.
 
 The relevant term-generation functions ensure that the relevant variable $x$ appears in every term generated by the function.
 When we generate terms that contain multiple sub-expressions in a relevant context, we must be careful to ensure that this property holds.

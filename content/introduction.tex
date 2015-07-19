@@ -22,7 +22,7 @@ Because we are at arrow type, it makes sense to introduce a function, so let's d
 With the function written down, our goal is to now fill in the body of the function which, by the definition of the function, must produce a ${'b}\,\mlist$.
 Note how the rich types greatly constrain the set of programs we can write at this point.
 Because the carrier type of the output list is unknown, we have no way of constructing a non-empty ${'b}\,\mlist$.
-The only other value we can provide is the empty list which means $\mkwd{map}$ incorrectly produces the empty for any pair of inputs.
+The only other value we can provide is the empty list which means $\mkwd{map}$ incorrectly produces the empty list for any pair of inputs.
 We need more information to make progress, and we obtain that information by \emph{pattern matching}:
 \[
   \begin{array}{l}
@@ -50,7 +50,7 @@ Thus, the final program is:
   \end{array}
 \]
 At the end, we needed some ingenuity to recognize how to break down mapping a list in terms of its components.
-However, we can see how even these types guided our development process by constraining the allowable set of programs at different points of thep rogram.
+However, we can see how even these types guided our development process by constraining the allowable set of programs at different points of the rogram.
 The question is simple: can we automate this sort of type-directed reasoning?
 Given a type, and perhaps some additional specification of how a program should behave, can we derive a program of the appropriate type that meets this specification?
 
@@ -63,9 +63,9 @@ Regardless of the mode of specification we choose, the search and specification 
 
 As you can imagine, program synthesis is a very difficult problem---we are still writing programs by hand, after all---and undecidable in the general case.
 However, it is worth pursuing because the benefits of program synthesis technology are immense.
-By synthesizing a program from a specification, we guarantee that the program agrees with that specification by virtue of synthesis process.
+By synthesizing a program from a specification, we guarantee that the program agrees with that specification by virtue of the synthesis process.
 If that specification includes properties such as correctness or safety, then the program will enjoy those properties automatically.
-Furthermore, very often it is easier to write down a specification of how a program than write the program itself, especially if that specification is partial, for example, a collection of input/output examples or a demonstration of how the program should work.
+Furthermore, very often it is easier to write down a specification of how a program should work than write the program itself, especially if that specification is partial, for example, a collection of input/output examples or a demonstration of how the program should work.
 Program synthesis then becomes a tool that makes the power of computer programs more accessible to people, especially non-programmers, who can signify their intent, but do not know how to translate that intent into a program.
 Finally, because computer programs are general-purpose, synthesizing programs means synthesizing methods of solving any task we can express as a program.
 This might mean deriving a complex program to determine the trajectory of a rocket or simply automating the task of entering data into a spreadsheet~\citep{gulwani-popl-2011}.
@@ -87,7 +87,7 @@ Today, the field has seen a large resurgence in interest due to a number of fact
 \begin{enumerate}
   \item General computational power has increased at an exponential rate over the last four decades.~\citep{moore-electronics-1965}
   \item The rise of domain-specific languages, and more targeted programming domains such as protocols~\citep{alur-popl-2005, udupa-pldi-2013}, concurrent programs~\citep{solar-lezama-pldi-2008, cerny-cav-2011, prountzos-oopsla-2012}, education~\citep{singh-pldi-2013}, and strings and spreadsheets~\citep{gulwani-popl-2011} has given synthesis tools smaller, more tractable domains to operate over.
-  \item Related to the first point, the rise of sophisticated solver technology, in particular SAT and SMT solvers~\citep{barrett-smt-2008} have helped make once intractable problems of search in logical very feasible in practice.
+  \item Related to the first point, the rise of sophisticated solver technology, in particular SAT and SMT solvers~\citep{barrett-smt-2008} have helped make once intractable problems of search more feasible in practice.
 \end{enumerate}
 Here we briefly survey the field of program synthesis\footnote{%
   Because program synthesis is such a vast field of study, we don't intend on capturing its full breadth here.
@@ -158,7 +158,7 @@ Sketch allows users to write skeletons of Java-like programs annotated with hole
 Sketch then translates the constraints on those holes, \eg assertions or reference implementations, into satisfiability equations which are then discharged to a SMT solver using Counterexample Guided Inductive Synthesis (CEGIS).
 Other work that uses solver technology in synthesis includes \citet{bodik-popl-2010}'s work to support incremental program develop with holes and examples, called \emph{angelic nondeterminism} and Torlak's \textsc{Rosette} which supports the development of solver-aided domain specific languages~\citep{torlak-pldi-2014}.
 
-In many of these situations, we can refine the problem domain sufficiently that we can restrict the syntax of allowed programs to a small subset, called \emph{syntax-guided synthesis}~\citet{alur-fmcad-2013}.
+In many of these situations, we can refine the problem domain sufficiently that we can restrict the syntax of allowed programs to a small subset, called \emph{syntax-guided synthesis}~\citep{alur-fmcad-2013}.
 For example, \citet{singh-pldi-2013} use this approach in the context of generating automatic feedback for introductory programs.
 The restricted syntax, provided by an instructor using their system, captures the likely set of mistakes that a student might make on an assignment.
 \citet{gulwani-popl-2011} also use a restricted synthesis domain to capture string processing behavior.
@@ -174,7 +174,7 @@ Most recently, $λ^2$~\citep{feser-pldi-2015} uses types to refine the input/out
 
 From \autoref{sec:the-landscape-of-program-synthesis}, we see that a multitude of approaches to program synthesis have been previously explored, each with their own strengths and weaknesses.
 However, no single system has the combination of features necessary to fully capture the type-directed programming style that motivated our journey into program synthesis to begin with.
-In particular, this style requires support for algebraic data types, recursive functions, and algebraic data types.
+In particular, this style requires support for higher-order functions, recursive functions, and algebraic data types.
 Many of the prior systems focus on languages that do not support one of more of these features as they are based on variants of Lisp, C, or Java.
 Furthermore, many of the systems that use solver technology are not capable of handling higher-order and/or recursive data as these solvers work over first-over logics.
 Of the systems that most closely target this space of language features:
@@ -204,5 +204,5 @@ Finally, we discuss extending our core calculi with more features, in particular
 
 The synthesis calculi for ML-like programs, \mlsyn{}, that we discuss in \autoref{ch:recursion} as well as the implementation, \myth{}, that we develop in \autoref{ch:implementation} and evaluate in \autoref{ch:evaluating-myth} were originally presented in {PLDI} 2015~\citep{osera-pldi-2015}.
 The chapters listed above constitute a greatly expanded presentation of these two artifacts.
-The presentation of tuples and records in \autoref{ch:simple-type-extensions} were re-developed independently, following the work of \citet{frankle-mastersthesis-2015} and \citet{shah-mastersthesis-2015}, respectively.
+The presentation of tuples and records in \autoref{ch:simple-type-extensions} in our simply-typed synthesis calculus, \lsyn{}, was adapted from \citet{frankle-mastersthesis-2015} and \citet{shah-mastersthesis-2015}, respectively, who originally integrated these features into \mlsyn{}.
 The remaining content is original work.
