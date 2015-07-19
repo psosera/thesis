@@ -22,7 +22,7 @@ $\mfold{\!}$s in a term explicitly mark points where the recursive type variable
 To use these recursive types, we explicitly $\munfold{\!}$ the $\mfold{\!}$s where ever they appear, for example:
 \[
   \begin{array}{l}
-    (\mmatch\;\mfold{\minl{(c_1, \mfold{\minr{()}})}}\;\mwith \\
+    (\mmatch\;\munfold\,\mfold{\minl{(c_1, \mfold{\minr{()}})}}\;\mwith \\
     \quad \minl{x_1} → \mfst x_1 \\
     \quad \minr{x_2} → c_2) ⟶^* c_1. \\
   \end{array}

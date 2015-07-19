@@ -431,7 +431,7 @@ In either case, the final result is the usual implementation of $\mkwd{and}$ tha
     \⇥{1} \bnfalt \minr{x_2} → \mfalse.
   \end{array}
 \]
-We can synthesize the other $2^3=8$ possible boolean operators using appropriate example sets with similar derivations in \lsyn{}.
+We can synthesize the other $2^3 - 1=7$ possible boolean operators using appropriate example sets with similar derivations in \lsyn{}.
 
 \subsection{Efficiency of Sums}
 \label{subsec:efficiency-of-sums}
@@ -519,3 +519,4 @@ On top of the fact that $\mkwd{let}$ is not type-directed---\rulename{irefine-le
 Appealing to the Curry-Howard Isomorphism, synthesizing a let-binding is tantamount to guessing and deriving a lemma and then using that lemma in your proof.
 In the programming world, this is like guessing and deriving a helper function to use in the solution of a problem.
 \rulename{irefine-let} precisely reflects our intuition about this process: coming up with a seemingly unrelated lemma or helper function is frequently as hard, if not harder, than solving the original problem itself!
+We leave this difficult problem of discovering and employing such $\mkwd{let}$ bindings to future work.

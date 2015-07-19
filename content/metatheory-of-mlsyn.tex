@@ -186,15 +186,13 @@ Completeness ensures that we can synthesize any program expressible in the langu
 \mlsyn{} poses multiple potential difficulties for completeness.
 The most obvious is the presence of recursion.
 Because the synthesis judgment relies heavily on evaluation---in \rulename{irefine-match} when evaluating a scrutinee and in \rulename{irefine-guess} when normalizing an $E$-term to perform a compatibility check---synthesis may not terminate on certain inputs if evaluation goes into an infinite loop.
-Luckily, the \mlsyn{} type system employs the same checks as other languages believed to be total to ensure termination (such as Coq~\citep{coq-2012}).\footnote{%
-  We do not prove termination of \mlsyn{} as it is not the true reason why synthesis completeness does not hold in the language!
-}
+Luckily, the \mlsyn{} type system employs the same checks as other languages believed to be total to ensure termination (such as Coq~\citep{coq-2012}).
 \begin{proofenv}
   \begin{theorem}[Termination of \mlsyn{}]
     If $⊢ Σ$ and $Σ; Γ ⊢ e : τ$, then either $e$ is some $v$ or $e ⟶^* v$ and $Σ; Γ ⊢ v : τ$.
   \end{theorem}
 \end{proofenv}
-Because of this, recursion is not a problem for completeness.
+Because of this theorem (which we do not prove), recursion is not a problem for completeness.
 However, our use of partial functions as values in \mlsyn{} causes dire complications for completeness.
 
 \subsection{Partial Functions Approximating Recursive Behavior}
@@ -217,7 +215,7 @@ Here, it is clear that if we substitute for $f$ the partial function $ρ$ that w
 \[
   ρ = [] ⇒ [] \bnfalt [0] ⇒ [0, 0] \bnfalt [1, 0] ⇒[1, 1, 0, 0],
 \]
-Instead of the definition of $\mkwd{stutter}$, it is clear we will get $\mNoMatch$ errors on values not specified by $\rho$.
+we will get $\mNoMatch$ errors on values not specified by $ρ$.
 
 \subsection{Partial Functions as Values}
 To support partial functions as the program value for recursive functions, we added partial functions to the grammar of plain values.
@@ -229,11 +227,11 @@ We therefore extend the compatibility relation to compare two values, taking adv
 Because the compatibility relation now compares values, we must contend with comparing functions for equality.
 This arises when evaluating higher-order partial functions.
 For example, if we evaluate $(v_1 ⇒ χ)\,v_2$, then we may compare two function values for equality if $v_1$ and $v_2$ are $\mfix$es.
-In \lsyn{}, function equality, namely $βη$-equivalence over functions, is decidable.
+In \lsyn{}, $βη$-equivalence over functions is decidable.
 However, in the presence of recursion, equivalence of functions is no longer decidable.
 To see this, note that \mlsyn{} is at least as expressive as the primitive recursive functions whose equality is known to be undecidable~\citep{kahrs-pr}.
 
-Therefore, we must resort to \rulename{eq-refl} that only equates two function values if they are syntactically identical (up to $α$-equivalence by the Barendregt Convention).
+Therefore, we must resort to \rulename{eq-refl} that only equates two function values if they are syntactically identical (up to renaming of bound variables).
 However, this approximation means that we cannot synthesizing some particular programs higher-order synthesis problems.
 For example, consider synthesizing at the higher goal type $((\mnat → \mnat) → \mnat) → \mnat$.
 Now suppose that we have a partial function with a single input/output example

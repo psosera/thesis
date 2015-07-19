@@ -117,7 +117,7 @@ For example, the following terms are redundant:
   \item $(λx{:}T → T.\,x)\,(λy{:}T.\,y)$.
 \end{itemize}
 These terms evaluate, according to our call-by-value semantics, to the values $c_1$ and $λy{:}T.\,y$, respectively.
-In general, any term that is not a value, \ie, not in \emph{$β$-normal form}, is redundant with the value that it evaluates to.
+In general, any term that is not a value, \ie, not in \emph{normal form}, is redundant with the value that it evaluates to.
 We say that the two terms are \emph{$β$-equivalent}, taking the standard definition of $β$-equivalence as the smallest equivalence relation that contains our evaluation relation ($⟶$).\footnote{%
   This is true of \stlc{} because it is strongly normalizing.
   In the presence of non-termination, this does not hold because infinite loops do not have a corresponding normal form.
@@ -203,7 +203,7 @@ In contrast, consider a logical specification of how this function ought to beha
   \mkwd{sorted}(l) = ∀ x :: l' ⊑ l.\; ∀ y ∈ l.\; x < y
 \end{gather*}
 The $\mkwd{sorted}$ predicate states that for all sub-lists ($⊑$) of $l$, the head $x$ of that sub-list is the least element of that sub-list.
-While the logical specification precisely describes the behavior of any function that sorts, it takes a bit of ingenuity to come up with this specification.
+While this logical specification precisely describes the behavior of any function that sorts a list, it takes a bit of ingenuity to come up with this specification.
 
 Finally and most importantly, we use examples because they decompose naturally with types.
 For example, the input/output example $[0, 1] ⇒ [1, 0]$ decomposes according to the arrow type $\mlist → \mlist$.

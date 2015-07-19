@@ -22,7 +22,11 @@
         \inferrule[t-match]
           {Σ;Γ ⊢ e : T \\ \mfun{complete}(Σ, \many{p_i}{i < m}, T) \\\\
           \many{\mfun{binders}(Γ, e, p_i) = Γ_i}{i < m} \\ \many{Σ; Γ_i, Γ ⊢ e_i : τ}{i < m}}
-          {Σ;Γ ⊢ \mmatch\;e\;\mwith\;\many{p_i → e_i}{i < m} : τ} \\
+          {Σ;Γ ⊢ \mmatch\;e\;\mwith\;\many{p_i → e_i}{i < m} : τ} \qquad
+        \inferrule[t-nomatch]
+          { }
+          {Σ;Γ ⊢ \mNoMatch : τ} \\
+      \\
       \fbox{$\mfun{struct}(e_1, e_2)$} \qquad
         \inferrule[struct-var-rec]
           {f{:}τ_1 → τ_2\{\mrec\} ∈ Γ \\
@@ -33,7 +37,7 @@
           {\mfun{struct}(Γ, f, e)} \qquad
         \inferrule[struct-not-var]
           {e_1 ≠ f}
-          {\mfun{struct}(e_1, e_2)} \\
+          {\mfun{struct}(Γ, e_1, e_2)} \\
       \fbox{$\mfun{complete}(Σ, \many{p_i}{i < m}, T)$} \qquad
         \inferrule[complete]
           {C ∈ τ_1 * … * τ_k → T ∈ Σ ↔ C(x_1, …, x_k) \in \many{p_i}{i < m}}

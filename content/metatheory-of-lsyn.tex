@@ -76,7 +76,7 @@ These two steps manifest themselves into two lemmas that we must prove for each 
     If $Γ ⊢ Χ : τ$ and $Γ ⊢ Χ' : τ$ then $Γ ⊢ Χ \concat Χ' : τ$.
   \end{lemma}
   \begin{proof}
-    From \rulename{t-exw-cons}, we know that each individual example world in $Χ$ and $Χ'$ are well-typed at type $τ$.
+    From \rulename{t-exw-cons}, we know that each individual example world in $Χ$ and $Χ'$ is well-typed at type $τ$ by a straightforward induction on $Χ$ and $Χ'$, respectively.
     By \rulename{t-exw-cons}, we can cons together all of these example worlds together to form a single set of example worlds that is well-typed at type $τ$.
   \end{proof}
   \begin{lemma}[Satisfaction Soundness of $\mfun{apply}$]
