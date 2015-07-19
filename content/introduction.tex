@@ -174,7 +174,7 @@ From \autoref{sec:the-landscape-of-program-synthesis}, we see that a multitude o
 However, no single system has the combination of features necessary to fully capture the type-directed programming style that motivated our journey into program synthesis to begin with.
 In particular, this style requires support for higher-order functions, recursive functions, and algebraic data types.
 Many of the prior systems focus on languages that do not support one of more of these features as they are based on variants of Lisp, C, or Java.
-Furthermore, many of the systems that use solver technology are not capable of handling higher-order and/or recursive data as these solvers work over first-over logics.
+Furthermore, many of the systems that use solver technology are not capable of handling higher-order and/or recursive data as these solvers work over first-order logics.
 Of the systems that most closely target this space of language features:
 \begin{itemize}
   \item \textsc{Escher}~\citep{albarghouthi-cav-2013} synthesizes recursive functions using input/output examples, but in a Lisp-like untyped setting.
@@ -186,19 +186,46 @@ Of the systems that most closely target this space of language features:
 \end{itemize}
 Furthermore, it is not clear whether any of these systems scale up to richer type systems such as linear types~\citep{girard-1987}, refinement types~\citep{freeman-pldi-1991}, and dependent types~\citep{martin-lof-1984}.
 
-To address these concerns, we create a theoretical foundation for program synthesis using types based off the simply-typed lambda calculus (\autoref{ch:a-simple-synthesis-calculus}).
-With these foundations, we answer several critical questions about program synthesis:
+\subsection{Foundations}
+To address these concerns, we create a theoretical foundation for program synthesis using types.
+With this foundation, we answer several key questions:
 \begin{itemize}
-  \item How can we take advantage of rich types in order to prune the search space of programs?
+  \item How can we take advantage of rich types in order to prune the search space of possible programs?
   \item How can we use types to incremental refine the specification provided by the user in step with the program that we synthesize?
-  \item What are the meta-theoretic properties of synthesis systems based on types?  In particular, are they sound and complete with respect to synthesis? (\autoref{ch:metatheory-of-lsyn}).
+  \item What are the meta-theoretic properties of synthesis systems based on types?  In particular, are they sound and complete?
 \end{itemize}
-We then investigate standard extensions to simply-typed lambda calculus and translate them into corresponding synthesis calculi (\autoref{ch:simple-type-extensions}), culminating in a program synthesis calculus for a core version of ML featuring algebraic data types, recursion, and higher-order functions (\autoref{ch:recursion} and \autoref{ch:metatheory-of-mlsyn}).
-While we can learn a lot about the behavior of our synthesis system from studying its related calculus, we do not get a complete picture of its behavior on real-world examples.
-We take the ML synthesis calculus, transform it into an actual program synthesizer for a core subset of the OCaml programming language~\autoref{ch:implementation}, and evaluate its effectiveness~\autoref{ch:evaluating-myth}.
-Finally, we discuss extending our core calculi with more features, in particular polymorphism~(\autoref{ch:polymorphism}) and other rich types~(\autoref{ch:conclusion}).
+The basis of our foundation is a technique for transforming a programming language's type system into a type-directed, example-powered program synthesis system for that language.
+This transformation allows us to gain immediate insight into how to synthesize programs and refine examples of particular types.
+In some cases, this insight alone is sufficient to integrate a new type into our synthesis systems; in others, we must address additional issues that arise when synthesizing programs of these types.
 
-\subsection{Statement of Contributions}
+We begin by applying this technique over the simplest type system possible, the simply-typed lambda calculus (\autoref{ch:a-simple-synthesis-calculus}).
+The resulting \emph{synthesis calculus}, \lsyn{}, allows us to explore in detail the transformation process as well as how these resulting synthesis systems operate.
+We then begin integrating additional types into the mix with the goal of arriving at a synthesis system for a more realistic typed, functional programming language.
+First, we consider simple extensions to the simply-typed lambda calculus---products, records, and sums (\autoref{ch:simple-type-extensions}).
+And then, we build more complex synthesis calculi to handle complex type extensions---\mlsyn{} to handle recursion with algebraic data types (\autoref{ch:recursion}) and \systemfsyn{} to handle polymorphism (\autoref{ch:polymorphism}).
+
+\subsection{Metatheory}
+We use our core calculi---\lsyn{}, \mlsyn{}, and \systemfsyn{}---to study the meta-theoretic properties of program synthesis with types.
+In particular, we are concerned with two key properties of synthesis systems:
+\begin{itemize}
+  \item \textbf{Soundness}: does the synthesized program obey our input specification?
+  \item \textbf{Completeness}: can we synthesize all programs?
+\end{itemize}
+We first study the soundness and completeness of \lsyn{} in full detail (\autoref{ch:metatheory-of-lsyn}).
+By doing so, we extract the key lemmas that we must prove to show that soundness and completeness holds of the whole synthesis calculus.
+We then prove these lemmas for our simple extensions to \lsyn{} (\autoref{ch:simple-type-extensions}) as well as polymorphism (\autoref{ch:polymorphism}).
+\mlsyn{} proves to be much more complex due to recursion, so we also investigate its metatheory in full detail (\autoref{ch:metatheory-of-mlsyn}).
+
+\subsection{Implementation}
+The synthesis calculi we develop in our work give us a basic understanding of the design and behavior of type-directed synthesis systems, but they are not practical synthesis algorithms as-is because they are both unoptimized and highly non-deterministic.
+Consequently, in addition to understanding type-directed program synthesis from a theoretical perspective, we would like to know empirically how these systems behave on real-world examples.
+
+To do this, we take the calculus closest to a real-world typed, functional programming language, \mlsyn{}, and transform it into an actual program synthesizer, \myth{}, for a core subset of the OCaml programming language~(\autoref{ch:implementation}).
+Because our program synthesizer is type-theoretic, we are able to adapt several proof search techniques into our domain---various caching schemes and search pruning heuristics---to greatly optimize the synthesis procedure.
+Furthermore, thanks to our theoretical foundations, we are able to analyze the impact of these optimizations on the soundness and completeness of our system.
+Finally, we evaluate \myth{}'s effectiveness on a benchmark suite of functional programs and explore \myth{}'s behavior on these examples~(\autoref{ch:evaluating-myth}).
+
+\subsection{Statement of Contribution}
 
 The synthesis calculi for ML-like programs, \mlsyn{}, that we discuss in \autoref{ch:recursion} as well as the implementation, \myth{}, that we develop in \autoref{ch:implementation} and evaluate in \autoref{ch:evaluating-myth} were originally presented in {PLDI} 2015~\citep{osera-pldi-2015}.
 The chapters listed above constitute a greatly expanded presentation of these two artifacts.
