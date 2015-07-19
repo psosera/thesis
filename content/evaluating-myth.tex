@@ -5,7 +5,7 @@ In this chapter, we explore our implementation of this synthesis procedure, a pr
 
 Our goal with \myth{} is to further explore the type-theoretic foundations for program synthesis that we have developed so far.
 We started our exploration by carefully analyzing the metatheory of type-directed program synthesis, in particular the soundness and completeness of \lsyn{} and \mlsyn{}.
-However, this is insufficient for getting a complete sense of how program synthesis systems built up top of these foundations will perform in practice.
+However, this is insufficient for getting a complete sense of how program synthesis systems built on top of these foundations will perform in practice.
 By exploring the behavior of an actual implementation, we can better understand the capabilities and limitations of our approach and identify areas for future improvement.
 
 Note that an explicit non-goal of this exploration is to justify \myth{}-the-artifact as a practical tool for program synthesis.
@@ -27,7 +27,7 @@ When we introduced refinement trees, we also introduced a number of search param
   \item $k$, the maximum size of $E$-terms that we generate during the $E$-guess phase of the procedure.
 \end{itemize}
 Rather than performing a breadth-first search by program size alone, we now perform a breadth-first search according to these three parameters.
-Thus, choosing appropriate \emph{initial values} along with a \emph{strategy} for traversing through successive iterations of the algorithm is imperative towards obtaining good synthesis results.
+Thus, choosing appropriate \emph{initial values} along with a \emph{strategy} for traversing through successive iterations of the algorithm is imperative for obtaining good synthesis results.
 
 \paragraph{Scrutinee Size}
 Let's consider the effects of each of these parameters on the programs that the synthesis algorithm produces.
