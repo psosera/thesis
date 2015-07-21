@@ -47,7 +47,7 @@ However, we want to avoid opening the door to complex scrutinees too quickly.
 This is because the number of possible scrutinees (and consequently, the number of possible matches) grows exponentially with the scrutinee size and in the common case (based on personal experience and analysis of our benchmark suite), we only need to pattern match over a single variable.
 Our informativeness restriction rules out some of these scrutinees, but in practice, many scrutinees make it through the restriction, requiring us to add these branches to our refinement tree.
 These additional branches become more points where we have to $E$-guess, making synthesis more costly.
-Furthermore, on top of these scrutinees, as we increase the scrutinee size $s$, we also increase the liklihood of generating scrutinees that are equivalent to previously generated scrutinees.
+Furthermore, on top of these scrutinees, as we increase the scrutinee size $s$, we also increase the likelihood of generating scrutinees that are equivalent to previously generated scrutinees.
 
 \paragraph{Match Depth}
 Related to the scrutinee size, the match depth $m$ controls the number of match expressions that can appear in any branch of the refinement tree.
@@ -73,7 +73,7 @@ For example, consider the overspecializing function for $\mkwd{stutter}$ from \a
 \]
 By synthesizing programs in order of increasing size, we guaranteed that our original synthesis procedure would not synthesize this program before synthesizing the desired recursive function.
 However, imagine in our new synthesis procedure that we started with the match depth $m = 3$.
-Notice that because overspecialization contains no $E$-guessed terms, our initial refinement tree would contain this program immediately and we would be done!
+Notice that because the overspecialization contains no $E$-guessed terms, our initial refinement tree would contain this program immediately and we would be done!
 Because of this, we have to start with a small match depth and be careful about increasing it too quickly.
 
 \paragraph{$E$-term Size}
@@ -85,9 +85,9 @@ In our updated algorithm, rather than having to synthesize $E$-terms up to size 
 This is a tremendous win in terms of efficiency because of the exponential cost of enumerating large $E$-terms.
 
 Unlike match depth, we do not run into issues of overspecialization if $k$ begins too large.
-In fact, by admitting larger $E$-terms, we use more variables and function applications which, by our Minimum Programming Principle (\autoref{subsec:the-minimum-program-principle}) makes it more likely our synthesized program generalizes to the behavior that the user intends.
+In fact, by admitting larger $E$-terms, we use more variables and function applications which, by our Minimum Programming Principle (\autoref{subsec:the-minimum-program-principle}) makes it more likely that our synthesized program generalizes to the behavior that the user intends.
 Furthermore, the cost of synthesizing $E$-terms of modest size is very small.
-It is not until we reach the critical point in the exponential cliff that generation time jumps from sub-seconds to minutes.
+It is not until we reach the critical point in the exponential cliff that generation time jumps from milliseconds to minutes.
 So we are safe in starting with an $E$-term size of reasonable size.
 
 \subsection{Search Strategy}
@@ -129,7 +129,7 @@ For example, \autoref{fig:myth-stutter} gives the source code for the $\mkwd{stu
 \myth{} has no built-in data types, so we must provide them all ourselves using algebraic data types.
 Here, we declare a type of monomorphic $\mlist$s whose carrier type is $\mnat$.
 The declaration of $\mkwd{stutter}$ contains the familiar three input/output examples\footnote{%
-  For sake of convenience, \myth{} provides syntactic sugar for representing lists and natural numbers.
+  \myth{} provides syntactic sugar for representing lists and natural numbers.
 }
 suggesting the intended behavior of $\mkwd{sutter}$.
 
@@ -221,7 +221,7 @@ let list_append : list -> list -> list =
 \end{center}
 
 This function is closer to $\mkwd{append}$ but still not there.
-In particular, it only append a $0$ onto $l_1$ in the $\mCons$ case, completely ignoring $l_2$ in the process.
+In particular, it only appends a $0$ onto $l_1$ in the $\mCons$ case, completely ignoring $l_2$ in the process.
 Adding another example to handle when we call $\mkwd{append}\,[0]\,[0]$ results in the same program.
 We must add one additional example,
 \begin{align*}
@@ -288,7 +288,7 @@ These programs provide specifications of simple functions over fundamental funct
 
   \item[Lists:]
     Expanding on $\mnat$s, the bulk of our benchmarks feature operations over $\mlist$s.
-    \mlsyn{} and consequently \myth{} do not have polymorphism.
+    \mlsyn{} and \myth{} do not have polymorphism.
     Therefore, our $\mlist$ data type is \emph{monomorphic}, fixed to a particular carrier type, usually $\mnat$ or $\mBool$.
     Our example programs include simple operations over a single list or pair of lists (\eg, $\mkwd{length}$ and $\mkwd{append}$) as well as more complex operations (\eg, $\mkwd{compress}$ and $\mkwd{reverse}$).
     Note that because our type-directed synthesis style does not not admit synthesis of $\mkwd{let}$-bindings (\autoref{sec:let-binding}), we must provide the appropriate helper functions to synthesize these programs.
@@ -439,9 +439,9 @@ in
   \end{cminted}
 \end{center}
 
-The triply nested match is relatively quick to synthesize in the minimal context because we only have $\mkwd{compare}$ with which to make complex match scrutinees.
+The triply nested match is relatively quick to synthesize in the minimal context because we only have the $\mkwd{compare}$ function with which to make complex match scrutinees.
 However, with the addition of $\mkwd{append}$ and $\mkwd{plus}$ from the extended context, we now gain many more possible informative scrutinees that must be explored in the refinement tree.
-The other cases where the execution time explodes, \eg, \texttt{tree\_binsert} and \texttt{list\_sorted\_insert}, work out similarly where deep matching is necessary, but the space of possible matches explodes with the extended context.
+The other cases where the execution time explodes, \eg, \texttt{tree\_binsert} and \texttt{list\_sorted\_insert}, have similar problem where deep matching is necessary, but the space of possible matches explodes under the extended context.
 
 \section{Extended Examples}
 \label{sec:extended-examples}

@@ -17,8 +17,8 @@ Given a signature $Σ$, context $Γ$, goal type $τ$, and examples $Χ$, our syn
       \item Perform $E$-guessing for 0.25 seconds (using $\mguess$ defined in \autoref{fig:app-implementation-refinement-tree}) up to size $k$ at all elligible nodes in the current refinement tree.
         A refinement tree node is elligible for $E$-guessing if we have not yet found a satisfying expression at that node and its corresponding goal type is a base type $T$.
       \item Propogate newly found satisfying programs upwards in the refinement tree.
-        If we construct an overall, satisfying program to the original synthesis problem then terminate, returning that program.
-        Otherwise, move onto the next phase of $I$-refinement repeat.
+        If we construct an overall, satisfying program to the original synthesis problem then we terminate and return that program.
+        Otherwise, we move onto the next phase of $I$-refinement and repeat.
     \end{enumerate}
 \end{enumerate}
 The phases of $I$-refinement in our synthesis plan are:

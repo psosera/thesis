@@ -26,10 +26,6 @@
         \inferrule[t-ex-record]
           {\many{Γ ⊢ χ_i : τ_i}{i <m}}
           {Γ ⊢ \{\many{l_i = χ_i}{i < m}\} : \{\many{l_i{:}τ_{i}}{i < m}\}} \\
-      \fbox{$Γ ⊢ E ⇒ τ$} \qquad
-        \inferrule[t-rproj]
-          {Γ ⊢ e ⇒ \{\many{l_i{:}τ_{i}}{i < m}\}}
-          {Γ ⊢ e.l_i ⇒ τ_i} \qquad
       \fbox{$e ⟶ e'$} \qquad
         \inferrule[eval-rproj]
           {}

@@ -7,7 +7,7 @@
           {Γ ⊢ τ_1 + τ_2 ▷ \many{σ_i ↦ \minl{χ_i}}{i < n} ⇝ \minl{I}} \\
         \inferrule[irefine-sum-inr]
           {Γ ⊢ τ_2 ▷ \many{σ_i ↦ χ_i}{i < n} ⇝ I}
-          {Γ ⊢ τ_1 + τ_2 ▷ \many{σ_i ↦ \minr{χ_i}}{i < n} ⇝ \minl{I}} \\
+          {Γ ⊢ τ_1 + τ_2 ▷ \many{σ_i ↦ \minr{χ_i}}{i < n} ⇝ \minr{I}} \\
         \inferrule[irefine-match]
           {Γ ⊢ τ_1 + τ_2 ⇝ E \\\\
            \mfun{distribute}(E, Χ) = (Χ_l, Χ_r) \\\\

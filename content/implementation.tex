@@ -39,8 +39,8 @@ In some cases, a single sub-goal is left behind after applying a rule, for examp
 In other cases, multiple sub-goals are left behind, for example, when applying \rulename{irefine-match}.
 When this happens, we annotate the corresponding child nodes so it is clear which sub-goal they are meant fulfill.
 
-When we have talked about synthesizing a program in earlier chapters, we have chosen a particular derivation out of this tree.
-For example, the derivation corresponding to the $\mkwd{and}$ function that we synthesized in \autoref{ch:simple-type-extensions} is
+When we talked about synthesizing a program in earlier chapters, we have chosen a particular derivation out of this tree.
+For example, the derivation corresponding to the $\mkwd{and}$ function that we synthesized in \autoref{ch:simple-type-extensions} is given by:
 \begin{center}
   \begin{forest}
     [$◼:\mBool → \mBool → \mBool$
@@ -120,7 +120,7 @@ To generate $I$-terms, we appeal back to $\mrefine$ but pass in the empty set of
 Like the synthesis judgments from which it is derived, $\mrefine$ degenerates into raw-term enumeration when given no examples.
 
 $\mfmatch$ corresponds to invocations of \rulename{irefine-match} that generate matches for all possible scrutinee base types at a particular goal type.
-For a particular base type, we generate sets of expressions for all of the components of the match---the scrutinee and each of the branches---and form matches by taking the cartesian product of these sets.
+For a particular base type, we generate sets of expressions for all of the components of the match---the scrutinee and each of the branches---and form matches by taking the Cartesian product of these sets.
 To create match expressions of size $k$, we also consider all the ways that we can distribute the size among these match components.
 Note that if any of the sets of expressions are empty---\ie, we were not able to generate any scrutinees of the given base type or a satisfying expression for a particular branch---we do not produce a match expression for the base type that we are pattern matching over.
 
@@ -139,7 +139,7 @@ The following principle answers this question in the affirmative:
 \begin{definition}[The Minimum Program Principle]
   In program synthesis, smaller satisfying programs (in terms of program size) are more likely to generalize to the desired behavior intended by the user.
 \end{definition}
-The Minimum Program Principle is not a provable theorem, but a search heuristic inspired by Occam's razor that many program synthesis tools exploit~\citep{summers-popl-1976, albarghouthi-cav-2013, perelman-pldi-2014, feser-pldi-2015}) to refine the space of programs even further.
+The Minimum Program Principle is not a provable theorem, but a search heuristic inspired by Occam's razor that many program synthesis tools exploit~\citep{summers-popl-1976, albarghouthi-cav-2013, perelman-pldi-2014, feser-pldi-2015} to refine the space of programs even further.
 
 Intuitively, the Minimum Program Principle observes that a smaller program is less likely to over-specialize on the examples given to the synthesizer.
 To see this, consider the specification we gave for $\mkwd{stutter}$ in \autoref{ch:recursion}:
@@ -360,7 +360,7 @@ However, because any well-typed expression is a valid completion for these branc
 Worst yet, imagine if all of the examples were sent to a single branch.\footnote{%
   Throughout this discussion, we assume that the data types in question have more than one constructor.
   A data type with a single non-inductive constructor of arity $k$ is equivalent to a $k$-tuple.
-  Pattern matching here amounts to extracting its components which has the same efficiency problems as tuples, namely the trade-off of lazily or eagerly decomposing such data types.
+  Pattern matching here amounts to extracting its components which has the same efficiency problems as tuples, namely the trade-off between lazily or eagerly decomposing such data types.
   See \autoref{subsec:tuple-efficiency} for ways of dealing with these problems.
 }
 An expression for that branch would need to satisfy all of the original examples with only the additional information provided by the binders introduced by the pattern of the match for support.
@@ -438,7 +438,7 @@ Thus, we do not need to do anything special to handle repetitive pattern matches
 
 \paragraph{Restricting Generation of Matches}
 
-The informativeness restriction that we have developed in this section are designed to limit pattern matches that don't make progress towards the synthesis goal or otherwise cause us to degenerate to raw-term enumeration.
+The informativeness restriction that we have developed in this section is designed to limit pattern matches that don't make progress towards the synthesis goal or otherwise cause us to degenerate to raw-term enumeration.
 With either restriction in effect, it is clear that we can no longer generate match expressions in the absence of examples.
 Therefore, it no longer makes sense to try to generate pattern matches during $E$-term generation where we explicitly enumerate terms in the absence of examples.
 
@@ -452,8 +452,8 @@ However, if we avoid pattern match generation in this situation altogether, we r
 The refinement portions of our collection semantics in \autoref{fig:mlsyn-collection-semantics} are modified to call either generation function when an $E$- or $I$-form must be generated without examples.
 Notably, we never generate match expressions in either raw-term generation function because of our informativeness restrictions.
 This implies that we will never have a match expression appear as an argument to a function or constructor.
-However, this does not change the expressiveness of our synthesis procedure as any pattern match that occurred within the arguments of an application or constructor can be hoisted outside of it instead.
-In our collection semantics, this implies that we must first generate such a match via $\mfmatch$ and then generate the application through $\mgen$ or constructor through $\mrefine$ rather than the other way around.
+However, this does not change the expressiveness of our synthesis procedure as any pattern match that occurred within the arguments of an application or constructor can be hoisted outside of it.
+In our collection semantics, we obtain this result by generating a match via $\mfmatch$ first and then generating the application through $\mgen$ or constructor through $\mrefine$.
 
 \subsection{Refinement Trees}
 \label{subsec:refinement-trees}
@@ -552,7 +552,7 @@ We denote these with an underline to remind us that these are tree nodes rather 
 
 After using $\mrtree$ to construct the refinement tree, we can now $E$-guess up to some fixed term size with the $\mguess$ function defined in our original collection semantics (but calling into the raw-term enumeration functions we developed in \autoref{subsec:reigning-in-matches} instead).
 We $E$-guess at every node in the refinement tree where the goal is a base type; these points are indicated by boxes in our example synthesis tree found in \autoref{fig:synthesis-tree}.
-This coincides exactly with when we would have invoked the $\mguess$ function in our original collection semantics.
+This these boxes coincide with invocations of the $\mguess$ function in our original collection semantics.
 
 Finally, if we are able synthesize a solution in some branch of the refinement tree either through refinement or guessing, we propagate the result up the tree to try to synthesize a solution to the original synthesis problem.
 For example, if we are able to $E$-guess a satisfying program $E$ to the synthesis problem at a function node $\underline{\mfix\;f\;(x{:}τ_1) : τ_2 = ◼}$, then we are able to synthesize the satisfying program $\mfix\;f\;(x{:}τ_1) : τ_2 = E$ at that point in the refinement tree.
@@ -671,7 +671,7 @@ We would like to be be able to realize this sharing in our term caches as well t
 
 \input{figures/mlsyn-gen}
 
-To do this, we a technique for efficiently performing term enumeration in the presence of contexts called \emph{relevant term generation}.
+To do this, we present a technique for efficiently performing term enumeration in the presence of contexts called \emph{relevant term generation}.
 Critically, we note that our contexts during the synthesis process only grow; they never shrink or shuffle their contents.
 As a result, we can factor the term generation function as follows:
 \begin{align*}

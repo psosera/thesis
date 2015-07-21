@@ -13,14 +13,14 @@ However in other cases, in particular, the more complex types that we consider i
 \input{figures/lsyn-products}
 
 \autoref{fig:lsyn-products} gives the modifications to \lsyn{} necessary to add products to the system.
-The product type $τ_1 × τ_2$ has an introduction form, the pair $(e_1, e_2)$, and an elimination form, left projection $\mfst{e}$ and right projection $\msnd{e}$.
-We add both forms to the external langauge $e$ of expressions, and we add the pair introduction form $(I_1, I_2)$ to the $I$ grammar and the projection eelimination forms $\mfst{E}$ and $\msnd{E}$ to the $E$ grammar.
+The product type $τ_1 × τ_2$ has an introduction form, the pair $(e_1, e_2)$, and two elimination forms, left projection $\mfst{e}$ and right projection $\msnd{e}$.
+We add both forms to the external language $e$ of expressions, and we add the pair introduction form $(I_1, I_2)$ to the $I$ grammar and the projection elimination forms $\mfst{E}$ and $\msnd{E}$ to the $E$ grammar.
 This introduction form also serves as the value of the pair type $(v_1, v_2)$ as well as its example value $(χ_1, χ_2)$.
 
 Type checking a pair amounts to type checking its components (\rulename{t-pair} and \rulename{t-Ipair}).
-Type checking a projection results in the left- or right-hand side of the product type (\rulename{t-fst} and \rulename{t-Efst}, \rulename{t-snd} and \rulename{tEsnd}).
-We enforce a left-to-right ordering of evaluation with our evaluation contexts and rules consistent with our choice of call-by-value evaluation order.
-Finally, checking that two pairs are compatible decomposes to checking that their components are compatible (\rulename{eq-pair}.
+Type checking a projection results in the left- or right-hand side of the product type (\rulename{t-fst} and \rulename{t-Efst}, \rulename{t-snd} and \rulename{t-Esnd}).
+We enforce a left-to-right ordering of evaluation with our evaluation contexts consistent with our choice of call-by-value evaluation order.
+Finally, checking that two pairs are compatible decomposes to checking that their components are compatible (\rulename{eq-pair}).
 
 We derive the synthesis rules for projections (\rulename{eguess-fst} and \rulename{eguess-snd}) and pairs (\rulename{irefine-prod}) directly from their typing rules.
 To synthesize a left-projection, $\mfst{E}$, or a right-projection, $\msnd{E}$, it is sufficient to synthesize a pair $E$ of the appropriate product type.
@@ -112,7 +112,8 @@ To show how we apply these lemmas, let's walk through the additional cases for p
   \end{proof}
 \end{proofenv}
 With the appropriate lemmas, the proof of soundness and completeness for products is identical to the analogous proof for functions (modulo the lemmas).
-Because of this, for the rest of the language extensions in this chapter, we merely provide the critical lemmas for proving soundness and completeness.
+This reasoning template holds for the rest of the language extensions we consider in this chapter.
+Therefore, for the remaining types, we merely provide the critical lemmas for proving soundness and completeness.
 
 \subsection{Efficiency}
 \label{subsec:tuple-efficiency}
@@ -127,7 +128,7 @@ To alleviate these problems we import the technique of \emph{focusing} from the 
 Here, we briefly describe the focusing procedure.\footnote{%
   For a full treatment of focusing in program synthesis to efficiently handle tuples, see \citet{frankle-mastersthesis-2015}.
 }
-Intutively, whenever we introduce a value of tuple type into the context, we greedily decompose the tuple down to base or arrow types.
+Intuitively, whenever we introduce a value of tuple type into the context, we greedily decompose the tuple down to base or arrow types.
 For example, suppose we have a variable $x$ of type $T_1 × ((T_2 × T_3) × T_4)$.
 Then by focusing on $x$, we obtain the following expressions of base type:
 \begin{gather*}
@@ -144,7 +145,7 @@ This has the cost of increasing the size of our context which in turn affects th
 But with focusing, we are able to consider programs involving projections much earlier in the synthesis process as well as avoid additional derivations involving projections.
 For example, suppose we are generating $E$-terms of type $\mnat$ and have a variable $x$ of type $\mnat × \mnat$ in the context.
 Focusing brings $\mfst\,x$ and $\msnd\,x$ into the context for us to use.
-If we are exploring these derivations in terms of increasing size (as suggested in~\autoref{sec:generating-lambda-terms}), then we can immediately use the projections of $x$ rather than having to explore derivations of greater size to generate expressions involving $\mfst$ and $\msnd$.
+If we are exploring these derivations in terms of increasing size (as suggested in~\autoref{sec:generating-lambda-terms}), then we can immediately use the projections of $x$ rather than explore derivations of greater size to generate expressions involving $\mfst$ and $\msnd$.
 If we need to use these projections in the final program, than this is a net win.
 However, if we do not need these projections, then we will needlessly generate $E$-terms involving them earlier in the synthesis process than we would without focusing.
 
@@ -177,17 +178,17 @@ Consequently, the necessary lemmas to verify soundness and completeness are simi
 
   \begin{lemma}[Satisfaction Soundness of $\mfun{rproj}$]
   \label{lem:satisfaction-soundness-of-rproj}
-    If $\many{I_i ⊨ Χ_i}{i < m}$ then $\{\many{l_i=I_i}{i < m}\}) ⊨ Χ$ where $\mfun{proj}(Χ) = Χ_1, …, Χ_m)$.
+    If $\many{I_i ⊨ Χ_i}{i < m}$ then $\{\many{l_i=I_i}{i < m}\}) ⊨ Χ$ where $\mfun{rproj}(Χ) = Χ_1, …, Χ_m$.
   \end{lemma}
   \begin{proof}
     Consider a single example world $σ ↦ \{\many{l_i = χ_i}{i < m}\} ∈ Χ$.
     By \rulename{satisfies}, we know that we must show that $σ(I_i) ⟶^* v_i$ and $v_i ≃ χ_i$ for each $i ∈ 1, …, m$.
-    However, by unfolding the definition of $\mfun{proj}$ we see that each $χ_i$ is distributed to $Χ_i$ with the environment $σ$, and we know from our premise that his example world is satisified by $I_i$.
+    However, by unfolding the definition of $\mfun{proj}$ we see that each $χ_i$ is distributed to $Χ_i$ with the environment $σ$, and we know from our premise that his example world is satisfied by $I_i$.
   \end{proof}
 
   \begin{lemma}[Satisfaction Preservation of $\mfun{rproj}$]
   \label{lem:satisfaction-preservation-of-rproj}
-    If $\{\many{l_i=I_i}{i < m}\}) ⊨ Χ$ then $\many{I_i ⊨ Χ_i}{i < m}$ where $\mfun{proj}(Χ) = Χ_1, …, Χ_m)$.
+    If $\{\many{l_i=I_i}{i < m}\}) ⊨ Χ$ then $\many{I_i ⊨ Χ_i}{i < m}$ where $\mfun{rproj}(Χ) = Χ_1, …, Χ_m$.
   \end{lemma}
   \begin{proof}
     Consider a single example world $σ ↦ \{\many{l_i = χ_i}{i < m}\} ∈ Χ$.
@@ -216,7 +217,7 @@ to produce synthesis subsumption rules for $E$ and $I$ terms:
   {Γ ⊢ E ⇝ τ}.
 \]
 In our non-deterministic system, both rules are perfectly admissible.
-Intuitively, they state that rather than synthesizing at a particular goal type, we can synthesize at any subtype of that goal type which only increases the size of our search space.
+Intuitively, they state that rather than synthesizing at a particular goal type, we can synthesize at any subtype.
 This justifies having a subsumption rule for both $E$ and $I$ terms; would like to apply this logic to any goal type that admits subtyping.
 
 Algorithmically this poses a great difficulty in that we now need to efficiently and completely search the dimension of subtypes in addition to the dimension of terms.
@@ -229,9 +230,9 @@ Further implementation techniques might exploit the behavior of particular subty
 
 \input{figures/lsyn-sums-defn}
 
-Before adding full-blown algebraic data types (which we consider in \autoref{ch:recursion}), let's consider how we might add sums to \lsyn{}.
+Before adding algebraic data types (which we consider in \autoref{ch:recursion}), let's consider how we might add sums to \lsyn{}.
 \autoref{fig:lsyn-sums-defn} gives the syntax, type checking, and evaluation rules for sums.
-We introduce the sum type $τ_1 + τ_2$ with the constructors $\minl{e}$ and $\minr{e}$ which injects a value of type $τ_1$ and $τ_2$, respectively, into the sum.
+We introduce the sum type $τ_1 + τ_2$ with the constructors $\minl{e}$ and $\minr{e}$ which inject a value of type $τ_1$ and $τ_2$, respectively, into the sum.
 Note the fact that $\minl{\!}$ and $\minr{\!}$ are $I$-forms makes it evident that we do not need to provide a type annotation stating the sum types they belong to.
 Because they are $I$-forms, they are always checked against a sum type which renders the annotation unnecessary.%
 \footnote{%
@@ -419,7 +420,7 @@ where our program now looks like
     \⇥{1} \bnfalt \minr{x_2} → \mfalse.
   \end{array}
 \]
-In each of these branches, we can either guess the satisfying $E$-terms $x$ and $y$ with \rulename{irefine-eguess} or because there is only a single example in each branch, we can apply \rulename{irefine-sum-inl} and \rulename{irefine-sum-inr} to synthesize $\mtrue$ and $\mfalse$ directly.
+In each of these branches, we can either guess the satisfying $E$-terms $x$ and $y$ with \rulename{irefine-eguess}, or we can apply \rulename{irefine-sum-inl} and \rulename{irefine-sum-inr} to synthesize $\mtrue$ and $\mfalse$ directly because there is only a single example in each branch.
 In either case, the final result is the usual implementation of $\mkwd{and}$ that we expect:
 \[
   \begin{array}{l}

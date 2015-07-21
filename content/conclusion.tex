@@ -14,7 +14,7 @@ We hope that others can build upon our work to integrate types into other existi
 \section{Future Directions}
 \label{sec:future-directions}
 
-Nevertheless, there are many areas left to explore to increase the expressiveness of the program synthesis calculi we have developed, improve the performance of \myth{}, or apply these program synthesis techniques to solve problems in more targetted domains.
+There are many areas left to explore to increase the expressiveness of the program synthesis calculi we have developed, improve the performance of \myth{}, or apply these program synthesis techniques to solve problems in more targeted domains.
 We close by exploring these future directions in more detail.
 
 \subsection{Synthesis with Richer Types}
@@ -35,7 +35,7 @@ Here are some richer types to consider as next steps and the potential challenge
         { }
         {x{:}τ ⊢ x : τ}
     \]
-    If we maintain the invariant that the context only contains (linear) variables interpreted as resources that must be used exactly once, this modified type checking rules states that a linear resource must be used exactly once in a program.
+    If we maintain the invariant that the context only contains (linear) variables interpreted as resources, this modified type checking rules states that a linear resource must be used exactly once in a program.
     Turning this rule into a corresponding synthesis rule is natural and straightforward.
     However, the difficulty lies in managing the context in the other rules to maintain our invariant.
     For example, when type checking pairs
@@ -45,7 +45,8 @@ Here are some richer types to consider as next steps and the potential challenge
       {Γ ⊢ (e1, e2) : τ_1 × τ_2}
     \]
     we must non-deterministically partition our resources to satisfy each of the component expression of the pair.
-    While a type checking algorithm can mitigate this by type checking $e_1$ first, noting what resources are used, and then type check $e_2$ with the remaining resources, in a synthesis system we do not know $e_1$ or $e_2$ up front, so a na\'{i}ve strategy must consider all possible partitions of the contexts to generate the pair components.
+    A type checking algorithm can mitigate this non-determinism by type checking $e_1$ first, noting what resources are used, and then type check $e_2$ with the remaining resources.
+    In a synthesis system we do not know $e_1$ or $e_2$ up front, so a na\'{i}ve strategy must consider all possible partitions of the contexts to generate the pair components.
     Smarter search strategy and memoization techniques are required to avoid this potential combinatorial explosion of possible synthesis sub-problems.
   \item[Generalized Algebraic Data Types:]
     Generalized Algebraic Data Types (GADTs)~\citep{xi-popl-2003} allow for the type parameters of the return type of a constructor to vary rather than being fixed to a (polymorphic) type.
@@ -72,15 +73,15 @@ Here are some richer types to consider as next steps and the potential challenge
     Thus the function application $\mkwd{eval}\,(\mkwd{Const}\;1)$ has type $\mnat$ rather than some polymorphic type.
     This is accomplished by recording the \emph{type equalities} that we acquire during pattern matching (${'a} ∼ \mnat$).
 
-    The primary complexity of GADTs comes from the generation, propagation, and proper usage of these type equalities, in particular during type inference~\citep{peyton-jones-icfp-2006}.
+    The primary complexity of GADTs come from the generation, propagation, and proper usage of these type equalities, in particular during type inference~\citep{peyton-jones-icfp-2006}.
     While a synthesis procedure does not need to directly worry about generation and propagation of these type equalities---type checking proper handles this---the synthesis procedure needs to be made aware of utilizing type equalities and anti-unification of type variables when generating terms.
     This is analogous to the problem of efficiently determining instantiations of polymorphic values during term generation (\autoref{sec:synthesizing-type-applications}).
     For example, if the $\mkwd{eval}$ function above was in our context, our synthesis procedure needs to be able to recognize that it can produce a $\mnat$ by applying $\mkwd{eval}$ to a $\mkwd{Const}$.
   \item[Dependent Types:]
-    Finally, dependent types~\citep{martin-lof-1984} allow us express arbitrary properties of our programs that are verified during type checking.
-    This is done by allowing types to be indexed by terms of the language.
+    Finally, dependent types~\citep{martin-lof-1984} allow us to express arbitrary properties of our programs that are verified during type checking.
+    This is accomplished by allowing types to be indexed by terms of the language.
     For example, we might parameterize our $\mkwd{list}$ type to be indexed by a natural number that we intend to be the length of all lists of that type: $\mkwd{list}\,0$ is the type of the empty list, $\mkwd{list}\,3$ is the type of lists of length three, and so forth.
-    With this data type, then we can give our $\mkwd{append}$ function the richer type signature:
+    With this data type, we can then give our $\mkwd{append}$ function the richer type signature:
     \[
       (n_1{:}\mnat) → (n_2{:}\mnat) → \mkwd{list}\,n_1 → \mkwd{list}\,n_2 → \mkwd{list}\,(n_1 + n_2)
     \]
@@ -132,7 +133,7 @@ Suppose that our synthesis procedure determines that branches $p_1$, $p_2$, and 
 Then it is sufficient to test all combinations of potentially satisfying expressions in each branch to see if any of the combinations result in an overall satisfying program.
 With this approach to synthesizing recursive programs, we have to coordinate synthesis among the branches of a match rather than synthesizing them completely independently.
 In return, we are able to use the function currently being synthesized as part of the specification, reducing the number of examples we need to provide to the synthesizer.
-We call this this approach to synthesizing recursive functions \emph{recursive back-patching} because we are deferring evaluation of a recursive function until we have patched in all the points where it must make recursive calls.
+We call this approach to synthesizing recursive functions \emph{recursive back-patching} because we are deferring evaluation of a recursive function until we have patched in all the points where it must make recursive calls.
 
 \paragraph{First-order Constraints}
 Another example of additional specification are first-order constraints.
@@ -194,7 +195,7 @@ Our refinement tree data structure offers promising insight into this area.
 Recall that the refinement tree represents all of the decisions about the design of a program that we can derive from the examples given by the user.
 By prioritizing particular branches of the refinement tree using heuristics, we can present the code skeletons to the user that are most likely to lead to a satisfying program.
 For example, consider the arithmetic language interpreter that we presented in \autoref{sec:extended-examples}.
-Suppose that trying to generate a completed program (which took a bit of time to generate), we instead presented the code skeleton:
+Suppose that rather than trying to generate a completed program, we instead presented the code skeleton:
 \begin{center}
   \begin{cminted}{ocaml}
 let rec arith (e:exp) : nat =
@@ -219,9 +220,9 @@ The code skeleton is relatively quick to complete because it is dictated by $I$-
 Finally, let us come full circle on the ideas that we developed at the beginning of this work.
 We observed that the primary role of rich type systems was to enforce increasingly complex properties of programs, for example concurrency protocols~\citep{mazurak-icfp-2010}, information flow properties~\citep{jia-icfp-2008}, differential privacy~\citep{gaboardi-popl-2013}, and other domain-specific concerns~\citep{hudak-handbook-pl-1998}, among others.
 However, the same mechanisms that enforce properties of programs also allow us to constrain the space of possible programs, so we were able to appropriate type systems towards the goal of synthesizing programs.
-A natural end-goal of this work, therefore, is to turn type systems designed to enforce particular properties of programs into program synthesizers that synthesize programs that possess these properties automatically by construction!
+A natural end-goal of this work, therefore, is to turn type systems designed to enforce particular properties of programs into program synthesizers that synthesize programs who possess these properties automatically by construction!
 
 Currently, the types that we are able to handle efficiently in our program synthesis tools are too weak to handle these more advanced properties.
 But by designing synthesis strategies around richer classes of types, we can piggy back on top of the large body of existing work on type systems to synthesize more relevant and interesting programs.
 This final goal is perhaps the most ambitious, but also the most rewarding if we can achieve it: for every interesting, specialized type system that we develop, we can build a related synthesizer that builds programs for that type system automatically.
-In this ideal world, program synthesis and types enjoy a close, synergistic relationship where types help build programs and synthesizer help make types even more relevant and useful!
+In this ideal world, program synthesis and types enjoy a close, synergistic relationship where types help build programs and synthesizers help make types even more relevant and useful!

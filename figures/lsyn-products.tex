@@ -49,7 +49,7 @@
       \fbox{$Γ ⊢ τ ▷ Χ ⇝ I$} \qquad
         \inferrule[irefine-prod]
           {Χ = \many{σ_i ↦ (v_{1i}, v_{2i})}{i < n} \\ \mfun{proj}(Χ) = (Χ_1, Χ_2) \\\\
-           Γ ⊢ τ_1 ▷ \many{σ_i ↦ v_{1i}}{i < n} ⇝ I_1 \\ Γ ⊢ τ_2 ▷ \many{σ_i ↦ v_{2i}}{i < n} ⇝ I_2}
+           Γ ⊢ τ_1 ▷ Χ_1 ⇝ I_1 \\ Γ ⊢ τ_2 ▷ Χ_2 ⇝ I_2}
           {Γ ⊢ τ_1 × τ_2 ▷ Χ ⇝ (I_1, I_2)} \\
       \fbox{$Γ ⊢ χ : τ$} \qquad
         \inferrule[t-ex-pair]

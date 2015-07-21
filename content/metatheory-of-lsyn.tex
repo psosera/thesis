@@ -3,7 +3,7 @@ So far, we have introduced \lsyn{}, a core calculus for program synthesis with t
 However, in moving towards an algorithm, we would like to understand whether the design decisions we make to gain determinism, tractability, and expressiveness are admissible in our system or result in weakening the properties of \lsyn{}.
 
 In this section, we establish these properties by proving soundness and completeness of synthesis in \lsyn{}.
-We present the full details of the proofs here to provide a template for reasoning about the metatheory of  more complicated type-directed program synthesis systems that we discuss in later chapters.
+We present the full details of the proofs here to provide a template for reasoning about the metatheory of the more complicated type-directed program synthesis systems that we discuss in later chapters.
 
 \section{Soundness}
 
@@ -178,7 +178,7 @@ Here is the relevant lemma for refining at arrow types.
       ∀i ∈ 1, …, n.\,(λx{:}τ_1.\,σ(I))\,v_i ⟶ [v_i/x]σ(I) ⟶^* v ∧ v ≃ χ_i.
     \]
     By unfolding the definition of $\mfun{apply}$ and $\concat$, we know that Χ' contains exactly every such $v_i ⇒ χ_i$ as an example world $[v_i/x]σ ↦ χ_i$.
-    Putting these two facts together, we can conclude that $I ⊢ Χ'$.
+    Putting these two facts together, we can conclude that $I ⊨ Χ'$.
   \end{proof}
 \end{proofenv}
 

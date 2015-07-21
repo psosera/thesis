@@ -184,7 +184,7 @@ Unsurprisingly, both properties hold in \mlsyn{}.
 Soundness ensures that any program that we synthesize is correct with respect to its specification (\ie, types and examples).
 Completeness ensures that we can synthesize any program expressible in the language.
 \mlsyn{} poses multiple potential difficulties for completeness.
-The most obvious is the presence of recursion.
+The most obvious problem is the presence of recursion.
 Because the synthesis judgment relies heavily on evaluation---in \rulename{irefine-match} when evaluating a scrutinee and in \rulename{irefine-guess} when normalizing an $E$-term to perform a compatibility check---synthesis may not terminate on certain inputs if evaluation goes into an infinite loop.
 Luckily, the \mlsyn{} type system employs the same checks as other languages believed to be total to ensure termination (such as Coq~\citep{coq-2012}).
 \begin{proofenv}
@@ -232,7 +232,7 @@ However, in the presence of recursion, equivalence of functions is no longer dec
 To see this, note that \mlsyn{} is at least as expressive as the primitive recursive functions whose equality is known to be undecidable~\citep{kahrs-pr}.
 
 Therefore, we must resort to \rulename{eq-refl} that only equates two function values if they are syntactically identical (up to renaming of bound variables).
-However, this approximation means that we cannot synthesizing some particular programs higher-order synthesis problems.
+However, this approximation means that we cannot solve some higher-order synthesis problems.
 For example, consider synthesizing at the higher goal type $((\mnat → \mnat) → \mnat) → \mnat$.
 Now suppose that we have a partial function with a single input/output example
 \[

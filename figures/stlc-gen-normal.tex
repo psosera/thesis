@@ -3,7 +3,7 @@
     \begin{gather*}
       \fbox{\mbox{$Γ ⊢ τ \synE E$}} \qquad
         \inferrule[gen-Evar]
-          {x ∈ Γ}
+          {x{:}τ ∈ Γ}
           {Γ ⊢ τ \synE x} \qquad
         \inferrule[gen-Eapp]
           {Γ ⊢ τ_1 → τ_2 \synE E \\ Γ ⊢ τ_1 \synI I}

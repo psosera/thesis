@@ -1,5 +1,5 @@
 One of the most glaring omissions from \mlsyn{} and \myth{} is polymorphism.
-Without polymorphism, our $\mlist$ and $\mtree$ data types from \autoref{ch:recursion} must have concrete carrier types, usually $\mnat$s.
+Without polymorphism, our $\mlist$ and $\mtree$ data types from \autoref{ch:recursion} must have concrete carrier types.
 Beyond not being able to synthesize programs that more closely resemble real-world typed, functional programs, the lack of polymorphism also impacts efficiency.
 To see this, consider performing raw term enumeration at the $\mlist$ data type (carrier type $\mnat$) with the $\mkwd{append}$ function of type $\mlist → \mlist → \mlist$.
 Suppose that we also have variables $l_1$ and $l_2$ of type $\mlist$ in the context.
@@ -19,8 +19,8 @@ However, on top of these $E$-terms, we will also enumerate these $E$-terms:
   \mkwd{append}\,[0]\,[1] \\
   \mkwd{append}\,[1]\,[1].
 \end{gather*}
-These $E$-terms are problematic because they expose the fact that the carrier type of $\mlist$ is concrete even though it is likely that the satisfying program does not require a particular carrier type.
-While we are forced to explore all of these possible programs, they are all very unlikely to be satisfying programs for this reason.
+These $E$-terms are problematic because they expose the fact that the carrier type of $\mlist$ is concrete even though it is likely that the satisfying program does not require operating over a particular carrier type.
+While we are forced to explore all of these possible programs, they are all very unlikely to be satisfying the examples for this reason.
 
 If we had polymorphic types, then we could assign $\mkwd{append}$ the polymorphic type $∀α.\,α\,\mlist → α\,\mlist → α\,\mlist$.
 With this type, we would simply be unable to synthesize $E$-terms like the latter set above; they would be ill-typed because the carrier type of the $\mlist$ is held abstract!
@@ -51,7 +51,7 @@ Finally, the reduction rule for type application is also simple ($\rulename{eval
 
 With the typing rules for \systemfsyn{} set, we can now begin the process of creating synthesis rules for polymorphic values from \systemfsyn{}'s typing judgment.
 Let us start with synthesizing type applications.
-Na\"{i}vely transforming the rule for type checking type applications, \rulename{t-Etapp}, into an $E$-guessing rule produces the following:
+Na\"{i}vely transforming the rule for type checking type applications, \rulename{t-Etapp}, into an $E$-guessing rule yields:
 \[
 \fbox{$Γ ⊢ τ ⇝ E$} \qquad
 \inferrule[eguess-tapp]
@@ -128,16 +128,16 @@ Importantly, our polymorphic constants have decidability, identity-based equalit
 \]
 which allows us to distinguish between $q_1$ and $q_2$ in the above example during synthesis.
 
-Note that our polymorphic values are not constructs that the user can synthesize\footnote{%
-  Indeed, no rule of \systemfsyn{} can synthesize a polymoprhic constant $q$.
-}.
+Note that our polymorphic values are not constructs that the user can synthesize.\footnote{%
+  Indeed, no rule of \systemfsyn{} can synthesize a polymorphic constant $q$.
+}
 You can think of them as abstract values or placeholders for polymorphic values that will be bound to variables in our example worlds' environments.
 For example, in the above example of the polymorphic identity function, if we synthesize the partial program:
 \[
   Λα.\,λx{:}α.\,◼.
 \]
 Then at the program hole, $x$ would be bound to the polymorphic constant $q$ in our sole example world.
-This means that while we can write down example values of type $∀α.\,α$, for example, $Λq:α.\,q$, we will be unable to synthesize any terms of this type .
+This means that while we can write down example values of type $∀α.\,α$, for example, $Λq:α.\,q$, we will be unable to synthesize any terms of this type.
 (Which is good, because $∀α.\,α$ is uninhabited!)
 
 \input{figures/system-f-syn-synthesis-a}
@@ -195,7 +195,7 @@ To guess the body of the function, we invoke \rulename{irefine-eguess} to guess 
 We would like to synthesize the satisfying expression $b\,t\,f$ as in \autoref{ch:a-simple-synthesis-calculus}.
 However, because $\mbool$ is now polymorphic, we must first instantiate it to the correct type, $α$, using \rulename{eguess-tapp}.
 The complete derivation tree corresponding to this $E$-guessed expression is:
-\[
+\[\qquad\qquad
   \inferrule*[Left=eguess-app]
     {\inferrule*[Left=eguess-app]
       {\inferrule*[Left=eguess-tapp]
@@ -248,14 +248,14 @@ This suggests an alternative example value for polymorphic types---the \emph{pol
 Rather than requiring the user to specify polymorphic binders, we allow them to use concrete values along with a concrete type instantiation instead.
 When using these concrete values, we need to remember in each example world what these type instantiations are so that we can move between type variables and concrete types as necessary.
 We might do this by recording \emph{type equalities} for each example world.
-For example, when refining the single example world $[\mnat] 0 ⇒ 0$ for a goal type $∀α.\,α → α$, we will eventually end up with the refined world
+For example, when refining the single example world $[\mnat]\,0 ⇒ 0$ for a goal type $∀α.\,α → α$, we will eventually end up with the refined world
 \[
   [α ~ \mnat][0 / x] ↦ 0
 \]
 where we remember the top-level polymorphic type variable $α$ is instantiated to $\mnat$ in this world, written $α ~ \mnat$.
 However, the problem is that we can easily abuse this type equality to create invalid code.
 Say that we have this example world with the partial program skeleton $Λα.λx{:}α.\,(◼ : α)$.
-It would be unsound to use this type equality to synthesize $0$ for the whole, even if this value agrees with the example, because the hole is held to an abstract type $α$.
+It would be unsound to use this type equality to synthesize $0$ for the hole, even if this value agrees with the example, because the hole is held to an abstract type $α$.
 
 Rather than recording type equalities that could apply to an entire example world, we must instead record that the example values really have polymorphic type even though they are concrete values (of a particular, known type).
 To do this, we introduce \emph{boxed polymorphic expression}, written $\pbox{e}{α}$, that records that a particular expression ought to be treated as if had type $α$.

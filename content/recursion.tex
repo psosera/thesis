@@ -47,7 +47,7 @@ This simple example value of type $\mkwd{List}$:
   \mfold{\minl{(c, \mfold{\minr{()}})}}
 \]
 Can only be unfolded twice, corresponding to the two $\mfold{\!}$s in the value.
-Thus application of \rulename{irefine-mu} stop once all the $\mfold$s have been peeled away from the example values.
+Thus application of \rulename{irefine-mu} stop once all the $\mfold{\!}$s have been peeled away from the example values.
 
 \subsection{Non-determinism}
 
@@ -92,7 +92,7 @@ We could alter our evaluation strategy to include a timeout or limit on number o
 \input{figures/mlsyn-defn}
 
 Because we can easily enumerate infinite loops that ruin our generate-and-test $E$-guess strategy, we need some way of restricting recursion so that we can regain strong normalization.
-Rather than trying to solve this problem within \lsyn{} where we do not have many hooks for limiting recursive definitions, we graduate to \mlsyn{}, a core ML-like calculus for program synthesis and adopt standard techniques to obtain strong normalization in the system.
+Rather than try to solve this problem within \lsyn{} where we do not have many hooks for limiting recursive definitions, we graduate to \mlsyn{}---a core ML-like calculus for program synthesis---and adopt standard techniques to obtain strong normalization in the system.
 \autoref{fig:mlsyn-defn} defines the syntax of \mlsyn{} which is divided into an external language of expressions $e$ and an internal language of introduction terms $I$ and elimination terms $E$ that constitute the $β$-normal forms of $e$.
 
 \mlsyn{} more closely approximates a real-world functional programming language like OCaml, Haskell, or F\#~\citep{ocaml-2014, fsharp-2013, haskell-2003}.
@@ -143,7 +143,7 @@ This design decision has important ramifications for the metatheory of \mlsyn{} 
 With some minor differences, the rules mirror the type checking rules of \lsyn{}:
 \begin{enumerate}
   \item To admit recursive definitions, \rulename{t-fix} introduces a binder for the function value $f$ in addition to its argument $x$.
-  \item Expanding on the sum rule which binds a single variable, a constructor pattern can bind an arbitrary number of variables.
+  \item Expanding on the sum rule which binds a single variable, a constructor pattern binds an arbitrary number of variables.
     \rulename{t-match} delegates this work to the $\mfun{binders}$ meta-function.
 \end{enumerate}
 
@@ -160,7 +160,7 @@ In addition to these standard rules, we enforce three additional properties to e
       \item $\marg{f}$: denotes an argument to a function $f$, and
       \item $\mdec{f}$: denotes a structurally decreasing variable to the function $f$.
     \end{itemize}
-    When a binding has no specification, we typically elide writing down the empty specification in favor of the standard binding syntax $x{:}τ$.
+    When a binding has no specification, we avoid writing down the empty specification in favor of the standard binding syntax $x{:}τ$.
 
     The judgment $\mfun{struct}(e_1, e_2)$ ensures that two expressions constitute a valid function application.
     Non-recursive functions applications are always valid (\rulename{struct-var-not-rec} and \rulename{struct-not-var}).
@@ -192,7 +192,7 @@ In addition to these standard rules, we enforce three additional properties to e
       \begin{array}{l}
         \mlet\;f\;(x{:}d) : τ =   \\
         \⇥{1} \mmatch\;d\;\mwith  \\
-        \⇥{2} D\,g → g\,d.
+        \⇥{1} \bnfalt D\,g → g\,d.
       \end{array}
     \]
     Then the application $f\,(D\,f)$ is well-typed but goes into an infinite loop.
@@ -276,7 +276,7 @@ Applying \rulename{irefine-arr} in \mlsyn{} produces the following collection of
 \end{align*}
 Even if $σ_1$ and $σ_2$ are identical, $f$ is bound to either $\mpf_1$ or $\mpf_2$
 When evaluating applications to $f$ in these example worlds, we will get different results as $\mpf_1$ and $\mpf_2$ are different partial functions.
-In particular, we will likely encounter $\mNoMatch$ exceptions when evaluating one partial function but not the other because they will likely have some distinct branches.
+In particular, we will likely encounter $\mNoMatch$ exceptions when evaluating one partial function but not the other because they will likely have distinct branches.
 
 In contrast, if we included all the input/output examples in a single partial function:
 \begin{align*}
@@ -365,7 +365,7 @@ However, in \mlsyn{}, the second approach is preferred for the reasons described
 More specifically, in either case, we will synthesize the following program skeleton:
 \[
   \begin{array}{l}
-    \mfix\;f\;(b{:}\mBool) : \mBool → \mBool =
+    \mfix\;f\;(b{:}\mBool) : \mBool → \mBool = \\
     \⇥{1} \mfix\;g\;(b{:}\mBool) : \mBool = ◼.
   \end{array}
 \]
@@ -582,7 +582,7 @@ For example, we may attempt to synthesize a function of the following form
     \⇥{1} \mmatch\;x\;\mwith \\
     \⇥{1}   \bnfalt \mCons(x, l') → \\
     \⇥{2}     \mmatch\;l'\;\mwith \\
-    \⇥{3}       \bnfalt \mCons(y, l'') → … f\,l'' … \\
+    \⇥{2}       \bnfalt \mCons(y, l'') → … f\,l'' … \\
     \⇥{1} …
   \end{array}
 \]
@@ -604,11 +604,11 @@ Therefore, in practice, to fulfill trace completeness we always peel away single
 For example, the partial function specification of $\mkwd{stutter}$ satisfies this property.
 In some cases we may be able to get away with fewer examples, but this approach has the benefit of:
 \begin{enumerate}
-  \item Completeness with respect to synthesis as this choice of supporting examples ensures that any recursive function call with any decomposition of that call's original argument will have a corresponding input/output example in the partial function.
+  \item Completeness with respect to synthesis as this choice ensures that any recursive function call with any decomposition of that call's original argument will have a corresponding input/output example in the partial function.
   \item Requiring that we only know \emph{which} argument of a recursive function will be structurally decreasing which is much more reasonable to assume than the corresponding pattern of recursive calls.
 \end{enumerate}
 The downside to trace completeness is that it can greatly increase the number of examples needed to synthesize a program, especially when multiple arguments are involved.
-In \autoref{ch:evaluating-myth}, we explore this phenomenon in more detail once we have built up a synthesis procedure out of this synthesis judgment.
+In \autoref{ch:evaluating-myth}, we explore this phenomenon in more detail once we have built up a synthesis procedure from this synthesis judgment.
 
 Trace completeness allows us to overcome the fact that we do not have a complete value available for the recursive function that we are trying to synthesize.
 However, we typically have part of that function---sometimes even the whole function---already synthesized.
@@ -646,13 +646,13 @@ Once $I$-refinement bottoms out, \ie, \rulename{irefine-base} or \rulename{irefi
 
 \subsection{Examples and Generalization}
 
-For \mlsyn{}, once $I$-refinement has been exhausted, we must utilize $E$-guessing to complete the program.
+For \mlsyn{}, we must utilize $E$-guessing to complete the program once $I$-refinement has been exhausted.
 In the case that we need to synthesize a recursive function call, we require that the examples are trace complete so that evaluation of the recursive call can be performed by the examples, realized now as a partial function.
 Other example-based synthesis systems also have variants of this requirement.
 \textsc{Thesys} calls this relationship between examples \emph{differences}, something that \textsc{Igor2} also requires.
 \textsc{Escher}~\citep{albarghouthi-cav-2013} also requires a similar sort of property of the examples to evaluate recursive function calls.
 However, rather than demand this property of the examples upfront, \textsc{Escher} queries the user for additional examples as synthesis demands it.
 
-While \mlsyn{} and \textsc{Escher} both enumerate arbitrary recursive function calls in a generate-and-test style, $\textsc{Thesys}$ and its descendents maintain an analytical approach by recognizing a fixed set of recurrence patterns in the rewritten examples in order to generate recursive calls.
+While \mlsyn{} and \textsc{Escher} both enumerate arbitrary recursive function calls in a generate-and-test style, $\textsc{Thesys}$ and its descendants maintain an analytical approach by recognizing a fixed set of recurrence patterns in the rewritten examples in order to generate recursive calls.
 The two approaches represent a trade-off in completeness and scalability.
 The assumption of a fixed set of patterns, similar to a fixed set of combinators~\citep{feser-pldi-2015}, limits the search space significantly but means that certain patterns of recursive calls cannot be synthesized.

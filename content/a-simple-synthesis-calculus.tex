@@ -9,7 +9,7 @@ In typical programming language theory style, we strip away everything but the e
 From \stlc{}, we build a generator for well-typed $λ$-terms and then integrate a notion of specification into the system to create a program synthesis calculus, \lsyn{}.
 
 \lsyn{} itself is far removed from a usable implementation of a program synthesizer.
-However, it allows us to deeply study how to synthesize programs with types, and its meta-theoretic properties.
+However, it allows us to deeply study how to synthesize programs with types, and the procedure's meta-theoretic properties.
 For example, the synthesis judgment of \lsyn{} is sound and complete with respect to synthesis.
 In successive chapters, we evolve \lsyn{} into a practical program synthesizer for ML-like programs, sacrificing some of these properties to handle advanced types and gain efficiency.
 
@@ -21,7 +21,7 @@ In successive chapters, we evolve \lsyn{} into a practical program synthesizer f
 \autoref{fig:stlc-defn} gives the syntax and semantics for \stlc{} which contains the essence of a typed, functional programming language---variables, functions, and application---and their usual type checking rules.
 In addition to these essentials, we also augment \stlc{} with a base type $T$ and a finite, non-empty set of constants $c_1, …, c_k$ of type $T$.
 While multiple constants are not necessary---a single constant makes $T$ isomorphic to the standard $\mUnit$ type---they allow us to synthesize interesting programs.
-We also define a small-step, call-by-value operational semantics for the language using evaluation contexts $ℰ$ which capture the standard of congruence rules for call-by-value evaluation.
+We also define a small-step, call-by-value operational semantics for the language using evaluation contexts $ℰ$ which capture the standard congruence rules for call-by-value evaluation.
 
 \input{figures/lambda-terms-counts.tex}
 
@@ -41,7 +41,7 @@ For example:
 
 Noting that the $y$-axis scale of \autoref{fig:lambda-terms-counts} is at logscale, we can see that the number of syntactically valid, but not necessarily well-typed terms is staggering.
 Even in this extremely limited language, there are 11,084,176 such terms at size 15!
-In contrast, if we limit our consideration to only the well-typed terms, we save an order of magnitude of work; there are only 1,439,481 well-typed terms of size 15 in \stlc.
+In contrast, if we limit ourselves to only the well-typed terms, we save an order of magnitude of work; there are only 1,439,481 well-typed terms of size 15 in \stlc.
 Finally, if we consider only well-typed programs, we may as well further refine our search to programs of a particular type that we are interested in.
 The savings here is even larger; if we are trying to find terms of type $T → T$, we only have to search 6,205 terms.
 
@@ -83,7 +83,7 @@ As a concrete example, we generate the well-typed closed term $(λx{:}T → T.\,
 \]
 Note that the derivation for term enumeration is identical to the derivation for type checking!
 This is because the rules for well-typed term enumeration mirror the rules for type checking.\footnote{%
-  In fact, because the type-checking and and term-enumeration judgments describe \emph{relations} which do not have inputs or outputs, they are equivalent!
+  In fact, because the type-checking and term-enumeration judgments describe \emph{relations} which do not have inputs or outputs, they are equivalent!
   But then, why did we bother including a term-enumeration judgment at all?
   We use this term-enumeration judgment as a starting point to arrive at a synthesis judgment that will do more than relate terms and types; it will relate examples as well.
 }
@@ -150,7 +150,7 @@ This distinction becomes very useful when we talk about refining specification i
 
 \autoref{fig:stlc-gen-normal} gives the rules for generating \stlc{} terms in this restricted term language.
 Because there are two syntactic forms, we introduce two judgments to synthesize $E$- and $I$-terms, $\synE$ and $\synI$, respectively.
-Note that the judgments are mutually recursive because the definition of $E$ and $I$ terms is mutually recursive.
+Note that the judgments are mutually recursive because the definitions of $E$ and $I$ terms are mutually recursive.
 The rule \rulename{gen-Ielim} allows us to generate an $E$ where ever an $I$ is expected (because $E$s are a proper subset of the $I$s).
 And the rule \rulename{gen-Eapp} generates the function as an $E$ and its argument as an $I$.
 Otherwise, the rules are identical to the $e$-term generation judgment given in \autoref{fig:stlc-gen}.
@@ -186,9 +186,9 @@ To solve this problem, the user must specify more examples which is burdensome, 
 Thankfully, heuristics like this tend to work well in practice.
 Furthermore, this ambiguity can be mitigated by smart interface design decisions, \eg, displaying the top five synthesis results rather than a singular result and allowing the user to choose.
 
-In exchange for being incomplete, examples can be less burdensome on the user to specify.
+In exchange for being incomplete, examples can be less burdensome for the user to specify.
 Because examples are typically concrete instances of a function's behavior, they allow the user to reason more about \emph{what} their function ought to do rather than \emph{how} the function ought to go about doing it.
-This is favorable because the ``how'' is usually the sticking point for a user to create a program on their own, whether it is because they do not understand the syntax of programming language they must use or the algorithms necessary to produce the desired behavior.
+This is favorable because the ``how'' is usually the sticking point for a user to create a program on their own, whether it is because they do not understand the syntax of programming language or the algorithms necessary to produce the desired behavior.
 
 For example, consider the set of input/output examples specifying a function in a language extended with natural numbers and lists:
 \begin{align*}
@@ -203,7 +203,7 @@ In contrast, consider a logical specification of how this function ought to beha
   \mkwd{sorted}(l) = ∀ x :: l' ⊑ l.\; ∀ y ∈ l.\; x < y
 \end{gather*}
 The $\mkwd{sorted}$ predicate states that for all sub-lists ($⊑$) of $l$, the head $x$ of that sub-list is the least element of that sub-list.
-While this logical specification precisely describes the behavior of any function that sorts a list, it takes a bit of ingenuity to come up with this specification.
+While this logical specification more precisely describes the behavior of any function that sorts a list, it takes a bit of ingenuity to come up with this specification.
 
 Finally and most importantly, we use examples because they decompose naturally with types.
 For example, the input/output example $[0, 1] ⇒ [1, 0]$ decomposes according to the arrow type $\mlist → \mlist$.
@@ -219,13 +219,13 @@ Therefore, we adopt the following grammar of \emph{example values} $χ$ that we 
   χ \bnfdef c \bnfalt \many{v_i ⇒ χ_i}{i < m}
 \]
 For each type of \stlc{}, we include a term that stands in as an example of that type.
-As we extend our language with additional features, we'll find that most of the time this term is simply the values for that type, \eg, the constants $c_k$ for base type $T$.
+As we extend our language with additional features, we'll find that most of the time this term is simply the value form for that type, \eg, the constants $c_k$ for base type $T$.
 However, lambdas serve as a poor example value for arrow types because providing a function value is tantamount to describing exactly how the function ought to behave!
 Instead, we make sets of input/output pairs first-class example values with \emph{partial function} terms written:
 \[
-  v_1 ⇒ χ_1 \bnfalt … \bnfalt v_n ⇒ χ_m
+  v_1 ⇒ χ_1 \bnfalt … \bnfalt v_m ⇒ χ_m
 \]
-A partial function introduces $n$ input/output pairs of the form $v_i ⇒ χ_i$ that specify that when the synthesized function is supplied a $v_i$, it produces a $χ_i$.
+A partial function introduces $m$ input/output pairs of the form $v_i ⇒ χ_i$ that specify that when the synthesized function is supplied a $v_i$, it produces a $χ_i$.
 Like $→$, $⇒$ associates to the right, and as a result, functions of $k$ arguments are represented in curried style, $v_1 ⇒ … ⇒ v_k ⇒ χ$.
 Because of this, we restrict the right-hand side of a $⇒$ to be an example value.
 This ensures that lambdas never appear as the \emph{goal} of a synthesis problem.
@@ -248,7 +248,7 @@ specifies the $\mkwd{if}$ function of type $\mBool → T → T → T$, usually d
 \[
   \mkwd{if} ≝ λb{:}\mBool.\,λt{:}T.\,λf{:}T.\,b\,t\,f
 \]
-Note that the convenience of specifying arguments to higher-order functions as lambdas allows us to use $\mtrue$ and $\mfalse$ in the input/output examples as expected.
+Note that the convenience of specifying arguments to higher-order functions as lambdas allows us to use $\mtrue$ and $\mfalse$ directly in the input/output examples.
 
 \section{\texorpdfstring{$λ_{syn}$}{λsyn}: A Program Synthesis Calculus}
 \label{sec:lsyn-a-program-synthesis-calculus}
@@ -296,14 +296,14 @@ The term $b\,t\,f$ has the correct type and satisfies our examples because we ca
   \mtrue\,c_1\,c_2 ⟶^* c_1 \\
   \mfalse\,c_1\,c_2 ⟶^* c_2
 \end{align*}
-which are the example values we required that the term should evaluate to.
+which are the values that each example world required.
 
 \subsection{Introducing \texorpdfstring{$λ_{syn}$}{λsyn}}
 \label{subsec:introducing-lsyn}
 
 \input{figures/lsyn-defn.tex}
 
-In the previous example, we performed a mix of \emph{symbolic evaluation} and \emph{type-directed refinement} to synthesize the program.
+In the previous example, we performed a mixture of \emph{symbolic evaluation} and \emph{type-directed refinement} to synthesize the program.
 We now formalize this process within \lsyn{}, a core calculus for program synthesis with types.
 
 \autoref{fig:lsyn-defn} gives the syntax of \lsyn{} which features an external language of standard expressions $e$ taken from \stlc{} and an internal language that splits up expressions into introduction forms $I$ and elimination forms $E$.
@@ -318,13 +318,13 @@ To make this explicit, we separate $E$ and $I$ type checking into two separate j
 For example when type checking a variable (\rulename{t-Evar}), we can extract the type of that variable from the context.
 In contrast, when type checking a function (\rulename{t-Ilam}), while we know the type of the argument from the ascription, we have no information about the body, so we must check the body against a given input type.
 Type checking examples values $χ$, in contrast, is straightforward.
-Constants $c_k$ all have type $T$ (\rulename{t-ex-base}), and a partial function $\many{v_i ⇒ χ_i}{i < m}$ has type $τ_1 → τ_2$ if all of $v_i$ have type $τ_1$ and all of the $χ_i$ have type $τ_2$ (\rulename{t-ex-pf}).
+Constants $c_k$ all have type $T$ (\rulename{t-ex-base}), and a partial function $\many{v_i ⇒ χ_i}{i < m}$ has type $τ_1 → τ_2$ if all of the $v_i$ have type $τ_1$ and all of the $χ_i$ have type $τ_2$ (\rulename{t-ex-pf}).
 
 \subsection{Example Worlds}
 \label{subsec:example-worlds}
 
-Example worlds were a critical component of how we synthesized the $\mkwd{if}$ function in \autoref{subsec:integrating-search-and-specification}.
-Recall that each example world contained not only an example value that the synthesized program needed to evaluate to, but also a collection of values that each free variable of the program takes on in that example world.
+Example worlds were a critical component of the synthesis process for the $\mkwd{if}$ function in \autoref{subsec:integrating-search-and-specification}.
+Recall that each example world contains not only an example value that the synthesized program must evaluate to, but value bindings for each of the free variable of the program.
 To codify this, we define an example world as a pair $σ ↦ χ$ of a \emph{goal example value} $χ$ and an \emph{environment} $σ$ that maps variables to values.
 A collection of these example worlds is denoted with $Χ$, and when it is unambiguous to do so, we refer to these collections of example worlds as our ``examples''.
 
@@ -361,7 +361,7 @@ Given a context $Γ$, goal type $τ$, and examples $Χ$ where $Γ ⊢ X : τ$, s
 The two mutually recursive judgments combine to form a non-deterministic synthesis system where a complete \rulename{irefine} derivation corresponds to a solution of this synthesis problem.
 
 \paragraph{Refinement}
-In \autoref{subsec:introducing-lsyn}, we observed that distinguishing between introductory forms $I$ and elimination forms $E$ helped us to identify when a type should be treated as an input or output during typechecking.
+In \autoref{subsec:introducing-lsyn}, we observed that distinguishing between introductory forms $I$ and elimination forms $E$ helped us identify when a type should be treated as an input or output during typechecking.
 This insight also applies to how we treat examples in tandem with term generation.
 With introduction forms, the shape of the term and its corresponding type dictate how we refine example values.
 For example, at base type, our example values consist of constants.
@@ -379,7 +379,7 @@ The value bound to that variable is the left-hand side of each input/output exam
 We then use these new example worlds to synthesize the body of the lambda.
 
 In general, $Χ$ may contain $n$ example worlds $σ_1 ↦ \mpf_1, …, σ_n ↦ \mpf_n$.
-When there are multiple example worlds, we simply $\mfun{apply}$ each of the example worlds to generate a collection $Χ_1, …, Χ_n$ of example worlds and then concatenates them all together to create the final collection of example worlds $Χ'$ to be used to synthesize the body of the lambda.
+When there are multiple example worlds, we simply $\mfun{apply}$ each of the example worlds to generate a collection $Χ_1, …, Χ_n$ of example worlds and then concatenate them all together to create the final collection of example worlds $Χ'$ to be used to synthesize the body of the lambda.
 This occurs if the user specifies multiple partial functions rather than a single partial function.
 
 Surprisingly, there is a subtle semantic distinction between a collection of partial functions and a single partial function.
@@ -404,7 +404,7 @@ then applying \rulename{irefine-arr} results in the following examples,
 \end{align*}
 The only difference between the two cases is the original environments, $σ_1$ and $σ_2$ versus $σ$, that we extend when deriving $Χ'$.
 The initial environments shared among all the example worlds ought to be identical (as the values for the free variables of the program must be the same), so in our simply-typed setting, there is no practical difference between a collection of partial functions and a single partial function.
-However, in~\autoref{ch:recursion}, we explore changes to \rulename{irefine-arr} that make this no fact longer true.
+However, in~\autoref{ch:recursion}, we explore changes to \rulename{irefine-arr} that make this fact no longer true.
 
 \paragraph{Guessing}
 In contrast, with $E$-terms, we are unable to refine the examples in this manner.
@@ -425,12 +425,10 @@ The bridge rule \rulename{irefine-guess} enforces this by not only generating an
 This satisfaction judgment ensures that, for each example world, evaluating $I$ under that environment results in a value $v$ that is compatible to the goal example value for that world.
 Environment or substitution application, written $σ(I)$, produces an external language expression $e$ suitable for evaluation.
 
-This compatibility relation%
-\footnote{%
-  Because the compatibility relation is between two different syntactic classes, it is not an equivalence as it cannot be reflexive.
-  Although, we are trying to equate a value and an example value as ``equal'' with the relation.
+This compatibility relation\footnote{%
+  Because the compatibility relation is between two different syntactic classes, it is not an equivalence as it cannot be reflexive, even though it tries to equate a value and an example value.
 },
-written $v ≃ χ$, only needs to compare between a value $v$ and some goal example value $χ$.
+written $v ≃ χ$, only needs to compare a value $v$ and some goal example value $χ$.
 At base type, $v$ and $χ$ are constants so it suffices to ensure they are the same constant (\rulename{eq-ctor}).
 At arrow type, $v$ is a lambda and $χ$ is a partial function.
 To ensure compatibility, it is sufficient to check for each input/output pair of the partial function that running $v$ on the input of the pair produces a value compatible with the output of the pair (\rulename{eq-lam-pf}).
@@ -464,7 +462,7 @@ To better understand how \lsyn{} operates, let's work through a number of exampl
       {x{:}T ⊢ T ▷ [c_1/x] ↦ c_1, [c_2/x] ↦ c_2 ⇝ x}}
     {· ⊢ T → T ▷ · ↦ c_1 ⇒ c_1 \bnfalt c_2 ⇒ c_2 ⇝ λx{:}T.\,x}
   \]
-  With the way the synthesis judgments are set up, we always make a number of $\rulename{irefine}$ derivations ending in a number of $\rulename{eguess}$ derivations.
+  With our synthesis judgments, we always make a number of $\rulename{irefine}$ derivations ending in a number of $\rulename{eguess}$ derivations.
   This observation leads to a critical implementation optimization, \emph{refinement trees}, that we explore in \autoref{ch:implementation}.
 \end{example}
 
@@ -575,7 +573,7 @@ With our foundations, we can explain the salient features of these systems in te
 
 In \lsyn{}, we make a distinction between the terms that allow example refinement---introduction terms---and the terms that do not---elimination forms.
 Ideally, we would allow example refinement through all the terms of our language.
-However, this is is difficult to do for our elimination forms.
+However, this is difficult to do for our elimination forms.
 In particular, recall \lsyn{}'s rule for synthesizing function application:
 \[
   \inferrule[eguess-app]
@@ -627,7 +625,7 @@ In this light, \lsyn{} specifies a \emph{backwards search} for a satisfying prog
 That is, \lsyn{} exclusively refines the goal during the synthesis process.
 Other proof search-inspired also take advantage of backwards search, \eg, \textsc{InSynth}~\citep{gvero-pldi-2013}.
 
-In contrast, we could instead perform a \emph{forwards search} by refining our context during synthesis.
+In contrast, we could instead perform a \emph{forward search} by refining our context during synthesis.
 Consider extending our context so that it hold arbitrary expressions rather than just variables.
 Now, starting with our free variables, we can incrementally grow the context by enumerating well-typed terms in some order, for example, increasing size.
 At each step, we can check to see if we can construct a program from the \emph{components} in the context that satisfies our examples.
