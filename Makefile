@@ -17,4 +17,4 @@ ${BUILD_DIR} :
 
 clean :
 	latexmk -C
-	rm -rf ${BUILD_DIR} *.gen.tex *.thm
+	rm -rf ${BUILD_DIR} *.thm
