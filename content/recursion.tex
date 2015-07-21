@@ -616,3 +616,43 @@ For example, when we were synthesizing $\mkwd{stutter}$, the recursive call that
 If we did, then we wouldn't need our examples to be trace complete because we can simply evaluate the recursive function like normal instead of appealing to a partial function value.
 The problem is that, in general, this may not be true as we may have only synthesized some of the branches of a pattern match before needing to evaluate a recursive function call.
 In \autoref{ch:conclusion}, we briefly explore how we can use this partial program information to reduce the number of examples we need to provide to the synthesizer.
+
+\section{Related Work}
+\label{sec:related-work-mlsyn}
+
+In this chapter, we extended \lsyn{} to synthesize recursive programs and algebraic data types.
+We now compare our approach to other example-based systems that synthesize recursive functional programs.
+
+\subsection{Example Rewriting}
+
+The earliest example-based synthesis systems such as \textsc{Thesys}~\citep{summers-popl-1976} took an \emph{analytical} approach to example refinement where the examples were incrementally rewritten to a set of Lisp-like primitives and generalized to create a final program.
+Modern improvements on \textsc{Thesys} such as \textsc{Igor2}~\citep{kitzelmann-thesis-2010} and \textsc{MagicHaskeller}~\citep{katayama-pepm-2012} improve upon \textsc{Thesys} in a variety of ways, in particular, generalizing the rewriting of examples to arbitrary term-rewriting of constructors.
+This process finds the \emph{least general generalization} of the set of input/output examples through antiunification.
+This amounts to equating the parts of the examples that are the same and abstracting away the parts that are different as new synthesis sub-problems to solve.
+For example, for the following example constructor values:
+\begin{align*}
+  \mCons(0, \mNil) &⇒ \mCons(0, \mCons(0, \mNil)) \\
+  \mCons(1, \mCons(0, \mNil)) &⇒ \mCons(1, \mCons(1, \mCons(0, \mCons(0, \mNil))))
+\end{align*}
+the least general generalization creates the following constructor value:
+\begin{align*}
+  \mCons(x, l_1) &⇒ \mCons(x, \mCons(x, l_2))
+\end{align*}
+Where the variable $l_2$ is a synthesis sub-problem that must be solved.
+
+This process of antiunification describes exactly the behavior of \mlsyn{}'s $I$-refinement rules.
+In particular, you can think of the constructor peeling behavior of the \rulename{irefine-base} rule as performing one step of anti-unification on the top-most constructor value.
+Once $I$-refinement bottoms out, \ie, \rulename{irefine-base} or \rulename{irefine-arr} no longer apply, we resort to other means to complete the program, similarly to \textsc{Igor2} and its related systems.
+
+\subsection{Examples and Generalization}
+
+For \mlsyn{}, once $I$-refinement has been exhausted, we must utilize $E$-guessing to complete the program.
+In the case that we need to synthesize a recursive function call, we require that the examples are trace complete so that evaluation of the recursive call can be performed by the examples, realized now as a partial function.
+Other example-based synthesis systems also have variants of this requirement.
+\textsc{Thesys} calls this relationship between examples \emph{differences}, something that \textsc{Igor2} also requires.
+\textsc{Escher}~\citep{albarghouthi-cav-2013} also requires a similar sort of property of the examples to evaluate recursive function calls.
+However, rather than demand this property of the examples upfront, \textsc{Escher} queries the user for additional examples as synthesis demands it.
+
+While \mlsyn{} and \textsc{Escher} both enumerate arbitrary recursive function calls in a generate-and-test style, $\textsc{Thesys}$ and its descendents maintain an analytical approach by recognizing a fixed set of recurrence patterns in the rewritten examples in order to generate recursive calls.
+The two approaches represent a trade-off in completeness and scalability.
+The assumption of a fixed set of patterns, similar to a fixed set of combinators~\citep{feser-pldi-2015}, limits the search space significantly but means that certain patterns of recursive calls cannot be synthesized.

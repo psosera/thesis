@@ -7,26 +7,27 @@ Programmers that use these languages frequently comment that once they figure ou
 Let's investigate this final point in more detail.
 Consider writing a simple program, say the $\mkwd{map}$ function over lists, in a ML-like language.
 First, let's establish the type of the overall function: $\mkwd{map}$ is a higher-order function that takes (1) a function that transforms a single element of a list into some other type, (2) a list of the first type, and produces a list of the second type.
-This means that $\mkwd{map}$ has type $({'a} → {'b}) → {'a}\,\mlist → {'b}\,\mlist$ where ${'a}\,\mlist$ is ML's way of writing down a \emph{polymorphic} or \emph{generic} list where ${'a}$ is a type variable that represents the type of elements of that list, its \emph{carrier type}.
+This means that $\mkwd{map}$ has type $({'a} → {'b}) → {'a}\,\mlist → {'b}\,\mlist$ where ${'a}\,\mlist$ is ML's way of writing down a \emph{polymorphic} or \emph{generic} list.
+Here, ${'a}$ is a type variable that represents the type of elements of that list, its \emph{carrier type}.
 Now, let's develop this function incrementally in a \emph{type-directed} manner by keeping close track of the types of expressions we need to fill in at each point of the program.
-Initially, we have the following goal:
+Initially, we have the following goal,
 \[
-  ◼ : ({'a} → {'b}) → {'a}\,\mlist → {'b}\,\mlist
+  ◼ : ({'a} → {'b}) → {'a}\,\mlist → {'b}\,\mlist,
 \]
 where $◼$ represents our \emph{goal}---the hole in the program we need to fill with an expression.
-Because we are at arrow type, it makes sense to introduce a function, so let's do that:
+Because we are at arrow type, it makes sense to introduce a function:
 \[
-  \mlet\;\mrec\;\mkwd{map}\;(f{:}{'a} → {'b}) (l{:}{'a}\,\mlist) : {'b}\,\mlist = ◼ : {'b}\,\mlist
+  \mlet\;\mrec\;\mkwd{map}\;(f{:}{'a} → {'b}) (l{:}{'a}\,\mlist) : {'b}\,\mlist = ◼ : {'b}\,\mlist.
 \]
 
 With the function written down, our goal is to now fill in the body of the function which, by the definition of the function, must produce a ${'b}\,\mlist$.
 Note how the rich types greatly constrain the set of programs we can write at this point.
 Because the carrier type of the output list is unknown, we have no way of constructing a non-empty ${'b}\,\mlist$.
-The only other value we can provide is the empty list which means $\mkwd{map}$ incorrectly produces the empty list for any pair of inputs.
+The only other value we can provide is the empty list which means $\mkwd{map}$ would produce the empty list for any pair of inputs which is not correct.
 We need more information to make progress, and we obtain that information by \emph{pattern matching}:
 \[
   \begin{array}{l}
-    \mlet\;\mrec\;\mkwd{map}\;(f{:}{'a} → {'b}) (l{:}{'a}\,\mlist) : {'b}\,\mlist =
+    \mlet\;\mrec\;\mkwd{map}\;(f{:}{'a} → {'b}) (l{:}{'a}\,\mlist) : {'b}\,\mlist = \\
       \⇥{1}\mmatch\;l\;\mwith \\
       \⇥{1}\bnfalt \mNil → ◼ : {'b}\,\mlist \\
       \⇥{1}\bnfalt \mCons(x, {l'}) → ◼ : {'b}\,\mlist.
@@ -38,7 +39,7 @@ We are left with two goal expressions to fill in, both of type ${'b}\,\mlist$, c
 
 In the $\mNil$ branch, we know the input $l$ is the empty $\mlist$ at this point in the program, so it is sensible to produce the empty list.
 In the $\mCons$ branch, we know that the $\mlist$ has at least one element $x$ of type ${'a}\,\mlist$ and we have a handle on the rest of the list ${l'}$.
-With $x$, we now have a way of manufacturing a ${'b},\mlist$: applying $x$ to $f$!
+With $x$, we now have a way of manufacturing a ${'b}\,\mlist$: applying $x$ to $f$!
 With this, we can transform the head of list $l$ and the cons that onto the result of recursively mapping over the tail of $l$.
 Thus, the final program is:
 \[
@@ -49,15 +50,15 @@ Thus, the final program is:
       \⇥{1}\bnfalt \mCons(x, {l'}) → \mCons(f\,x, \mkwd{map}\,{l'}).
   \end{array}
 \]
-At the end, we needed some ingenuity to recognize how to break down mapping a list in terms of its components.
-However, we can see how even these types guided our development process by constraining the allowable set of programs at different points of the rogram.
+At the end, we needed some ingenuity to recognize how to break down the mapping operation over a list in terms of its components.
+However, we can see how types guided our development process by constraining the allowable set of programs at different points of the program.
 The question is simple: can we automate this sort of type-directed reasoning?
 Given a type, and perhaps some additional specification of how a program should behave, can we derive a program of the appropriate type that meets this specification?
 
 This process of generating programs automatically from specification is called \emph{program synthesis} and is one of the greatest, longest-standing pursuits of computer science.
 At its core, program synthesis is a problem of combining \emph{search} with \emph{specification}.
 The domain of the search is the infinite sea of possible programs (for some particular programming language).
-And specification allows us to pick out particular programs of interest that we find during search.
+Specification allows us to pick out particular programs of interest that we find during search.
 This specification can take many forms, for example, logical statements~\citep{green-ijcai-1969, manna-tse-1979}, input/output examples~\citep{summers-popl-1976, kitzelmann-thesis-2010, albarghouthi-cav-2013, feser-pldi-2015}, and partial programs~\citep{solar-lezama-thesis-2008, alur-fmcad-2013, singh-pldi-2013}, among others.
 Regardless of the mode of specification we choose, the search and specification components of synthesis frequently inform each other; specification helps refine the space of possible programs, making search tractible, and different search techniques are more amendable to particular kinds of specification.
 
@@ -91,6 +92,7 @@ Here we briefly survey the field of program synthesis\footnote{%
   Because program synthesis is such a vast field of study, we don't intend on capturing its full breadth here.
   For more thorough introductions to program synthesis, we recommend reading the surveys by \citet{kreitz-automated-deduction-1998}, \citet{flener-jlp-1999}, \citet{gulwani-ppdp-2010}, and \citet{kitzelmann-aaip-2010}.
 } to get a sense of what approaches have been previously studied and how they contrast with our own type-theoretic style.
+We defer discussion of how these approaches contrast with our own until after we present the details of how our type-directed program synthesis systems operate in the presence of various types (\autoref{sec:related-work-lsyn} and \autoref{sec:related-work-mlsyn}).
 
 \subsection{Methodologies}
 \label{subsec:methodologies}
@@ -129,7 +131,7 @@ Notably, these final approaches blur the line between the AI/logical tradition o
   While program synthesis has proven to be an enduring problem, the different approaches understandably come and go as computer science matures and our technology becomes more advanced.
 }
 
-Note that while not directly related to program synthesis, \emph{per se}, because they explore the search space of programs through term enumeration, these guess-and-check inductive programming approaches share many concerns with \emph{automatic test generation}~\citep{claessen-flp-2014, grygiel-jfp-2013, yakushev-aaip-2010}.
+Note that while not directly related to program synthesis, because they explore the search space of programs through term enumeration, these guess-and-check inductive programming approaches share many concerns with \emph{automatic test generation}~\citep{claessen-flp-2014, grygiel-jfp-2013, yakushev-aaip-2010}.
 In particular when enumerating terms, we want to avoid generating redundant or otherwise unnecessary terms, in particular, terms that are equivalent to terms that we have already generated.
 
 \paragraph{Machine Learning Techniques}

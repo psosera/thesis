@@ -4,7 +4,7 @@ Ideally, we would like to build synthesis systems in such a way that we know pre
 For example, does ruling out a certain class of programs impact the completeness of the synthesis algorithm?
 If so, are these programs relevant or are they safe to ignore for practical purposes?
 
-To this end, we begin by constructing a theoretical foundation for program synthesis types.
+To this end, we begin by constructing a theoretical foundation for program synthesis with types.
 In typical programming language theory style, we strip away everything but the essential components of typed, functional programming languages by starting with the simply-typed lambda calculus, \stlc{}.
 From \stlc{}, we build a generator for well-typed $λ$-terms and then integrate a notion of specification into the system to create a program synthesis calculus, \lsyn{}.
 
@@ -562,3 +562,97 @@ To better understand how \lsyn{} operates, let's work through a number of exampl
   Thus, we must decide not only equivalence between example values but also environments.
   Throughout this work, we assume that examples given by the user are non-contradictory, leaving detection to future work.
 \end{example}
+
+\section{Related Work}
+\label{sec:related-work-lsyn}
+
+In this chapter, we have demonstrated the fundamentals of program synthesis with types.
+With these fundamentals established, we now make technical comparisons of this program synthesis style with the prior approaches that we discussed in \autoref{sec:the-landscape-of-program-synthesis}.
+In particular, previous work has explored program synthesis techniques using both types and examples as modes of specification, but not in the type-theoretic style that we propose.
+With our foundations, we can explain the salient features of these systems in terms of type theory and our own work.
+
+\subsection{Example Refinement}
+
+In \lsyn{}, we make a distinction between the terms that allow example refinement---introduction terms---and the terms that do not---elimination forms.
+Ideally, we would allow example refinement through all the terms of our language.
+However, this is is difficult to do for our elimination forms.
+In particular, recall \lsyn{}'s rule for synthesizing function application:
+\[
+  \inferrule[eguess-app]
+    {Γ ⊢ τ_1 → τ_2 ⇝ E \\ Γ ⊢ τ_1 ▷ · ⇝ I}
+    {Γ ⊢ τ_2 ⇝ E\,I} \\
+\]
+To refine examples through the function application $E\,I$, we may guess a particular function $E$, refine the examples in some manner, and feed them to the synthesis sub-problem for $I$.
+The examples should be refined in such a way that we synthesize an $I$ such that $E\,I$ satisfies the original set of examples.
+The problem is that, in general, this requires that we invert the behavior of $E$ to discover how to refine the examples to satisfy this property.
+For arbitrary $E$, this is impossible to do as the function may not have an inverse (\ie, it is surjective but not a bijection).
+
+However, we are able to make progress if we are able to make assumptions about the possible set of functions that can appear in an application.
+These sorts of assumptions are made by several \emph{combinator-based synthesis systems} such as $λ^2$~\citep{feser-pldi-2015} and \textsc{FlashExtract}~\citep{le-pldi-2014} to push examples through the application of a fixed set of functions.
+For example, suppose that we are synthesizing a function with the single input/output example:
+\[
+  [0, 1, 2, 3] ⇒ [1, 2, 3, 4].
+\]
+Then, because the behavior of the standard $\mkwd{map}$ function is
+\[
+  \begin{array}{l}
+    \mlet\;\mrec\;\mkwd{map}\;f\;l = \\
+    \⇥{1}\mmatch\;l\;\mwith \\
+    \⇥{1}\bnfalt [] → [] \\
+    \⇥{1}\bnfalt x :: xs → f\;x :: \mkwd{map}\;f\;xs
+  \end{array}
+\]
+we know that we can synthesize a program of the form $λl{:}\mlist.\,\mkwd{map}\,◼\,l$ where the hole is a function of type $\mnat → \mnat$ with refined examples:
+\[
+  0 ⇒ 1 \bnfalt 1 ⇒ 2 \bnfalt 2 ⇒ 3 \bnfalt 3 ⇒ 4.
+\]
+Both $λ^2$ and \textsc{FlashExtract} admit variants of this rule for $\mkwd{map}$ and other functional combinators.
+
+Such rules are admissible in our system.
+For example, here is an equivalent rule for $I$-refining $\mkwd{map}$ in our system extended with recursion (\autoref{ch:recursion}) and polymorphism (\autoref{ch:polymorphism}).
+\[
+  \inferrule[irefine-map]
+    { Χ  = \many{σ_i ↦ [χ_{1i}, …, χ_{ki}] ⇒ [χ'_{1i}, …, χ'_{ki}]}{i < n} \\\\
+      Χ' = \many{σ_i ↦ χ_{1i} ⇒ χ'_{1i}, …, σ_i ↦ χ_{ki} ⇒ χ'_{ki}}{i < n} \\\\
+      Γ ⊢ α → β ▷ Χ' ⇝ f }
+    { Γ ⊢ α\,\mlist → β\,\mlist ▷ Χ ⇝ λl{:}α\,\mlist.\,\mkwd{map}\,f\,l }
+\]
+Intuitively, this rule synthesizes a function $f$ for $\mkwd{map}$ by breaking up the input/output examples between lists point-wise, creating new examples that describe the required behavior of $f$.
+Our $E$-guessing rules provide a necessary fall back for when these shortcuts are not possible.
+
+\subsection{Forwards and Backwards Search}
+
+We can interpret synthesis in \lsyn{} as proof search through the Curry-Howard isomorphism~\citep{william-curry-1980} where program synthesis at a particular type is equivalent to proof search of a particular proposition.
+In this light, \lsyn{} specifies a \emph{backwards search} for a satisfying program.
+That is, \lsyn{} exclusively refines the goal during the synthesis process.
+Other proof search-inspired also take advantage of backwards search, \eg, \textsc{InSynth}~\citep{gvero-pldi-2013}.
+
+In contrast, we could instead perform a \emph{forwards search} by refining our context during synthesis.
+Consider extending our context so that it hold arbitrary expressions rather than just variables.
+Now, starting with our free variables, we can incrementally grow the context by enumerating well-typed terms in some order, for example, increasing size.
+At each step, we can check to see if we can construct a program from the \emph{components} in the context that satisfies our examples.
+This style of forwards search-based program synthesis is performed by \textsc{Escher}~\citep{albarghouthi-cav-2013} which creates a satisfying program (in a Lisp-like programming language) from a set of components built up from atoms.
+
+There are benefits and drawbacks to employing either a backwards or forwards-based program search.
+Our backwards search allows us to decompose examples \emph{during} goal refinement which allows us to greatly cut down the space of programs during synthesis.
+However, in the presence of other types such as products, pure backwards search can be inefficient because it introduces unnecessary non-determinism into the search process.
+To obtain the best of both worlds, we can adopt a search strategy that combines backwards and forwards by using \emph{focusing}.
+\citet{scherer-icfp-2015} use a proof search strategy equipped with focusing to efficiently find inhabitants of some given type, and we briefly explore the addition of focusing to \lsyn{} in conjunction with products in \autoref{subsec:tuple-efficiency}.
+
+\subsection{Type-directed Synthesis Systems}
+
+An alternative view of \lsyn{} is that it solves the \emph{type inhabitation problem}---given a type, produce an inhabitant of that type.
+Several other systems have phrased the synthesis problem in terms of type inhabitation.
+For example, \textsc{Prospector}~\citep{mandelin-pldi-2005} auto-completes API queries by building up chains of object method calls called \emph{jungloids}.
+The discovery of these jungloids is type-directed: given a pair of types $(τ_1, τ_2)$ find a chain of jungloids whose composition has type $τ_1 → τ_2$.
+It is analogous to repeated applications of our $E$-guessing rules, in particular \rulename{eguess-app} which computes one such function in this chain.
+
+\citet{perelman-pldi-2012} use types to provide auto-completion for the C\# programming language.
+To do this, they generate well-typed program completions for a given completion query and rank those programs according to a number of heuristics including depth, name, namespace, and \emph{type distance}---the distance between two types in the type hierarchy.
+\textsc{InSynth}~\citep{gvero-pldi-2013} performs similar sorts of auto-completion for the Scala programming language, but it draws its rankings or weights of components by analyzing corpora of code.
+These sorts of heuristics are also admissible in our system, similar to the example refinement heuristics discussed previously.
+In particular, these rankings could be adapted to the $E$-term generation algorithms we discuss in \autoref{ch:implementation} to prioritize particular $E$-terms over others.
+
+Finally, it is worthwhile to note that none of these type-directed systems that we have discussed include examples as part of their specification.
+Really, \lsyn{} solves the \emph{type inhabitation and example satisfaction problem} where we are interested in finding programs of a particular type that satisfy the given examples.
+The example-refining techniques that we have developed here could be adapted to these systems, so that they can benefit from the additional specification power that examples provide.
