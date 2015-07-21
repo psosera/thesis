@@ -43,7 +43,7 @@ Noting that the $y$-axis scale of \autoref{fig:lambda-terms-counts} is at logsca
 Even in this extremely limited language, there are 11,084,176 such terms at size 15!
 In contrast, if we limit our consideration to only the well-typed terms, we save an order of magnitude of work; there are only 1,439,481 well-typed terms of size 15 in \stlc.
 Finally, if we consider only well-typed programs, we may as well further refine our search to programs of a particular type that we are interested in.
-The savings here is even larger; if we are trying to find terms of type $T → T$, we only have to search 1,489 terms.
+The savings here is even larger; if we are trying to find terms of type $T → T$, we only have to search 6,205 terms.
 
 We could refine our term generation strategy by enumerating syntactically well-typed terms and then filtering out terms that fail to type check.
 This has the benefit of ensuring that any terms that we keep around will be well-typed.

@@ -11,7 +11,7 @@
     \begin{gather*}
       \fbox{\mbox{$Γ ⊢ e : τ$}} \qquad
         \inferrule[t-var]
-          {x ∈ Γ}
+          {x{:}τ ∈ Γ}
           {Γ ⊢ x : τ} \qquad
         \inferrule[t-app]
           {Γ ⊢ e_1 : τ_1 → τ_2 \\ Γ ⊢ e_2 : τ_1}

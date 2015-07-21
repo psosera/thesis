@@ -1,10 +1,10 @@
 Type systems are the most ubiquitous form of formal verification tool present in programming languages today.
-They provide a number of important benefits to programmers, for example, static checking of errors and opportunities for optimizations.
+They provide a number of important benefits for programmers, for example, static checking of errors and opportunities for optimizations.
 However, one of the most often overlooked benefits is that type systems also help programmers design programs more efficiently.
-In particular, typed, functional programming languages like ML and Haskell provide a perfect storm of rich types coupled with a succient, yet powerful set of languages features.
+In particular, typed, functional programming languages like ML and Haskell provide a compelling combination of rich types coupled with a succient, yet powerful set of languages features.
 Programmers that use these languages frequently comment that once they figure out the types of their program, the program just writes itself!
 
-Let's investigate this final point in more detail.
+Let's investigate this point in more detail.
 Consider writing a simple program, say the $\mkwd{map}$ function over lists, in a ML-like language.
 First, let's establish the type of the overall function: $\mkwd{map}$ is a higher-order function that takes (1) a function that transforms a single element of a list into some other type, (2) a list of the first type, and produces a list of the second type.
 This means that $\mkwd{map}$ has type $({'a} → {'b}) → {'a}\,\mlist → {'b}\,\mlist$ where ${'a}\,\mlist$ is ML's way of writing down a \emph{polymorphic} or \emph{generic} list.
@@ -15,7 +15,7 @@ Initially, we have the following goal,
   ◼ : ({'a} → {'b}) → {'a}\,\mlist → {'b}\,\mlist,
 \]
 where $◼$ represents our \emph{goal}---the hole in the program we need to fill with an expression.
-Because we are at arrow type, it makes sense to introduce a function:
+Because the hole is at arrow type, it makes sense to introduce a function:
 \[
   \mlet\;\mrec\;\mkwd{map}\;(f{:}{'a} → {'b}) (l{:}{'a}\,\mlist) : {'b}\,\mlist = ◼ : {'b}\,\mlist.
 \]
@@ -39,7 +39,7 @@ We are left with two goal expressions to fill in, both of type ${'b}\,\mlist$, c
 
 In the $\mNil$ branch, we know the input $l$ is the empty $\mlist$ at this point in the program, so it is sensible to produce the empty list.
 In the $\mCons$ branch, we know that the $\mlist$ has at least one element $x$ of type ${'a}\,\mlist$ and we have a handle on the rest of the list ${l'}$.
-With $x$, we now have a way of manufacturing a ${'b}\,\mlist$: applying $x$ to $f$!
+With $x$, we now have a way of manufacturing a ${'b}\,\mlist$: applying $x$ to $f$.
 With this, we can transform the head of list $l$ and the cons that onto the result of recursively mapping over the tail of $l$.
 Thus, the final program is:
 \[
@@ -66,7 +66,7 @@ As you can imagine, program synthesis is a very difficult problem---we are still
 However, it is worth pursuing because the benefits of program synthesis technology are immense.
 By synthesizing a program from a specification, we guarantee that the program agrees with that specification by virtue of the synthesis process.
 If that specification includes properties such as correctness or safety, then the program will enjoy those properties automatically.
-Furthermore, very often it is easier to write down a specification of how a program should work than write the program itself, especially if that specification is partial, for example, a collection of input/output examples or a demonstration of how the program should work.
+Furthermore, it is often easier to write down a specification of how a program should work than to write the program itself, especially if that specification is partial, for example, a collection of input/output examples or a demonstration of how the program should work.
 Program synthesis then becomes a tool that makes the power of computer programs more accessible to people, especially non-programmers, who can signify their intent, but do not know how to translate that intent into a program.
 Finally, because computer programs are general-purpose, synthesizing programs means synthesizing methods of solving any task we can express as a program.
 This might mean deriving a complex program to determine the trajectory of a rocket or simply automating the task of entering data into a spreadsheet~\citep{gulwani-popl-2011}.
@@ -79,7 +79,7 @@ By studying program synthesis through the lens of type theory, we hope to bring 
 \section{The Landscape of Program Synthesis}
 \label{sec:the-landscape-of-program-synthesis}
 
-Many sub-disciplines within computer science tackle the problem of search in different ways, and as a result, these disciplines all have unique perspectives into program synthesis.
+Many sub-disciplines within computer science tackle the problem of search in different ways, and as a result, these disciplines all have unique perspectives on program synthesis.
 The earliest such efforts came out of artificial intelligence and automatic theorem proving communities during the 60s and 70s~\citep{green-ijcai-1969, summers-popl-1976}.
 Since then approaches from machine learning~\citep{lau-thesis-2001, briggs-kes-2008, weimer-icse-2009}, formal methods~\citep{srivastava-popl-2010, bodik-popl-2010, kuncak-pldi-2010}, and programming language theory~\citep{albarghouthi-cav-2013, gvero-pldi-2013, scherer-icfp-2015} have all been applied to the program synthesis.
 Today, the field has seen a large resurgence in interest due to a number of factors:
@@ -122,7 +122,7 @@ Rather they employ a \emph{guess-and-check} approach where they enumerate candid
 For example Katayama's \textsc{MagicHaskeller}~\citep{katayama-pepm-2012} enumerates programs according to a set of
 logical rules and permitted components and evaluates them against user-provided input/output examples.
 And Albarghouthi's \textsc{Escher}~\citep{albarghouthi-cav-2013} builds up increasingly complicated components from atoms (\ie, variables and constants) and tests whether those atoms satisfy the examples.
-Notably, when the system requires additional examples such as when it evaluates a recursive function call, \textsc{Escher} queries the user to provide additional examples.
+Notably, when the system requires additional examples, such as when it evaluates a recursive function call, \textsc{Escher} queries the user to provide additional examples.
 \textsc{LaSy}~\citep{perelman-pldi-2014} provides an example-driven framework for synthesizing programs in expert-written domain-specific languages.
 Finally, Feser's $λ^2$ system~\citep{feser-pldi-2015} also enumerates programs and checks them against examples.
 However, unlike previous efforts, they \emph{refine} examples as they synthesize expressions, producing new examples appropriate for synthesizing the sub-expressions of this overall expression.
@@ -132,41 +132,41 @@ Notably, these final approaches blur the line between the AI/logical tradition o
 }
 
 Note that while not directly related to program synthesis, because they explore the search space of programs through term enumeration, these guess-and-check inductive programming approaches share many concerns with \emph{automatic test generation}~\citep{claessen-flp-2014, grygiel-jfp-2013, yakushev-aaip-2010}.
-In particular when enumerating terms, we want to avoid generating redundant or otherwise unnecessary terms, in particular, terms that are equivalent to terms that we have already generated.
+In particular when enumerating terms, we want to avoid generating redundant or otherwise unnecessary terms, in particular, terms that are equivalent to previously generated terms.
 
 \paragraph{Machine Learning Techniques}
 
-Bridging the gap between logic and machine learning are \emph{inductive logic programming} (ILP)~\citep{muggleton-jlp-1994} techniques that apply machine learning towards problems expressed in first-order logic, \ie, Prolog programs.
-Inductive logic programming is an umbrella term representing an entire subfield of machine learning that employs this methodology towards solving learning-based problems; inductive logic programming synthesis~\citep{flener-jlp-1999}, apply these techniques specifically towards program synthesis.
-For example, \citet{sankaranarayanan-icse-2008} use ILP to mine library specifcations by running unit tests on a library to gather information about the operations of the library.
+Bridging the gap between logic and machine learning are \emph{inductive logic programming} (ILP)~\citep{muggleton-jlp-1994} techniques that apply machine learning to problems expressed in first-order logic, \ie, Prolog programs.
+Inductive logic programming is an umbrella term representing an entire subfield of machine learning that employs this methodology for solving learning-based problems.Researchers that study inductive logic programming synthesis~\citep{flener-jlp-1999} apply these techniques specifically to program synthesis.
+For example, \citet{sankaranarayanan-icse-2008} use ILP to mine library specifications by running unit tests on a library to gather information about the operations of the library.
 This information is then processed using ILP to produce Prolog specifications of the library's behavior.
 
 Other approaches rooted in machine learning have been applied to program synthesis as well.
-For example, genetic programming techniques have been used by \citet{briggs-kes-2008} to synthesize combinator expressions in a typed, functional programming language and by \citet{weimer-icse-2009} to automatically local bugs and derive patches in legacy C code.
+For example, genetic programming techniques have been used by \citet{briggs-kes-2008} to synthesize combinator expressions in a typed, functional programming language and by \citet{weimer-icse-2009} to automatically locate bugs and derive patches in legacy C code.
 \citet{gulwani-popl-2007} used probabilistic inference to synthesize imperative programs from input/output examples.
 And finally, \citet{lau-thesis-2001} in her thesis developed version space algebras to synthesize text editor macros from examples---here, demonstrations by the user of the text macro they intended for the system to synthesize.
 
 \paragraph{Verification-based Techniques}
 
-The most recent efforts into program synthesis lie in the programming languages community.
+The most recent efforts in program synthesis lie in the programming languages community.
 In particular, as off-the-shelf SAT and SMT solver technology like the Z3 theorem prover~\citep{demoura-tacas-2008} rapidly matured over the last decade, the verification community has been quick to take advantage of their power.
 With respect to program synthesis, this means transforming the specification given by the user into a series of constraints that can be discharged by the solver.
 The output of the solver can then be used to guide the search process accordingly.
 
 The most well-known use of solver technology in program synthesis is Solar-Lezama's \textsc{Sketch}~\citep{solar-lezama-thesis-2008}.
 Sketch allows users to write skeletons of Java-like programs annotated with holes whose contents are specified by generator expressions that describe the allowable set of program constructs for those holes.
-Sketch then translates the constraints on those holes, \eg assertions or reference implementations, into satisfiability equations which are then discharged to a SMT solver using Counterexample Guided Inductive Synthesis (CEGIS).
+Sketch then translates the constraints on those holes, \eg, assertions or reference implementations, into satisfiability equations which are then discharged by a SMT solver using Counterexample Guided Inductive Synthesis (CEGIS).
 Other work that uses solver technology in synthesis includes \citet{bodik-popl-2010}'s work to support incremental program develop with holes and examples, called \emph{angelic nondeterminism} and Torlak's \textsc{Rosette} which supports the development of solver-aided domain specific languages~\citep{torlak-pldi-2014}.
 
-In many of these situations, we can refine the problem domain sufficiently that we can restrict the syntax of allowed programs to a small subset, called \emph{syntax-guided synthesis}~\citep{alur-fmcad-2013}.
+In many of these situations, we can refine the problem domain sufficiently that we can restrict the syntax of allowed programs to a small subset, an approach called \emph{syntax-guided synthesis}~\citep{alur-fmcad-2013}.
 For example, \citet{singh-pldi-2013} use this approach in the context of generating automatic feedback for introductory programs.
 The restricted syntax, provided by an instructor using their system, captures the likely set of mistakes that a student might make on an assignment.
 \citet{gulwani-popl-2011} also use a restricted synthesis domain to capture string processing behavior.
 This synthesis technology is used, in turn, to implement the \textsc{FlashFill} feature of Microsoft Excel.
 
 In addition to satisfiability solvers, other verification technology has been re-appropriated for the purposes of program synthesis.
-In particular techniques that leverage types, the focus of this thesis, have been explored to some degree.
-For example \textsc{Djinn}~\citep{augustsson-2004} synthesize Haskell programs from highly refined type signatures.
+In particular, techniques that leverage types, the focus of this dissertation, have been explored to some degree.
+For example \textsc{Djinn}~\citep{augustsson-2004} synthesizes Haskell programs from highly refined type signatures.
 \textsc{Prospector}~\citep{mandelin-pldi-2005}, Perelman's auto-completion tool for C\# programs~\citep{perelman-pldi-2012}, and \textsc{InSynth}~\citep{gvero-pldi-2013} all leverage types to accomplish code auto-completion.
 Most recently, $λ^2$~\citep{feser-pldi-2015} uses types to refine the input/output examples that they receive, and \citet{scherer-icfp-2015} phrase program synthesis in terms of type inhabitation.
 
@@ -200,7 +200,7 @@ The basis of our foundation is a technique for transforming a programming langua
 This transformation allows us to gain immediate insight into how to synthesize programs and refine examples of particular types.
 In some cases, this insight alone is sufficient to integrate a new type into our synthesis systems; in others, we must address additional issues that arise when synthesizing programs of these types.
 
-We begin by applying this technique over the simplest type system possible, the simply-typed lambda calculus (\autoref{ch:a-simple-synthesis-calculus}).
+We begin by applying this technique to the simplest type system possible, the simply-typed lambda calculus (\autoref{ch:a-simple-synthesis-calculus}).
 The resulting \emph{synthesis calculus}, \lsyn{}, allows us to explore in detail the transformation process as well as how these resulting synthesis systems operate.
 We then begin integrating additional types into the mix with the goal of arriving at a synthesis system for a more realistic typed, functional programming language.
 First, we consider simple extensions to the simply-typed lambda calculus---products, records, and sums (\autoref{ch:simple-type-extensions}).
@@ -223,7 +223,7 @@ The synthesis calculi we develop in our work give us a basic understanding of th
 Consequently, in addition to understanding type-directed program synthesis from a theoretical perspective, we would like to know empirically how these systems behave on real-world examples.
 
 To do this, we take the calculus closest to a real-world typed, functional programming language, \mlsyn{}, and transform it into an actual program synthesizer, \myth{}, for a core subset of the OCaml programming language~(\autoref{ch:implementation}).
-Because our program synthesizer is type-theoretic, we are able to adapt several proof search techniques into our domain---various caching schemes and search pruning heuristics---to greatly optimize the synthesis procedure.
+Because our program synthesizer is type-theoretic, we are able to adapt several proof search techniques for our domain---various caching schemes and search pruning heuristics---to greatly optimize the synthesis procedure.
 Furthermore, thanks to our theoretical foundations, we are able to analyze the impact of these optimizations on the soundness and completeness of our system.
 Finally, we evaluate \myth{}'s effectiveness on a benchmark suite of functional programs and explore \myth{}'s behavior on these examples~(\autoref{ch:evaluating-myth}).
 

@@ -3,7 +3,7 @@
     \begin{gather*}
       \fbox{\mbox{$Γ ⊢ τ ⇝ e$}} \qquad
         \inferrule[gen-var]
-          {x ∈ Γ}
+          {x{:}τ ∈ Γ}
           {Γ ⊢ τ ⇝ x} \qquad
         \inferrule[gen-app]
           {Γ ⊢ τ_1 → τ_2 ⇝ e_1 \\ Γ ⊢ τ_1 ⇝ e_2}
